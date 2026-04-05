@@ -1,0 +1,1655 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>灵魂地图 · 16 种人格原型</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+
+:root {
+  --ink: #1a1410;
+  --parchment: #f5f0e8;
+  --gold: #c9a84c;
+  --gold-light: #e8d5a3;
+  --rust: #8b3a2a;
+  --sage: #4a6741;
+  --slate: #3d4f5c;
+  --mist: #e8eef0;
+  --deep: #0d1117;
+  --accent: #d4762a;
+  --purple: #5c4a7a;
+  --teal: #2a6b6e;
+  /* rarity palette */
+  --legendary: #b892ff;
+  --rare: #ffd770;
+  --uncommon: #8ad4c8;
+  --common: #a8a8a8;
+  /* dimension hues (10) */
+  --d0: #c9a84c; --d1: #d4762a; --d2: #8b3a2a; --d3: #4a6741;
+  --d4: #2a6b6e; --d5: #5c4a7a; --d6: #3d4f5c; --d7: #b892ff;
+  --d8: #e8d5a3; --d9: #ffd770;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Noto Sans SC', sans-serif;
+  background: var(--deep);
+  color: var(--parchment);
+  height: 100vh;
+  overflow: hidden;
+  cursor: none;
+}
+
+.cursor-dot, .cursor-ring { position: fixed; pointer-events: none; z-index: 9999; border-radius: 50%; transform: translate(-50%, -50%); top: 0; left: 0; }
+.cursor-dot { width: 6px; height: 6px; background: var(--gold); mix-blend-mode: screen; transition: width 0.2s, height 0.2s, background 0.2s; }
+.cursor-ring { width: 36px; height: 36px; border: 1.5px solid rgba(201,168,76,0.5); transition: width 0.3s ease, height 0.3s ease, border-color 0.3s, transform 0.15s ease-out; }
+.cursor-ring.hover { width: 56px; height: 56px; border-color: var(--gold); background: rgba(201,168,76,0.05); }
+@media (pointer: coarse) { body { cursor: auto; } .cursor-dot, .cursor-ring { display: none; } }
+
+#starfield { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+#particles { position: fixed; inset: 0; z-index: 50; pointer-events: none; }
+
+.screen {
+  position: fixed; inset: 0; z-index: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 2rem;
+  opacity: 0; pointer-events: none; visibility: hidden;
+  transition: opacity 0.7s ease, visibility 0.7s;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.screen.active { opacity: 1; pointer-events: all; visibility: visible; z-index: 2; }
+
+/* ===== INTRO ===== */
+#intro { text-align: center; background: radial-gradient(ellipse at center, #1a1a2e 0%, #0d1117 70%); }
+.mandala { width: 220px; height: 220px; margin: 0 auto 3rem; position: relative; }
+.mandala-ring { position: absolute; inset: 0; border-radius: 50%; border: 1px solid rgba(201,168,76,0.3); animation: spin var(--speed) linear infinite; }
+.mandala-ring:nth-child(1) { --speed: 20s; border-color: rgba(201,168,76,0.5); }
+.mandala-ring:nth-child(2) { inset: 15%; --speed: 15s; animation-direction: reverse; border-style: dashed; }
+.mandala-ring:nth-child(3) { inset: 30%; --speed: 10s; border-color: rgba(201,168,76,0.8); }
+.mandala-ring:nth-child(4) { inset: 45%; --speed: 8s; animation-direction: reverse; border-color: rgba(212,118,42,0.6); }
+.mandala-core { position: absolute; inset: 46%; border-radius: 50%; background: var(--gold); box-shadow: 0 0 20px rgba(201,168,76,0.5), 0 0 60px rgba(201,168,76,0.3), 0 0 120px rgba(201,168,76,0.15); animation: pulse 3s ease-in-out infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+
+.hero-title { font-family: 'Noto Serif SC', serif; font-size: clamp(2.5rem, 6vw, 4.5rem); font-weight: 700; letter-spacing: 0.15em; color: var(--gold); text-shadow: 0 0 40px rgba(201,168,76,0.4); margin-bottom: 0.5rem; animation: fadeUp 1.2s 0.3s both; }
+.hero-sub { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.2rem; color: rgba(245,240,232,0.6); letter-spacing: 0.1em; margin-bottom: 2rem; animation: fadeUp 1.2s 0.6s both; }
+.hero-desc { max-width: 580px; font-size: 1rem; line-height: 1.9; color: rgba(245,240,232,0.75); margin-bottom: 2rem; animation: fadeUp 1.2s 0.9s both; }
+.hero-meta { display: flex; gap: 2rem; justify-content: center; margin-bottom: 2.5rem; animation: fadeUp 1.2s 1.1s both; flex-wrap: wrap; }
+.hero-meta-item { text-align: center; }
+.hero-meta-num { font-family: 'Playfair Display', serif; font-size: 1.8rem; color: var(--gold); }
+.hero-meta-label { font-size: 0.7rem; letter-spacing: 0.2em; color: rgba(245,240,232,0.4); text-transform: uppercase; }
+
+.name-input-row { display: flex; gap: 0.5rem; justify-content: center; margin-bottom: 1.5rem; animation: fadeUp 1.2s 1.3s both; }
+.name-input { padding: 0.85rem 1.25rem; background: rgba(245,240,232,0.05); border: 1px solid rgba(201,168,76,0.3); color: var(--parchment); font-family: 'Noto Serif SC', serif; font-size: 1rem; letter-spacing: 0.08em; text-align: center; outline: none; transition: all 0.3s; min-width: 220px; }
+.name-input:focus { border-color: var(--gold); background: rgba(201,168,76,0.08); box-shadow: 0 0 20px rgba(201,168,76,0.15); }
+
+@keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+.cta-btn { display: inline-flex; align-items: center; gap: 0.75rem; padding: 1rem 2.5rem; background: transparent; border: 1.5px solid var(--gold); color: var(--gold); font-family: 'Noto Sans SC', sans-serif; font-size: 1rem; letter-spacing: 0.15em; cursor: pointer; transition: all 0.4s ease; animation: fadeUp 1.2s 1.5s both; position: relative; overflow: hidden; }
+.cta-btn::before { content: ''; position: absolute; inset: 0; background: var(--gold); transform: scaleX(0); transform-origin: left; transition: transform 0.4s ease; z-index: -1; }
+.cta-btn:hover { color: var(--deep); }
+.cta-btn:hover::before { transform: scaleX(1); }
+.cta-btn svg { transition: transform 0.3s; }
+.cta-btn:hover svg { transform: translateX(4px); }
+
+/* ===== PROLOGUE ===== */
+#prologue { background: linear-gradient(160deg, #1a1a2e, #0d1117 80%); text-align: center; }
+.prologue-inner { max-width: 680px; }
+.prologue-eyebrow { font-family: 'Playfair Display', serif; font-style: italic; color: rgba(201,168,76,0.7); letter-spacing: 0.2em; margin-bottom: 1.5rem; font-size: 0.85rem; }
+.prologue-title { font-family: 'Noto Serif SC', serif; font-size: clamp(1.8rem, 4vw, 2.6rem); color: var(--gold); margin-bottom: 2rem; line-height: 1.4; }
+.prologue-text { font-size: 1rem; line-height: 2.1; color: rgba(245,240,232,0.78); margin-bottom: 1.2rem; text-align: left; }
+.prologue-text:first-letter { font-size: 2.4rem; font-family: 'Noto Serif SC', serif; color: var(--gold); float: left; line-height: 1; margin-right: 0.3rem; margin-top: 0.2rem; }
+
+/* ===== JOURNEY INTRO ===== */
+#journey-intro { background: linear-gradient(160deg, #1a1a2e, #0f2027); text-align: center; }
+.journey-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; max-width: 820px; margin: 2.5rem auto; }
+.journey-step { padding: 1.25rem; border: 1px solid rgba(201,168,76,0.2); position: relative; opacity: 0; transform: translateY(20px); transition: all 0.5s ease; background: rgba(201,168,76,0.02); }
+.journey-step.revealed { opacity: 1; transform: translateY(0); }
+.journey-step:hover { border-color: rgba(201,168,76,0.5); background: rgba(201,168,76,0.06); }
+.step-num { font-family: 'Playfair Display', serif; font-size: 2.2rem; color: rgba(201,168,76,0.25); line-height: 1; margin-bottom: 0.4rem; }
+.step-title { font-weight: 500; color: var(--gold); margin-bottom: 0.35rem; font-size: 0.95rem; }
+.step-desc { font-size: 0.75rem; color: rgba(245,240,232,0.55); line-height: 1.5; }
+
+/* ===== QUIZ ===== */
+#quiz { background: #0d1117; justify-content: flex-start; padding: 0; overflow: hidden; }
+.quiz-header { width: 100%; padding: 1rem 2rem; display: flex; align-items: center; gap: 1.5rem; border-bottom: 1px solid rgba(245,240,232,0.08); background: rgba(13,17,23,0.95); backdrop-filter: blur(10px); z-index: 10; flex-shrink: 0; }
+.dimension-badge { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.8rem; border: 1px solid; font-size: 0.72rem; letter-spacing: 0.1em; white-space: nowrap; transition: all 0.4s; }
+.progress-container { flex: 1; min-width: 120px; }
+.progress-label { font-size: 0.72rem; color: rgba(245,240,232,0.4); margin-bottom: 0.4rem; display: flex; justify-content: space-between; }
+.progress-bar { height: 3px; background: rgba(245,240,232,0.1); border-radius: 2px; overflow: hidden; position: relative; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--gold), var(--accent)); border-radius: 2px; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 8px rgba(201,168,76,0.5); }
+.mini-axes { display: flex; gap: 0.5rem; align-items: center; padding-left: 1rem; border-left: 1px solid rgba(245,240,232,0.1); }
+.mini-axis { text-align: center; }
+.mini-axis-name { font-size: 0.6rem; color: rgba(245,240,232,0.35); margin-bottom: 0.2rem; letter-spacing: 0.1em; }
+.mini-axis-bar { width: 34px; height: 2px; background: rgba(245,240,232,0.12); border-radius: 1px; position: relative; }
+.mini-axis-dot { position: absolute; top: 50%; width: 5px; height: 5px; border-radius: 50%; background: var(--gold); transform: translate(-50%, -50%); transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 6px rgba(201,168,76,0.6); }
+
+.quiz-body { width: 100%; max-width: 680px; margin: 0 auto; padding: 1.5rem 2rem 1.25rem; flex: 1 1 auto; display: flex; flex-direction: column; overflow-y: auto; min-height: 0; }
+.question-wrapper { animation: qEnter 0.5s ease both; flex: 1; display: flex; flex-direction: column; }
+@keyframes qEnter { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+.question-meta { font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(245,240,232,0.35); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.75rem; }
+.question-meta::before { content: ''; width: 20px; height: 1px; background: rgba(201,168,76,0.4); }
+.question-text { font-family: 'Noto Serif SC', serif; font-size: clamp(1.1rem, 2.3vw, 1.35rem); line-height: 1.7; color: var(--parchment); margin-bottom: 0.6rem; }
+.question-intent { font-size: 0.82rem; color: rgba(201,168,76,0.65); font-style: italic; margin-bottom: 1.5rem; padding: 0.5rem 0 0.5rem 1rem; border-left: 2px solid rgba(201,168,76,0.35); font-family: 'Noto Serif SC', serif; line-height: 1.6; letter-spacing: 0.02em; }
+
+.scale-container { margin-bottom: 1.25rem; }
+.scale-labels { display: flex; justify-content: space-between; font-size: 0.75rem; color: rgba(245,240,232,0.45); margin-bottom: 1rem; }
+.scale-buttons { display: flex; gap: 0.5rem; align-items: center; justify-content: space-between; }
+.scale-btn { flex: 1; aspect-ratio: 1; max-width: 56px; border-radius: 50%; border: 1.5px solid rgba(245,240,232,0.15); background: transparent; color: rgba(245,240,232,0.5); cursor: pointer; font-size: 0.85rem; font-family: 'Noto Serif SC', serif; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; position: relative; }
+.scale-btn:hover { border-color: var(--gold); color: var(--gold); transform: scale(1.12) translateY(-2px); }
+.scale-btn.selected { background: var(--gold); border-color: var(--gold); color: var(--deep); transform: scale(1.18); box-shadow: 0 0 24px rgba(201,168,76,0.5); animation: pop 0.4s ease; }
+@keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1.18); } }
+
+.choices-container { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.25rem; }
+.choice-btn { padding: 0.75rem 1.1rem; background: transparent; border: 1px solid rgba(245,240,232,0.12); color: rgba(245,240,232,0.75); text-align: left; cursor: pointer; font-family: 'Noto Sans SC', sans-serif; font-size: 0.88rem; line-height: 1.55; transition: all 0.2s ease; position: relative; overflow: hidden; }
+.choice-btn::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--gold); transform: scaleY(0); transition: transform 0.2s ease; }
+.choice-btn:hover { border-color: rgba(201,168,76,0.4); color: var(--parchment); background: rgba(201,168,76,0.05); transform: translateX(4px); }
+.choice-btn:hover::before { transform: scaleY(1); }
+.choice-btn.selected { border-color: var(--gold); color: var(--gold); background: rgba(201,168,76,0.08); transform: translateX(6px); }
+.choice-btn.selected::before { transform: scaleY(1); }
+
+/* hesitation button */
+.hesitate-row { display: flex; justify-content: center; margin-top: 0.75rem; margin-bottom: 1rem; }
+.hesitate-btn { padding: 0.55rem 1.25rem; background: transparent; border: 1px dashed rgba(184,146,255,0.35); color: rgba(184,146,255,0.75); font-family: 'Noto Serif SC', serif; font-size: 0.82rem; letter-spacing: 0.12em; cursor: pointer; transition: all 0.25s; font-style: italic; }
+.hesitate-btn:hover { border-color: var(--legendary); color: var(--legendary); background: rgba(184,146,255,0.06); transform: translateY(-1px); }
+.hesitate-btn.active { border-style: solid; background: rgba(184,146,255,0.12); color: var(--legendary); border-color: var(--legendary); }
+
+.nav-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-shrink: 0; padding: 0.75rem 2rem 1rem; border-top: 1px solid rgba(245,240,232,0.05); background: rgba(13,17,23,0.95); backdrop-filter: blur(10px); max-width: 680px; margin: 0 auto; width: 100%; }
+.nav-hint { font-size: 0.7rem; color: rgba(245,240,232,0.3); letter-spacing: 0.1em; text-align: center; }
+.nav-hint kbd { display: inline-block; padding: 1px 6px; border: 1px solid rgba(245,240,232,0.2); border-radius: 3px; font-size: 0.65rem; margin: 0 2px; color: rgba(245,240,232,0.5); }
+.nav-btn { padding: 0.7rem 1.4rem; border: 1px solid rgba(245,240,232,0.2); background: transparent; color: rgba(245,240,232,0.6); cursor: pointer; font-family: 'Noto Sans SC', sans-serif; font-size: 0.85rem; transition: all 0.25s; }
+.nav-btn:hover { border-color: var(--gold); color: var(--gold); }
+.nav-btn.primary { border-color: var(--gold); color: var(--gold); padding: 0.7rem 1.8rem; }
+.nav-btn.primary:hover { background: var(--gold); color: var(--deep); }
+.nav-btn:disabled { opacity: 0.2; cursor: not-allowed; }
+
+/* ===== INTERLUDE ===== */
+.interlude { position: fixed; inset: 0; z-index: 100; background: radial-gradient(ellipse at center, #1a1a2e, #0d1117 80%); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 2rem; opacity: 0; pointer-events: none; transition: opacity 0.6s; }
+.interlude.show { opacity: 1; pointer-events: all; }
+.interlude-icon { font-size: 3.5rem; margin-bottom: 1.5rem; color: var(--gold); animation: iconFloat 3s ease-in-out infinite; text-shadow: 0 0 30px rgba(201,168,76,0.5); }
+@keyframes iconFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+.interlude-title { font-family: 'Noto Serif SC', serif; font-size: 1.9rem; color: var(--gold); margin-bottom: 1.25rem; animation: fadeUp 0.8s 0.2s both; }
+.interlude-text { max-width: 520px; color: rgba(245,240,232,0.75); line-height: 1.9; font-size: 0.98rem; animation: fadeUp 0.8s 0.4s both; }
+.interlude-quote { max-width: 480px; margin-top: 2rem; font-family: 'Playfair Display', serif; font-style: italic; font-size: 1rem; color: rgba(201,168,76,0.7); padding: 1rem 2rem; border-top: 1px solid rgba(201,168,76,0.2); border-bottom: 1px solid rgba(201,168,76,0.2); animation: fadeUp 0.8s 0.6s both; }
+.quote-author { font-size: 0.75rem; color: rgba(245,240,232,0.4); margin-top: 0.5rem; font-style: normal; }
+.dim-dots { display: flex; gap: 0.5rem; margin-top: 2rem; animation: fadeUp 0.8s 0.8s both; }
+.dim-dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(245,240,232,0.15); transition: all 0.4s; }
+.dim-dot.done { background: var(--gold); }
+.interlude-cta { margin-top: 1.5rem; padding: 0.7rem 1.6rem; background: transparent; border: 1px solid var(--gold); color: var(--gold); font-family: 'Noto Sans SC', sans-serif; font-size: 0.85rem; letter-spacing: 0.15em; cursor: pointer; transition: all 0.25s; animation: fadeUp 0.8s 1s both; }
+.interlude-cta:hover { background: var(--gold); color: var(--deep); }
+
+/* ===== CALCULATING ===== */
+#calculating { background: radial-gradient(circle at center, #1a1a2e, #0d1117); text-align: center; }
+.calc-mandala { width: 180px; height: 180px; margin: 0 auto 2rem; position: relative; }
+.calc-title { font-family: 'Noto Serif SC', serif; font-size: 1.8rem; color: var(--gold); margin-bottom: 0.75rem; }
+.calc-subtitle { font-size: 0.9rem; color: rgba(245,240,232,0.55); letter-spacing: 0.15em; margin-bottom: 2rem; }
+.calc-progress { width: 260px; margin: 0 auto; }
+.calc-bar { height: 2px; background: rgba(245,240,232,0.1); overflow: hidden; }
+.calc-fill { height: 100%; background: var(--gold); width: 0; transition: width 0.2s linear; box-shadow: 0 0 12px rgba(201,168,76,0.6); }
+.calc-step { margin-top: 0.75rem; font-size: 0.75rem; color: rgba(245,240,232,0.4); letter-spacing: 0.1em; }
+
+/* ===== AXES REVEAL ===== */
+#axes-reveal { background: linear-gradient(180deg, #0f1624, #0d1117); text-align: center; }
+.reveal-title { font-family: 'Noto Serif SC', serif; font-size: 1.8rem; color: var(--gold); margin-bottom: 0.5rem; }
+.reveal-sub { font-size: 0.9rem; color: rgba(245,240,232,0.55); letter-spacing: 0.12em; margin-bottom: 2.5rem; }
+.vertical-axes { display: flex; gap: 2rem; justify-content: center; align-items: flex-start; margin-bottom: 2.5rem; }
+.vaxis { display: flex; flex-direction: column; align-items: center; width: 120px; }
+.vaxis-label-top { font-size: 0.72rem; color: rgba(201,168,76,0.7); letter-spacing: 0.1em; margin-bottom: 0.5rem; font-family: 'Noto Serif SC', serif; }
+.vaxis-bar { width: 3px; height: 180px; background: rgba(245,240,232,0.12); position: relative; border-radius: 2px; }
+.vaxis-mid { position: absolute; top: 50%; left: -6px; right: -6px; height: 1px; background: rgba(245,240,232,0.2); }
+.vaxis-dot { position: absolute; left: 50%; width: 18px; height: 18px; border-radius: 50%; background: var(--gold); transform: translate(-50%, -50%) scale(0); box-shadow: 0 0 20px rgba(201,168,76,0.7); transition: transform 0.8s cubic-bezier(.2,.8,.2,1), top 1s cubic-bezier(.2,.8,.2,1); }
+.vaxis-dot.revealed { transform: translate(-50%, -50%) scale(1); }
+.vaxis-name { font-size: 0.95rem; color: var(--gold); margin-top: 1rem; letter-spacing: 0.15em; font-family: 'Noto Serif SC', serif; font-weight: 500; }
+.vaxis-score { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--parchment); margin-top: 0.25rem; }
+.vaxis-label-bot { font-size: 0.72rem; color: rgba(201,168,76,0.7); letter-spacing: 0.1em; margin-top: 0.5rem; font-family: 'Noto Serif SC', serif; }
+
+/* ===== REVEAL CEREMONY ===== */
+#reveal { background: radial-gradient(ellipse at center, #1a1a2e, #05060c 90%); text-align: center; padding: 2rem 1.5rem; }
+.reveal-stage { max-width: 640px; width: 100%; }
+.reveal-rarity-wrap { display: flex; flex-direction: column; align-items: center; opacity: 0; transition: opacity 0.8s; }
+.reveal-rarity-wrap.show { opacity: 1; }
+.rarity-num { font-family: 'Playfair Display', serif; font-size: clamp(4rem, 12vw, 7rem); font-weight: 700; color: var(--gold); line-height: 1; text-shadow: 0 0 50px rgba(201,168,76,0.4); }
+.rarity-label { font-size: 0.85rem; letter-spacing: 0.3em; color: rgba(245,240,232,0.55); margin-top: 0.5rem; text-transform: uppercase; }
+.rarity-tier { font-family: 'Noto Serif SC', serif; font-size: 1.4rem; margin-top: 1rem; letter-spacing: 0.2em; }
+.rarity-tier.legendary { color: var(--legendary); text-shadow: 0 0 30px rgba(184,146,255,0.5); }
+.rarity-tier.rare { color: var(--rare); text-shadow: 0 0 30px rgba(255,215,112,0.5); }
+.rarity-tier.uncommon { color: var(--uncommon); text-shadow: 0 0 30px rgba(138,212,200,0.5); }
+.rarity-tier.common { color: var(--common); }
+.reveal-intensities { display: flex; flex-direction: column; gap: 1rem; margin-top: 2rem; }
+.reveal-int-row { display: flex; align-items: center; gap: 1rem; padding: 0.75rem 1rem; border: 1px solid rgba(201,168,76,0.15); opacity: 0; transform: translateX(-20px); transition: all 0.6s; }
+.reveal-int-row.show { opacity: 1; transform: translateX(0); }
+.reveal-int-axis { font-family: 'Noto Serif SC', serif; font-size: 1.3rem; color: var(--gold); width: 50px; flex-shrink: 0; }
+.reveal-int-grade { flex: 1; text-align: left; font-size: 0.9rem; color: var(--parchment); letter-spacing: 0.08em; }
+.reveal-int-score { font-family: 'Playfair Display', serif; color: rgba(201,168,76,0.8); font-size: 1.1rem; }
+.reveal-name { font-family: 'Noto Serif SC', serif; font-size: clamp(2.4rem, 7vw, 3.8rem); font-weight: 700; color: var(--gold); text-shadow: 0 0 40px rgba(201,168,76,0.5); margin-bottom: 0.5rem; opacity: 0; transform: translateY(20px); transition: all 1s; letter-spacing: 0.05em; }
+.reveal-name.show { opacity: 1; transform: translateY(0); }
+.reveal-tag { font-size: 1rem; color: var(--legendary); letter-spacing: 0.2em; margin-bottom: 1rem; opacity: 0; transition: opacity 1s 0.3s; }
+.reveal-tag.show { opacity: 1; }
+.reveal-slogan { font-family: 'Noto Serif SC', serif; font-style: italic; font-size: 1.15rem; color: rgba(245,240,232,0.85); margin: 1.5rem auto; max-width: 500px; line-height: 1.7; opacity: 0; transform: scale(0.95); transition: all 1s; }
+.reveal-slogan.show { opacity: 1; transform: scale(1); }
+.reveal-continue { margin-top: 2rem; padding: 0.9rem 2.2rem; background: transparent; border: 1.5px solid var(--gold); color: var(--gold); font-family: 'Noto Sans SC', sans-serif; font-size: 0.9rem; letter-spacing: 0.2em; cursor: pointer; transition: all 0.3s; animation: revealPulse 2s infinite; }
+.reveal-continue:hover { background: var(--gold); color: var(--deep); animation: none; }
+@keyframes revealPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(201,168,76,0.4); } 50% { box-shadow: 0 0 0 12px rgba(201,168,76,0); } }
+.reveal-skip { position: fixed; top: 1.5rem; right: 1.5rem; background: transparent; border: 1px solid rgba(245,240,232,0.2); color: rgba(245,240,232,0.5); padding: 0.4rem 0.9rem; font-size: 0.75rem; letter-spacing: 0.12em; cursor: pointer; transition: all 0.25s; }
+.reveal-skip:hover { border-color: var(--gold); color: var(--gold); }
+
+/* ===== RESULT ===== */
+#result { background: #0d1117; justify-content: flex-start; padding: 0; overflow-y: auto; }
+.result-inner { width: 100%; max-width: 880px; margin: 0 auto; padding: 3rem 2rem 4rem; }
+.result-hero { text-align: center; padding: 2rem 0 3rem; border-bottom: 1px solid rgba(201,168,76,0.15); position: relative; }
+.result-rarity-badge { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.4rem 1rem; border-radius: 20px; border: 1px solid; font-size: 0.72rem; letter-spacing: 0.2em; margin-bottom: 1.5rem; text-transform: uppercase; }
+.result-rarity-badge.legendary { border-color: var(--legendary); color: var(--legendary); background: rgba(184,146,255,0.08); }
+.result-rarity-badge.rare { border-color: var(--rare); color: var(--rare); background: rgba(255,215,112,0.08); }
+.result-rarity-badge.uncommon { border-color: var(--uncommon); color: var(--uncommon); background: rgba(138,212,200,0.08); }
+.result-rarity-badge.common { border-color: var(--common); color: var(--common); background: rgba(168,168,168,0.08); }
+.result-illus { width: 150px; height: 150px; margin: 0 auto 1.5rem; }
+.result-code { font-family: 'Playfair Display', serif; font-size: 0.8rem; color: rgba(201,168,76,0.6); letter-spacing: 0.3em; margin-bottom: 0.4rem; }
+.result-poetic-name { font-family: 'Noto Serif SC', serif; font-size: clamp(2.2rem, 5vw, 3rem); font-weight: 700; color: var(--gold); margin-bottom: 0.5rem; letter-spacing: 0.05em; text-shadow: 0 0 30px rgba(201,168,76,0.3); }
+.result-identity-tag { font-size: 0.95rem; color: var(--legendary); letter-spacing: 0.2em; margin-bottom: 1.2rem; }
+.result-slogan { font-family: 'Noto Serif SC', serif; font-style: italic; font-size: 1.05rem; color: rgba(245,240,232,0.85); max-width: 540px; margin: 0 auto 1.5rem; line-height: 1.8; padding: 1rem 1.5rem; border-top: 1px solid rgba(201,168,76,0.15); border-bottom: 1px solid rgba(201,168,76,0.15); }
+.result-player-name { font-size: 0.85rem; color: rgba(245,240,232,0.55); letter-spacing: 0.15em; }
+
+.result-section { margin: 3rem 0; opacity: 0; transform: translateY(20px); transition: all 0.7s; }
+.result-section.visible { opacity: 1; transform: translateY(0); }
+.section-title { font-family: 'Noto Serif SC', serif; font-size: 1.3rem; color: var(--gold); margin-bottom: 1.2rem; padding-bottom: 0.6rem; border-bottom: 1px solid rgba(201,168,76,0.18); letter-spacing: 0.08em; display: flex; align-items: center; gap: 0.75rem; }
+.section-title::before { content: ''; width: 4px; height: 18px; background: var(--gold); border-radius: 2px; }
+.section-body { font-size: 0.95rem; line-height: 1.9; color: rgba(245,240,232,0.82); }
+.section-body p { margin-bottom: 0.8rem; }
+
+.intensity-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; }
+.intensity-card { padding: 1rem; border: 1px solid rgba(201,168,76,0.2); background: rgba(201,168,76,0.03); text-align: center; }
+.int-axis-name { font-family: 'Noto Serif SC', serif; color: var(--gold); font-size: 1.1rem; margin-bottom: 0.3rem; letter-spacing: 0.1em; }
+.int-grade { font-size: 0.9rem; color: var(--parchment); margin-bottom: 0.2rem; letter-spacing: 0.08em; }
+.int-score { font-family: 'Playfair Display', serif; font-size: 0.85rem; color: rgba(201,168,76,0.6); }
+
+.figures-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.85rem; }
+.figure-card { padding: 0.9rem; border: 1px solid rgba(245,240,232,0.1); background: rgba(245,240,232,0.02); transition: all 0.3s; }
+.figure-card:hover { border-color: rgba(201,168,76,0.4); background: rgba(201,168,76,0.04); transform: translateY(-2px); }
+.figure-name { color: var(--gold); font-weight: 500; font-size: 0.92rem; margin-bottom: 0.3rem; }
+.figure-desc { font-size: 0.78rem; color: rgba(245,240,232,0.6); line-height: 1.5; }
+
+.quotes-list { display: flex; flex-direction: column; gap: 0.85rem; }
+.quote-card { padding: 1rem 1.25rem; border-left: 2px solid rgba(201,168,76,0.35); background: rgba(201,168,76,0.02); }
+.quote-text { font-family: 'Noto Serif SC', serif; font-style: italic; font-size: 0.95rem; line-height: 1.7; color: rgba(245,240,232,0.85); }
+.quote-attr { font-size: 0.75rem; color: rgba(201,168,76,0.7); margin-top: 0.5rem; letter-spacing: 0.08em; }
+
+.practices-list { display: flex; flex-direction: column; gap: 0.8rem; }
+.practice-card { padding: 1rem 1.2rem; border: 1px solid rgba(138,212,200,0.25); background: rgba(138,212,200,0.03); display: flex; gap: 1rem; align-items: flex-start; }
+.practice-num { font-family: 'Playfair Display', serif; font-size: 1.6rem; color: var(--uncommon); line-height: 1; flex-shrink: 0; width: 32px; }
+.practice-text { font-size: 0.92rem; line-height: 1.7; color: rgba(245,240,232,0.85); }
+
+.shadow-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+.shadow-card { padding: 1.1rem; border: 1px dashed rgba(184,146,255,0.3); background: rgba(184,146,255,0.03); cursor: pointer; transition: all 0.3s; }
+.shadow-card:hover { border-style: solid; background: rgba(184,146,255,0.08); transform: translateY(-2px); }
+.shadow-label { font-size: 0.7rem; color: rgba(184,146,255,0.7); letter-spacing: 0.2em; margin-bottom: 0.4rem; text-transform: uppercase; }
+.shadow-name { font-family: 'Noto Serif SC', serif; font-size: 1.1rem; color: var(--legendary); margin-bottom: 0.3rem; letter-spacing: 0.05em; }
+.shadow-tag { font-size: 0.78rem; color: rgba(245,240,232,0.6); }
+
+.integration-box { padding: 1.5rem; border: 1px solid rgba(255,215,112,0.25); background: rgba(255,215,112,0.04); text-align: center; }
+.integration-score { font-family: 'Playfair Display', serif; font-size: 3rem; color: var(--rare); line-height: 1; margin-bottom: 0.5rem; text-shadow: 0 0 20px rgba(255,215,112,0.3); }
+.integration-label { font-size: 0.72rem; color: rgba(255,215,112,0.7); letter-spacing: 0.2em; margin-bottom: 1rem; text-transform: uppercase; }
+.integration-text { font-size: 0.92rem; line-height: 1.8; color: rgba(245,240,232,0.82); max-width: 540px; margin: 0 auto; }
+
+.all-archetypes { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; }
+.arch-card { padding: 0.9rem; border: 1px solid rgba(245,240,232,0.1); background: rgba(245,240,232,0.02); cursor: pointer; transition: all 0.3s; text-align: center; }
+.arch-card:hover { border-color: var(--gold); background: rgba(201,168,76,0.06); transform: translateY(-2px); }
+.arch-card.current { border-color: var(--gold); background: rgba(201,168,76,0.1); }
+.arch-card .arch-illus { width: 56px; height: 56px; margin: 0 auto 0.5rem; }
+.arch-card .arch-name { font-family: 'Noto Serif SC', serif; font-size: 0.92rem; color: var(--gold); margin-bottom: 0.2rem; letter-spacing: 0.05em; }
+.arch-card .arch-tag { font-size: 0.7rem; color: rgba(245,240,232,0.55); }
+
+/* action row */
+.action-row { display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; margin-top: 2rem; }
+.action-btn { padding: 0.85rem 1.6rem; border: 1px solid var(--gold); background: transparent; color: var(--gold); font-family: 'Noto Sans SC', sans-serif; font-size: 0.85rem; letter-spacing: 0.12em; cursor: pointer; transition: all 0.25s; }
+.action-btn:hover { background: var(--gold); color: var(--deep); }
+.action-btn.ghost { border-color: rgba(245,240,232,0.25); color: rgba(245,240,232,0.65); }
+.action-btn.ghost:hover { border-color: var(--gold); color: var(--gold); background: transparent; }
+.action-btn.legend { border-color: var(--legendary); color: var(--legendary); }
+.action-btn.legend:hover { background: var(--legendary); color: var(--deep); }
+
+/* ===== MODAL ===== */
+.modal-backdrop { position: fixed; inset: 0; z-index: 200; background: rgba(5,6,12,0.85); backdrop-filter: blur(6px); opacity: 0; pointer-events: none; transition: opacity 0.3s; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+.modal-backdrop.show { opacity: 1; pointer-events: all; }
+.modal { max-width: 640px; width: 100%; max-height: 85vh; overflow-y: auto; background: #141821; border: 1px solid rgba(201,168,76,0.25); padding: 2rem; position: relative; }
+.modal-close { position: absolute; top: 1rem; right: 1rem; background: transparent; border: 1px solid rgba(245,240,232,0.2); color: rgba(245,240,232,0.6); width: 30px; height: 30px; cursor: pointer; font-size: 0.9rem; }
+.modal-close:hover { border-color: var(--gold); color: var(--gold); }
+.modal-title { font-family: 'Noto Serif SC', serif; font-size: 1.5rem; color: var(--gold); margin-bottom: 0.5rem; }
+.modal-sub { font-size: 0.85rem; color: rgba(245,240,232,0.6); margin-bottom: 1rem; letter-spacing: 0.1em; }
+.modal-body { font-size: 0.9rem; line-height: 1.8; color: rgba(245,240,232,0.82); }
+
+/* share card modal */
+.share-modal .modal { max-width: 720px; }
+.share-card-preview { display: flex; justify-content: center; margin: 1rem 0; }
+.share-card-preview canvas { max-width: 100%; height: auto; border: 1px solid rgba(201,168,76,0.2); border-radius: 4px; }
+.share-format-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; justify-content: center; }
+.share-format-tab { padding: 0.5rem 1rem; border: 1px solid rgba(245,240,232,0.18); background: transparent; color: rgba(245,240,232,0.65); font-family: 'Noto Sans SC', sans-serif; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; letter-spacing: 0.08em; }
+.share-format-tab:hover { border-color: var(--gold); color: var(--gold); }
+.share-format-tab.active { border-color: var(--gold); background: rgba(201,168,76,0.1); color: var(--gold); }
+
+/* wechat texts */
+.wechat-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; justify-content: center; }
+.wechat-tab { padding: 0.5rem 1rem; border: 1px solid rgba(245,240,232,0.18); background: transparent; color: rgba(245,240,232,0.65); font-family: 'Noto Sans SC', sans-serif; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; letter-spacing: 0.08em; }
+.wechat-tab:hover { border-color: var(--gold); color: var(--gold); }
+.wechat-tab.active { border-color: var(--gold); background: rgba(201,168,76,0.1); color: var(--gold); }
+.wechat-text-box { padding: 1.25rem; background: rgba(245,240,232,0.04); border: 1px solid rgba(201,168,76,0.15); font-family: 'Noto Serif SC', serif; font-size: 0.95rem; line-height: 1.8; color: var(--parchment); white-space: pre-wrap; margin-bottom: 1rem; min-height: 100px; }
+.copy-toast { position: fixed; top: 2rem; left: 50%; transform: translateX(-50%) translateY(-100px); padding: 0.75rem 1.5rem; background: var(--gold); color: var(--deep); border-radius: 4px; font-size: 0.85rem; letter-spacing: 0.1em; z-index: 300; transition: all 0.4s; opacity: 0; }
+.copy-toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+/* compatibility */
+.compat-form { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; justify-content: center; margin: 1rem 0 1.5rem; }
+.compat-form label { font-size: 0.85rem; color: rgba(245,240,232,0.7); letter-spacing: 0.08em; }
+.compat-input { padding: 0.6rem 1rem; background: rgba(245,240,232,0.05); border: 1px solid rgba(201,168,76,0.25); color: var(--parchment); font-family: 'Noto Serif SC', serif; font-size: 0.9rem; letter-spacing: 0.08em; outline: none; min-width: 140px; text-align: center; }
+.compat-input:focus { border-color: var(--gold); }
+.compat-result { padding: 1.5rem; background: rgba(201,168,76,0.05); border: 1px solid rgba(201,168,76,0.25); text-align: center; margin-top: 1rem; }
+.compat-score { font-family: 'Playfair Display', serif; font-size: 3rem; color: var(--gold); line-height: 1; text-shadow: 0 0 20px rgba(201,168,76,0.3); }
+.compat-type { font-size: 0.85rem; color: var(--legendary); letter-spacing: 0.25em; margin-top: 0.5rem; text-transform: uppercase; }
+.compat-desc { font-size: 0.95rem; line-height: 1.8; color: rgba(245,240,232,0.85); margin-top: 1rem; font-family: 'Noto Serif SC', serif; font-style: italic; }
+
+/* responsive */
+@media (max-width: 700px) {
+  .vertical-axes { gap: 0.75rem; }
+  .vaxis { width: 70px; }
+  .vaxis-bar { height: 140px; }
+  .mini-axes { display: none; }
+  .quiz-header { padding: 0.75rem 1rem; gap: 0.75rem; }
+  .quiz-body { padding: 1rem 1rem 1rem; }
+  .nav-row { padding: 0.6rem 1rem 0.8rem; }
+  .nav-hint { display: none; }
+  .result-inner { padding: 2rem 1rem 3rem; }
+}
+
+@media print {
+  body { background: white; color: #1a1410; cursor: auto; height: auto; overflow: visible; }
+  .cursor-dot, .cursor-ring, #starfield, #particles, .nav-row, .quiz-header, .action-row, .modal-backdrop, .reveal-skip, .interlude, .screen:not(#result) { display: none !important; }
+  #result { position: static; opacity: 1; visibility: visible; background: white; overflow: visible; padding: 1cm; }
+  .result-poetic-name, .section-title, .result-rarity-badge, .figure-name { color: #8b3a2a !important; }
+  .result-section { opacity: 1; transform: none; page-break-inside: avoid; }
+  @page { size: A4; margin: 1.5cm; }
+}
+
+/* streak removed; hesitate badge position */
+</style>
+</head>
+<body>
+<canvas id="starfield"></canvas>
+<canvas id="particles"></canvas>
+<div class="cursor-ring"></div>
+<div class="cursor-dot"></div>
+
+<!-- INTRO -->
+<section class="screen active" id="intro">
+  <div class="mandala">
+    <div class="mandala-ring"></div>
+    <div class="mandala-ring"></div>
+    <div class="mandala-ring"></div>
+    <div class="mandala-ring"></div>
+    <div class="mandala-core"></div>
+  </div>
+  <div class="hero-sub">PHILOSOPHICAL SOUL CARTOGRAPHY</div>
+  <h1 class="hero-title">灵 魂 地 图</h1>
+  <p class="hero-desc">在被算法定义之前，先认识自己。<br>40 道题，从东西方哲学的源头出发，画出你灵魂的经纬度。<br>——你是 16 种原型中的哪一种？</p>
+  <div class="hero-meta">
+    <div class="hero-meta-item"><div class="hero-meta-num">40</div><div class="hero-meta-label">Questions</div></div>
+    <div class="hero-meta-item"><div class="hero-meta-num">16</div><div class="hero-meta-label">Archetypes</div></div>
+    <div class="hero-meta-item"><div class="hero-meta-num">4+1</div><div class="hero-meta-label">Axes</div></div>
+  </div>
+  <div class="name-input-row">
+    <input type="text" class="name-input" id="nameInput" placeholder="写下你的名字" maxlength="12">
+  </div>
+  <button class="cta-btn" onclick="enterPrologue()">开启旅程 <svg width="20" height="12" viewBox="0 0 20 12" fill="none"><path d="M1 6h18M13 1l6 5-6 5" stroke="currentColor" stroke-width="1.5"/></svg></button>
+</section>
+
+<!-- PROLOGUE -->
+<section class="screen" id="prologue">
+  <div class="prologue-inner">
+    <div class="prologue-eyebrow">— PROLOGUE · 序 —</div>
+    <h2 class="prologue-title">"认识你自己。"</h2>
+    <p class="prologue-text">两千四百年前，德尔斐神庙的石柱上刻着这句话。苏格拉底说，未经省察的人生不值得过。庄子说，吾生也有涯，而知也无涯。</p>
+    <p class="prologue-text">在这个被算法、人设、标签定义的时代，我们比任何时候都更接近他者的镜像，却离自己越来越远。这份测试不是给你贴标签，而是邀请你——在 40 个问题里，回到那些最古老也最根本的疑问：我是谁？我与世界的关系是什么？何为善？什么值得活？</p>
+    <p class="prologue-text">每一次选择，都是一次对自我的勘探。准备好了吗？</p>
+    <button class="cta-btn" onclick="showScreen('journey-intro'); revealJourneySteps();" style="margin-top:2rem;">进入灵魂之旅 <svg width="20" height="12" viewBox="0 0 20 12" fill="none"><path d="M1 6h18M13 1l6 5-6 5" stroke="currentColor" stroke-width="1.5"/></svg></button>
+  </div>
+</section>
+
+<!-- JOURNEY INTRO -->
+<section class="screen" id="journey-intro">
+  <div class="prologue-eyebrow">10 个维度 · 4 条经纬 · 1 张地图</div>
+  <h2 class="prologue-title" style="font-size:1.8rem;margin-bottom:1rem;">你将穿越的 10 个心灵省份</h2>
+  <div class="journey-steps" id="journeySteps"></div>
+  <button class="cta-btn" onclick="startQuiz()" style="margin-top:1rem;">开始第一题 <svg width="20" height="12" viewBox="0 0 20 12" fill="none"><path d="M1 6h18M13 1l6 5-6 5" stroke="currentColor" stroke-width="1.5"/></svg></button>
+</section>
+
+<!-- QUIZ -->
+<section class="screen" id="quiz">
+  <div class="quiz-header">
+    <div class="dimension-badge" id="dimBadge" style="border-color: var(--gold); color: var(--gold);">D1 · 自我观</div>
+    <div class="progress-container">
+      <div class="progress-label"><span id="progressText">1 / 40</span><span id="progressPercent">2%</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width: 2%;"></div></div>
+    </div>
+    <div class="mini-axes" id="miniAxes"></div>
+  </div>
+  <div class="quiz-body">
+    <div class="question-wrapper" id="questionWrapper"></div>
+  </div>
+  <div class="nav-row">
+    <button class="nav-btn" id="prevBtn" onclick="prevQuestion()" disabled>← 上一题</button>
+    <div class="nav-hint">按 <kbd>1</kbd>–<kbd>7</kbd> 选择 · <kbd>H</kbd> 标记犹豫 · <kbd>→</kbd> 下一题</div>
+    <button class="nav-btn primary" id="nextBtn" onclick="nextQuestion()" disabled>下一题 →</button>
+  </div>
+</section>
+
+<!-- CALCULATING -->
+<section class="screen" id="calculating">
+  <div class="calc-mandala">
+    <div class="mandala-ring"></div>
+    <div class="mandala-ring"></div>
+    <div class="mandala-ring"></div>
+    <div class="mandala-core"></div>
+  </div>
+  <h2 class="calc-title">正在勘测灵魂经纬</h2>
+  <p class="calc-subtitle">COMPUTING YOUR CARTOGRAPHY</p>
+  <div class="calc-progress">
+    <div class="calc-bar"><div class="calc-fill" id="calcFill"></div></div>
+    <div class="calc-step" id="calcStep">分析 S 轴 · 自我定位</div>
+  </div>
+</section>
+
+<!-- AXES REVEAL -->
+<section class="screen" id="axes-reveal">
+  <h2 class="reveal-title">你灵魂的四条经纬</h2>
+  <p class="reveal-sub">FOUR AXES OF YOUR SOUL</p>
+  <div class="vertical-axes" id="verticalAxes"></div>
+  <button class="cta-btn" onclick="enterRevealCeremony()">揭示我的原型 <svg width="20" height="12" viewBox="0 0 20 12" fill="none"><path d="M1 6h18M13 1l6 5-6 5" stroke="currentColor" stroke-width="1.5"/></svg></button>
+</section>
+
+<!-- REVEAL CEREMONY -->
+<section class="screen" id="reveal">
+  <button class="reveal-skip" onclick="skipReveal()">跳过 SKIP →</button>
+  <div class="reveal-stage" id="revealStage"></div>
+</section>
+
+<!-- RESULT -->
+<section class="screen" id="result">
+  <div class="result-inner" id="resultInner"></div>
+</section>
+
+<!-- INTERLUDE -->
+<div class="interlude" id="interlude">
+  <div class="interlude-icon" id="interIcon">☰</div>
+  <h3 class="interlude-title" id="interTitle">维度一 · 完成</h3>
+  <p class="interlude-text" id="interText"></p>
+  <div class="interlude-quote" id="interQuote">
+    <span id="interQuoteText"></span>
+    <div class="quote-author" id="interQuoteAuthor"></div>
+  </div>
+  <div class="dim-dots" id="dimDots"></div>
+  <button class="interlude-cta" onclick="dismissInterlude()">继续 →</button>
+</div>
+
+<!-- MODAL -->
+<div class="modal-backdrop" id="modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<!-- SHARE MODAL -->
+<div class="modal-backdrop share-modal" id="shareModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeShareModal()">×</button>
+    <h3 class="modal-title">分享你的灵魂地图</h3>
+    <div class="share-format-tabs" id="shareFormatTabs"></div>
+    <div class="share-card-preview"><canvas id="shareCanvas"></canvas></div>
+    <div class="action-row">
+      <button class="action-btn" onclick="downloadShareCard()">下载图片</button>
+      <button class="action-btn ghost" onclick="copyShareCardToClipboard()">复制到剪贴板</button>
+    </div>
+  </div>
+</div>
+
+<!-- WECHAT MODAL -->
+<div class="modal-backdrop" id="wechatModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeWechatModal()">×</button>
+    <h3 class="modal-title">朋友圈文案</h3>
+    <p class="modal-sub">选一种你的风格，一键复制</p>
+    <div class="wechat-tabs" id="wechatTabs"></div>
+    <div class="wechat-text-box" id="wechatTextBox"></div>
+    <div class="action-row">
+      <button class="action-btn" onclick="copyWechatText()">复制文案</button>
+    </div>
+  </div>
+</div>
+
+<!-- COMPAT MODAL -->
+<div class="modal-backdrop" id="compatModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeCompatModal()">×</button>
+    <h3 class="modal-title">契合度测试</h3>
+    <p class="modal-sub">输入另一个人的四轴代号（例如 S+M-W+A-）</p>
+    <div class="compat-form">
+      <label>你：<strong id="compatSelfCode" style="color:var(--gold)"></strong></label>
+      <span style="color: rgba(245,240,232,0.4);">×</span>
+      <input type="text" class="compat-input" id="compatOtherCode" placeholder="S+M-W+A-" maxlength="12">
+      <button class="action-btn" onclick="computeCompat()">测算</button>
+    </div>
+    <div id="compatResult"></div>
+  </div>
+</div>
+
+<div class="copy-toast" id="copyToast">已复制</div>
+
+<script>
+// ============================================================
+// DATA · DIMENSIONS
+// ============================================================
+const DIMENSIONS = [
+  { id:'D1', name:'自我观', color:'var(--d0)', interlude:{ icon:'☰', title:'自我之镜', text:'你刚刚经过的，是关于"我是谁"的第一重追问。苏格拉底与老子在此相遇：一个问"认识你自己"，一个说"知人者智，自知者明"。', quote:'我思故我在，但"我"究竟是什么？', author:'—— 笛卡尔 & 你自己' }},
+  { id:'D2', name:'他者与关系', color:'var(--d1)', interlude:{ icon:'⚭', title:'他者之桥', text:'你刚刚走过的，是"我与他者"的古老辩证。列维纳斯说他者是一张无法被我归化的脸，费孝通说中国人的关系是差序的涟漪。', quote:'他人即地狱？还是他人即我之镜？', author:'—— 萨特 & 孔子' }},
+  { id:'D3', name:'社会与正义', color:'var(--d2)', interlude:{ icon:'⚖', title:'正义之秤', text:'罗尔斯的无知之幕，与儒家的礼乐秩序，在此对望。社会是契约还是伦理？正义是程序还是德性？', quote:'不患寡而患不均，不患贫而患不安。', author:'—— 孔子' }},
+  { id:'D4', name:'时间与生死', color:'var(--d3)', interlude:{ icon:'∞', title:'时间之河', text:'赫拉克利特说人不能两次踏进同一条河。海德格尔说向死而生。庄子说方生方死，方死方生。时间是你最古老的共谋。', quote:'未知生，焉知死。', author:'—— 孔子' }},
+  { id:'D5', name:'苦难与意义', color:'var(--d4)', interlude:{ icon:'✢', title:'苦之炼金', text:'佛陀说人生皆苦。尼采说杀不死我的使我更强大。弗兰克尔在集中营里发现：连苦难都需要意义。', quote:'若一个人知道他为何而活，就能忍受任何生活。', author:'—— 尼采' }},
+  { id:'D6', name:'真理与认知', color:'var(--d5)', interlude:{ icon:'⊙', title:'知之边界', text:'柏拉图的洞穴、庄子的梦蝶、笛卡尔的恶魔——每一代人都在问：我们如何知道我们所知道的？', quote:'我所知道的，就是我一无所知。', author:'—— 苏格拉底' }},
+  { id:'D7', name:'善与道德', color:'var(--d6)', interlude:{ icon:'✧', title:'善之根源', text:'康德的绝对命令，孟子的四端，亚里士多德的德性。善是规则，是天性，还是习惯？', quote:'头顶的星空与心中的道德律。', author:'—— 康德' }},
+  { id:'D8', name:'超越与信仰', color:'var(--d7)', interlude:{ icon:'✦', title:'超越之光', text:'祁克果的信仰一跃，老子的道法自然，奥古斯丁的上帝之城——人之所以为人，是因为他总在伸手触摸超越。', quote:'道可道，非常道。', author:'—— 老子' }},
+  { id:'D9', name:'自由与结构', color:'var(--d8)', interlude:{ icon:'⧉', title:'自由之重', text:'萨特说人注定自由，是被自由所判决的。但庄子说至人无己，神人无功。自由是选择，还是放下？', quote:'自由是承认必然性。', author:'—— 斯宾诺莎' }},
+  { id:'D10', name:'行动与存在', color:'var(--d9)', interlude:{ icon:'⟟', title:'行之所是', text:'王阳明说知行合一。加缪说重要的不是治愈，而是带着病痛生活。你是行动的人，还是凝视的人？', quote:'我反抗，故我们存在。', author:'—— 加缪' }}
+];
+
+// ============================================================
+// DATA · 40 QUESTIONS (multi-axis weighted)
+// Axis balance target: S=9, M=9, W=10, A=10, I=2
+// Each q: { d: dim_idx, text, intent, type, weights: {S/M/W/A/I: ±val}, choices?, labels? }
+// ============================================================
+const QUESTIONS = [
+  // D1 · 自我观 (4 questions)
+  { d:0, text:'当你独处一整天，你会感到：', intent:'苏格拉底在独处中认识自己；庄子在独处中与道相通。独处是恢复还是流放？', type:'scale', weights:{ S:2 }, labels:['被遗弃 / 慌乱','完整 / 充盈'] },
+  { d:0, text:'"我是谁"这个问题，对你而言：', intent:'关于自我的追问，是永恒的邀请，还是悬而未决的焦虑？', type:'choice', weights:{ S:-2, W:1 }, choices:['已经有了相对稳定的答案','还在不断变化、重写','不重要，做什么比是什么重要','虚构命题，没有固定的"我"'] },
+  { d:0, text:'"做自己"对你来说意味着：', intent:'做自己是忠于内核，还是不断超越？', type:'choice', weights:{ S:2, A:-1 }, choices:['忠于内心的声音，不被外界左右','不断成为更好的、超越的自己','在关系中调整，但不丢核心','做不做自己其实是伪命题'] },
+  { d:0, text:'你相信人有一个"真正的自我"吗？', intent:'真我是发现，还是建构？', type:'scale', weights:{ S:2, W:-1 }, labels:['完全是建构 / 流动','有一个恒定的真我'] },
+
+  // D2 · 他者与关系 (4 questions)
+  { d:1, text:'面对一个需要帮助的陌生人，你会：', intent:'孟子说见孺子入井而有怵惕。你的第一反应，来自共情还是计算？', type:'choice', weights:{ A:2, M:1 }, choices:['不假思索地伸手','先评估情况再决定','看对方是不是真的需要','有心无力，大多绕过'] },
+  { d:1, text:'你更愿意把关系看作：', intent:'关系是资源网络，还是命运共同体？', type:'choice', weights:{ A:2, S:-1 }, choices:['彼此照亮的同路人','滋养灵魂的必需品','可选择的资源和能量场','独立灵魂之间的礼物'] },
+  { d:1, text:'"独善其身"与"兼济天下"之间，你倾向：', intent:'儒家讲济世，道家讲退守。你的重心在哪？', type:'scale', weights:{ A:2, S:-1 }, labels:['独善其身','兼济天下'] },
+  { d:1, text:'你被爱的方式，最触动你的是：', intent:'你是被看见，还是被需要？', type:'choice', weights:{ A:2 }, choices:['被真正看见和理解','被稳定地陪伴','被需要和依赖','被自由地放行'] },
+
+  // D3 · 社会与正义 (3 questions)
+  { d:2, text:'一个公正的社会，最重要的是：', intent:'罗尔斯、桑德尔、儒家、法家都在此争辩。', type:'choice', weights:{ M:2, A:1 }, choices:['每个人有平等的权利和机会','有美德有担当的人被尊敬','资源向最弱者倾斜','人人各安其位各得其所'] },
+  { d:2, text:'当规则和个人良知冲突时，你倾向：', intent:'安提戈涅埋葬兄长违反了城邦法令——她是英雄还是罪人？', type:'scale', weights:{ M:2, S:1 }, labels:['服从规则是基础','听从内心良知'] },
+  { d:2, text:'见到不公之事，你通常会：', intent:'沉默是共谋吗？介入的边界在哪？', type:'choice', weights:{ M:2, A:1 }, choices:['立刻发声或行动','先了解全貌再判断','只管好自己的那部分','在能力范围内默默帮助'] },
+
+  // D4 · 时间与生死 (4 questions)
+  { d:3, text:'想到死亡，你的第一感受是：', intent:'海德格尔说向死而生。庄子说方生方死。', type:'choice', weights:{ W:2 }, choices:['恐惧，但给我紧迫感','平静，它是生命的一部分','遗憾，还有太多未完成','释然，它让一切都有意义'] },
+  { d:3, text:'你对"永恒"的感觉是：', intent:'尼采的永恒轮回，佛家的刹那生灭。', type:'choice', weights:{ W:2 }, choices:['就在每一个当下','在代际传递中延续','在艺术、思想和作品里','不存在，只有变化'] },
+  { d:3, text:'如果明天世界末日，你今天会：', intent:'这是一道古老的刻度题。', type:'choice', weights:{ W:1, A:1, S:-1 }, choices:['和最爱的人在一起','完成最想做的那件事','照常生活，不慌张','安静地和自己告别'] },
+  { d:3, text:'你对"活在当下"的态度是：', intent:'当下是全部，还是过去与未来的交汇？', type:'scale', weights:{ W:2 }, labels:['需要长远规划','活在当下最重要'] },
+
+  // D5 · 苦难与意义 (3 questions)
+  { d:4, text:'面对生活中的重大苦难，你倾向：', intent:'弗兰克尔说人可以在苦难中寻找意义。', type:'choice', weights:{ W:2, S:1 }, choices:['寻找它带给我的意义','接受它是生命的一部分','理解它、分析它的成因','穿越它，然后放下它'] },
+  { d:4, text:'"人生皆苦"这句话，你：', intent:'佛陀的第一圣谛。你是否同意？', type:'scale', weights:{ W:2 }, labels:['不同意，人生多美好','深以为然，苦是底色'] },
+  { d:4, text:'一件让你痛苦的事情过去后，你更倾向：', intent:'痛苦是教训还是伤疤？', type:'choice', weights:{ W:2 }, choices:['总结教训，避免重蹈','接纳它成为我的一部分','分享它，帮助有类似经历的人','彻底放下，不再回头看'] },
+
+  // D6 · 真理与认知 (3 questions)
+  { d:5, text:'关于"真理"，你更相信：', intent:'柏拉图有理念，庄子说言不尽意。', type:'choice', weights:{ W:2 }, choices:['存在客观的、可抵达的真理','只有视角，没有绝对真理','真理在实践中被检验','真理在体验中被体悟'] },
+  { d:5, text:'当你的信念被挑战，你倾向：', intent:'固执是坚定，还是封闭？', type:'scale', weights:{ W:1, S:1 }, labels:['更倾向守住原有立场','更倾向修正自己'] },
+  { d:5, text:'直觉和理性，你更依赖：', intent:'理性是船，直觉是罗盘。', type:'scale', weights:{ W:2 }, labels:['理性分析','直觉感知'] },
+
+  // D7 · 善与道德 (3 questions)
+  { d:6, text:'一个人是"好人"，最关键的是：', intent:'康德看行动原则，亚里士多德看德性习惯。', type:'choice', weights:{ M:2 }, choices:['动机纯正，不计后果','结果真的帮到了人','长期养成的品格与习惯','自然流露的善意，不刻意'] },
+  { d:6, text:'做一件事，你更看重：', intent:'义务论还是结果论？', type:'scale', weights:{ M:2 }, labels:['看最终的结果','看它是否应该做'] },
+  { d:6, text:'你遇到道德两难时，通常：', intent:'电车难题是思想实验，但人生里时时发生。', type:'choice', weights:{ M:2, W:1 }, choices:['坚守一个不可妥协的底线','权衡损害最小的选择','问自己："一个智者会怎么做"','凭当下的心去感知'] },
+
+  // D8 · 超越与信仰 (3 questions)
+  { d:7, text:'对你而言，"神圣"体现在：', intent:'神圣不一定是神，也可能是星空、音乐、爱。', type:'choice', weights:{ W:2 }, choices:['自然与宇宙的浩瀚','人与人之间的深度联结','某种超越性的精神存在','内心最深处的宁静与觉知'] },
+  { d:7, text:'你是否相信有某种"更高的意义"？', intent:'存在主义的核心追问。', type:'scale', weights:{ W:2 }, labels:['没有，意义由我定义','是的，在我之上'] },
+  { d:7, text:'你被什么东西最深地打动过？', intent:'被打动是一种启示。', type:'choice', weights:{ W:2 }, choices:['一段深刻的爱或被爱','一本书或一次灵光闪现','大自然的某个瞬间','一个陌生人的善意'] },
+
+  // D9 · 自由与结构 (4 questions)
+  { d:8, text:'"自由"对你而言，更接近：', intent:'伯林区分积极自由和消极自由。', type:'choice', weights:{ S:2, W:-1 }, choices:['不被任何人任何事束缚','拥有选择的权利和能力','按自己的心意活出来','放下选择本身'] },
+  { d:8, text:'规则和自由之间，你倾向：', intent:'康德说自由即自律。', type:'scale', weights:{ S:1, W:1 }, labels:['规则让人安心','自由不可妥协'] },
+  { d:8, text:'当面对一个重大选择：', intent:'选择本身是自由的重量。', type:'choice', weights:{ S:2, A:-1 }, choices:['自己决定，不问他人','听从最了解自己的人','参考多方意见再决定','问内心，静静等答案'] },
+  { d:8, text:'你觉得人生更像：', intent:'决定论与自由意志的辩证。', type:'scale', weights:{ S:2, W:-1 }, labels:['被注定的轨迹','可以主动绘制的地图'] },
+
+  // D10 · 行动与存在 (5 questions - includes I axis)
+  { d:9, text:'你觉得人活着最重要的是：', intent:'生命的意义来自行动还是体验？', type:'choice', weights:{ A:2, S:-1 }, choices:['成为一个更完整的自己','在世界上留下一些痕迹','真诚地爱过、被爱过','经历、体验、见证'] },
+  { d:9, text:'"知"和"行"之间，你偏向：', intent:'王阳明说知行合一。', type:'scale', weights:{ A:2, M:-1 }, labels:['先想清楚再做','在做中明白'] },
+  { d:9, text:'你更相信哪一种力量：', intent:'静水流深，还是振臂一呼？', type:'choice', weights:{ A:2 }, choices:['持续的耕耘和积累','偶然的灵感与突破','关系中的连接与影响','安住本心的定力'] },
+  // I axis meta: integration
+  { d:9, text:'当你发现自己的观点前后矛盾，你：', intent:'整合是成熟的证据。', type:'choice', weights:{ I:2 }, choices:['立刻修正，追求一致','接受矛盾共存，都是我','尝试理解矛盾背后的共同根源','困惑，但会深思'] },
+  { d:9, text:'当别人完全不同意你时，你内心真实的感受是：', intent:'我们如何携带分歧活在一起？', type:'scale', weights:{ I:2 }, labels:['被威胁 / 不安','好奇 / 被拓展'] }
+];
+
+// ============================================================
+// DATA · 16 ARCHETYPES (full marketing redesign)
+// ============================================================
+const ARCHETYPES = [
+  { code:'S-M-W-A-', poeticName:'孤勇守灯人', identityTag:'#原则硬核型', slogan:'所有人都劝我转弯的时候，我依然向前。', rarity:6, tier:'rare',
+    animeDesign:'深蓝长袍、胸前金色灯形徽章，背景古堡与星空。单手持青铜油灯，侧脸坚毅。色调：深蓝 + 金。',
+    icon:'guardian', phil:'儒家 · 康德 · 斯多葛',
+    philosophy:'你是规则的忠诚守护者，相信世界需要锚定。秩序并非束缚，而是文明得以延续的土壤。你的内核稳定，不随潮流摇摆。在碎片化的时代，你是少数仍然"择善固执"的人。',
+    figures:[{n:'钱穆',d:'以一己之力守中国文化血脉'},{n:'罗翔',d:'在网络时代重申法治与良知的不可让渡'},{n:'费孝通',d:'用一生守护"文化自觉"这四个字'},{n:'史铁生',d:'在残缺的身体里守住完整的灵魂'},{n:'温德尔·贝里',d:'在肯塔基农场践行一种古老的美德伦理'}],
+    tension:'你最深的张力在于：你坚守的秩序，是否也会变成他人的牢笼？当世界变化太快，你的原则是灯塔，还是化石？你需要在坚守与更新之间，找到呼吸的节奏。',
+    quotes:[{q:'虽千万人吾往矣。',a:'《孟子》'},{q:'行有不得，反求诸己。',a:'《孟子》'},{q:'头顶的星空，心中的道德律。',a:'康德'},{q:'君子素其位而行，不愿乎其外。',a:'《中庸》'},{q:'在一切事物中寻找真理，哪怕它使我痛苦。',a:'马可·奥勒留'}],
+    practices:['每月找一个与你立场不同的朋友深聊，真诚倾听','把你的三条原则写下来，问自己第四条可不可以被放下','做一件打破你自己规则的小事，观察内心的反应'] },
+
+  { code:'S-M-W+A-', poeticName:'黑夜立法者', identityTag:'#智识贵族型', slogan:'在无序的深夜里，我是那根为众人立界的笔。', rarity:4, tier:'rare',
+    animeDesign:'灰银长袍、戴金丝眼镜，手持羽毛笔在卷轴上书写。背景是漂浮的几何图形。色调：深灰 + 银。',
+    icon:'lawgiver', phil:'柏拉图 · 韩非 · 哈耶克',
+    philosophy:'你相信理性的设计能带来秩序，相信语言和制度是人类最伟大的发明。你在深夜里画图纸、写条款，为混乱的世界立下可执行的边界。',
+    figures:[{n:'梁漱溟',d:'在乡村建设运动中尝试制度落地的思想家'},{n:'林毓生',d:'论"创造性转化"的政治哲学家'},{n:'何怀宏',d:'系统研究正义理论的中国学者'},{n:'卡尔·波普尔',d:'开放社会的构想者'},{n:'德沃金',d:'把道德哲学重新带回法律的人'}],
+    tension:'你以理性构建秩序，但人心不是方程式。当你精心设计的系统遇到不讲道理的现实，你会愤怒还是退守？你需要承认：理性是尺，但丈量的对象会流动。',
+    quotes:[{q:'法律是理性的命令。',a:'阿奎那'},{q:'为政以德，譬如北辰。',a:'《论语》'},{q:'理念是原本，现实是拷贝。',a:'柏拉图'},{q:'一个好的制度使坏人也做好事。',a:'邓小平'},{q:'秩序是自由之母。',a:'柏克'}],
+    practices:['记录一周里你"没有用规则解决"却依然达成的事','和一个完全凭直觉的朋友共事一天，不要纠正 ta','问自己：这条规则十年后还必要吗？'] },
+
+  { code:'S-M-W-A+', poeticName:'红线织网人', identityTag:'#关系中枢型', slogan:'我不是最耀眼的那个，但每根线的另一头都握着我。', rarity:7, tier:'uncommon',
+    animeDesign:'朱红丝绸旗袍、手中缠绕着发光的红线，线条延展成一张巨大的网，背景柔和暖光。色调：朱红 + 金。',
+    icon:'weaver', phil:'儒家 · 费孝通 · 列维纳斯',
+    philosophy:'你相信人是关系的产物。你的价值不在耀眼的个体成就，而在你编织的那张看不见的网——它让身边的人彼此连接，也让世界有了温度。',
+    figures:[{n:'费孝通',d:'提出"差序格局"的人类学家'},{n:'龙应台',d:'用文字织起母女和两岸的理解'},{n:'林巧稚',d:'一生未育却接生五万婴儿的妇产科医生'},{n:'星云大师',d:'以人间佛教凝聚无数心灵'},{n:'蒋勋',d:'用美学教育打通代际的讲师'}],
+    tension:'你为所有人织网，但谁为你织一张？当关系成为你的全部定义，你会不会忘了问："我自己是谁？"你的课题是：在付出与自持之间画一条柔软但清晰的线。',
+    quotes:[{q:'仁者爱人。',a:'《孟子》'},{q:'己欲立而立人。',a:'《论语》'},{q:'他者的脸向我显现为一种召唤。',a:'列维纳斯'},{q:'千丝万缕，都是命的经纬。',a:'蒋勋'},{q:'人从来不是孤岛。',a:'约翰·多恩'}],
+    practices:['用一周不主动回复任何非紧急信息，观察内心的起伏','写一封信给五年后的自己，不要提任何他人','独自旅行 48 小时，不告诉任何人你在哪'] },
+
+  { code:'S-M-W+A+', poeticName:'风暴掌舵者', identityTag:'#使命战士型', slogan:'我不是在坐船，我是在造船，同时还要带你们穿越风暴。', rarity:3, tier:'legendary',
+    animeDesign:'青铜铠甲、手握罗盘与舵轮，身后是翻滚的乌云和风暴中的船。眉目锐利，风吹动披风。色调：青铜 + 暗红。',
+    icon:'steward', phil:'儒家 · 罗尔斯 · 实用主义',
+    philosophy:'你肩负使命，也精于权衡。你不只知道什么是对的，还知道如何在复杂世界里把对的事做成。你是那种能同时持有理想与现实的人。',
+    figures:[{n:'陈行甲',d:'从县委书记到公益人的使命转场者'},{n:'钟南山',d:'在危机中承担公共责任的医者'},{n:'王石',d:'企业家兼社会责任的践行者'},{n:'俞敏洪',d:'起伏中仍在重新找方向的掌舵者'},{n:'何帆',d:'用观察力描绘中国变化的学者'}],
+    tension:'你的重负在于：权衡会不会慢慢变成妥协？你为了大局做的让步，会不会有一天让你认不出自己？你需要定期回到初心的那块礁石上，检查罗盘。',
+    quotes:[{q:'君子和而不同。',a:'《论语》'},{q:'以出世之心做入世之事。',a:'朱光潜'},{q:'最大的理想主义者是最好的现实主义者。',a:'罗尔斯'},{q:'负重前行，举重若轻。',a:'民间谚语'},{q:'我选择，我承担。',a:'萨特'}],
+    practices:['每季度写一次"初心审计表"对照你的决策','找一个只会说真话的人做你的镜子','留 48 小时不做任何决定，只倾听'] },
+
+  { code:'S+M-W-A-', poeticName:'自我炼丹师', identityTag:'#孤独朝圣型', slogan:'我不需要任何人证明我存在，除了我自己。', rarity:5, tier:'rare',
+    animeDesign:'简朴布衣，盘腿而坐，手捧一炉升起的金色烟雾，四周浮动着星图与符文。独行者气质。色调：深紫 + 古金。',
+    icon:'explorer', phil:'尼采 · 荣格 · 禅宗',
+    philosophy:'你把自我打造成一个实验室。人生对你来说是一场对内的远征。你不需要外界认证，你自己就是度量衡。你的深度来自孤独与自省。',
+    figures:[{n:'木心',d:'在岁月里安静锻造自己的美学修行者'},{n:'史铁生',d:'在地坛里与自己对话的作家'},{n:'李叔同（弘一法师）',d:'从繁华到简朴的自我重铸者'},{n:'阿兰·德波顿',d:'把日常哲学化的写作者'},{n:'荣格',d:'向内探索无意识的心理学家'}],
+    tension:'你的自我太完整，以至于它可能成为一座高墙。当世界的声音传不进来，你的丹炉里炼出的，到底是金子还是幻象？你需要有人敲门。',
+    quotes:[{q:'成为你自己。',a:'尼采'},{q:'吾未见好德如好色者。',a:'《论语》'},{q:'自知者明。',a:'《道德经》'},{q:'一个人要像一支队伍。',a:'刘瑜'},{q:'走出洞穴的人终将回头。',a:'柏拉图'}],
+    practices:['每周写一次"被他人改变"的清单，承认依赖','邀请一个不了解你的人评价你，不要辩解','做一件完全是为别人、毫无回报的小事'] },
+
+  { code:'S+M-W+A-', poeticName:'荒野独行侠', identityTag:'#体验无界型', slogan:'远方不是逃避，而是我与自己相遇的地方。', rarity:8, tier:'uncommon',
+    animeDesign:'白色风衣被风鼓起，背负皮质行囊，站在悬崖边远眺云海。身边有一匹鬃毛长的马。色调：灰白 + 墨绿。',
+    icon:'wanderer', phil:'道家 · 庄子 · 梭罗',
+    philosophy:'你相信广阔的世界本身就是最高的师门。你不被一处一时所困，你以流动为家。你的智慧来自行走，你的信仰是体验本身。',
+    figures:[{n:'余秋雨',d:'行走在中华山河之上的文化苦旅者'},{n:'三毛',d:'把撒哈拉写成心灵地图的流浪者'},{n:'杨丽萍',d:'用身体追问民族与大地的舞者'},{n:'陈绮贞',d:'用歌声游荡在自由边界的歌者'},{n:'梭罗',d:'在瓦尔登湖独自生活两年的思想者'}],
+    tension:'流动是自由，也是逃避。当你不再落脚，连根须都会退化。你的课题是：在流浪中学会停下，承认某个地方、某个人，已经成为你的一部分。',
+    quotes:[{q:'乘物以游心。',a:'《庄子》'},{q:'天地有大美而不言。',a:'《庄子》'},{q:'我到林中去，是因为我希望生活得有意义。',a:'梭罗'},{q:'世界那么大，我想去看看。',a:'顾少强'},{q:'我的脚步就是我的答案。',a:'佚名'}],
+    practices:['选一个地方待满三个月，不逃','每周用一小时回到童年的某个地方','停止拍照一天，只用眼睛看'] },
+
+  { code:'S+M-W-A+', poeticName:'人情策展人', identityTag:'#社交达人型', slogan:'我看得见每个人背后的光，我让他们彼此照见。', rarity:9, tier:'common',
+    animeDesign:'金色华服、微笑自信，手中展开一幅发光的人际网络图，背景是沙龙灯光。色调：香槟金 + 玫红。',
+    icon:'networker', phil:'儒家 · 戴尔·卡耐基 · 杜威',
+    philosophy:'你是天生的连接者。你不单收集人脉，你策展关系。你让合适的人在合适的时刻相遇，你的存在本身就是一场社交艺术品。',
+    figures:[{n:'蔡澜',d:'在美食与江湖之间穿梭的生活家'},{n:'高晓松',d:'用谈话节目打通文化与大众的跨界人'},{n:'白岩松',d:'连接媒体、社会与公共的主持人'},{n:'窦文涛',d:'《锵锵三人行》的策展式对话者'},{n:'张泉灵',d:'从记者到投资人的跨界连接者'}],
+    tension:'你的能量来自交互，但人际潮汐有涨落。当你回到独处，会不会觉得某种空洞？你需要在热闹与沉默之间，保留一块给自己的秘密花园。',
+    quotes:[{q:'朋友的朋友是世界的走廊。',a:'佚名'},{q:'有朋自远方来，不亦乐乎。',a:'《论语》'},{q:'四海之内皆兄弟。',a:'《论语》'},{q:'独学而无友，则孤陋而寡闻。',a:'《礼记》'},{q:'人情练达即文章。',a:'曹雪芹'}],
+    practices:['一个月不参加任何聚会，观察自己','写下最亲近五个人的真实需要','拒绝一次邀请，诚实说不'] },
+
+  { code:'S+M-W+A+', poeticName:'他者收藏家', identityTag:'#灵感拼贴型', slogan:'每个人身上都有我的一小块拼图，而我也在他们那里。', rarity:8, tier:'uncommon',
+    animeDesign:'浅蓝披风、耳朵旁别着各色花瓣，手捧一册会发光的册子。眼神好奇温和。色调：浅蓝 + 彩虹碎片。',
+    icon:'drifter', phil:'庄子 · 巴赫金 · 多元主义',
+    philosophy:'你把人生当成一本不断被他者改写的书。你从不信奉单一真理，你在众声喧哗中找到自己的和声。你是碎片时代里少有的整合者。',
+    figures:[{n:'许知远',d:'在对话中寻找时代肖像的访谈者'},{n:'鲁豫',d:'让每个被访者说出真话的提问者'},{n:'马世芳',d:'把流行文化拼成一代人记忆的文化人'},{n:'阿城',d:'从杂学中提炼中国意象的作家'},{n:'艾柯',d:'百科全书式的博学者'}],
+    tension:'拼贴让你丰富，也让你悬浮。当所有观点你都能理解，你自己的立场在哪？你的课题是：在多元之上，标出一个属于自己的坐标。',
+    quotes:[{q:'道在屎溺。',a:'《庄子》'},{q:'和而不同。',a:'《论语》'},{q:'真理是对话的产物。',a:'巴赫金'},{q:'我是我所读过的一切。',a:'博尔赫斯'},{q:'每个人都是另一个人的老师。',a:'民间谚语'}],
+    practices:['写下你自己的三条不动的底线','用一周只听一种观点，不切换','在一件事上坚持到别人都放弃'] },
+
+  { code:'S-M+W-A-', poeticName:'天道翻译官', identityTag:'#先知气质型', slogan:'我不说话的时候，是在把天意翻译成人话。', rarity:3, tier:'legendary',
+    animeDesign:'素色道袍、独立山崖，手持竹简，云雾缭绕。眼神穿透时空。色调：云白 + 墨灰。',
+    icon:'priest', phil:'老子 · 奥古斯丁 · 海德格尔',
+    philosophy:'你对世界抱有一种深沉的敬畏。你相信现象之上有本体，喧嚣之下有真相。你是少数还在"听"的人——听天意、听命运、听存在本身。',
+    figures:[{n:'一行禅师',d:'把正念介绍给西方的越南禅师'},{n:'星云大师',d:'以人间佛教点亮世人的导师'},{n:'南怀瑾',d:'打通儒释道的传统文化守护者'},{n:'史铁生',d:'在轮椅上对天叩问的作家'},{n:'张载',d:'"为天地立心"的北宋理学家'}],
+    tension:'你的敬畏是光，也可能是距离。当你总在仰望，会不会错过脚下的人？你需要把天道翻译得更日常，让智慧落到饭桌和地板上。',
+    quotes:[{q:'天行健，君子以自强不息。',a:'《易经》'},{q:'道可道，非常道。',a:'《道德经》'},{q:'为天地立心，为生民立命。',a:'张载'},{q:'存在先于存在者。',a:'海德格尔'},{q:'神即自然。',a:'斯宾诺莎'}],
+    practices:['把一句"天道"翻译成父母能听懂的话','花一小时专门关注一个凡俗的细节','告诉一个朋友你真实的困惑，不要给智慧建议'] },
+
+  { code:'S-M+W+A-', poeticName:'暖手实干派', identityTag:'#治愈温柔型', slogan:'世界不会被宏大拯救，但会被一双双手慢慢捂热。', rarity:7, tier:'uncommon',
+    animeDesign:'米白毛衣、手里捧着陶瓷热茶，身边有流浪猫依偎。微笑温和，背景柔光窗边。色调：奶白 + 暖棕。',
+    icon:'healer', phil:'佛家 · 特蕾莎修女精神 · 儒家',
+    philosophy:'你相信治愈是世界的底色。你不追求宏大叙事，你修补具体的伤口。你是那种在风雨里先脱下自己外套的人，朴素而坚韧。',
+    figures:[{n:'林巧稚',d:'医生的温度与技艺并存者'},{n:'赵小亭',d:'支教老师的温柔典范'},{n:'三月',d:'无数民间公益工作者'},{n:'余秀华',d:'在诗里裸露疼痛又治愈他人者'},{n:'史铁生',d:'用残缺抚慰完整的作家'}],
+    tension:'你一直付出，什么时候有人让你靠一下？你的课题是：允许自己也被治愈。承认你会疲惫，不是软弱，是诚实。',
+    quotes:[{q:'仁者爱人。',a:'《孟子》'},{q:'但行好事，莫问前程。',a:'冯梦龙'},{q:'慈悲是最高的智慧。',a:'佛陀'},{q:'在被看见的时刻，疼痛也有了光。',a:'余秀华'},{q:'救人一命胜造七级浮屠。',a:'民间谚语'}],
+    practices:['写下"我也需要"的三件事并执行','让别人帮你做一件你能自己做的事','一周不主动照顾任何人'] },
+
+  { code:'S-M+W-A+', poeticName:'乡土活化石', identityTag:'#根系扎地型', slogan:'我脚下的这块地，是我全部的宇宙。', rarity:4, tier:'rare',
+    animeDesign:'土布衣、赤脚站在田埂上，手捧刚拔的萝卜，身后是炊烟和稻田。色调：土黄 + 青绿。',
+    icon:'rooter', phil:'儒家 · 农业文明 · 费孝通',
+    philosophy:'你把根扎在具体的土地、具体的家族、具体的人情里。你拒绝漂浮，你相信一方水土养一方人。你的智慧是接地气的、代代相传的。',
+    figures:[{n:'费孝通',d:'《乡土中国》的奠基人'},{n:'何兆武',d:'见证中国百年的历史学家'},{n:'汪曾祺',d:'用散文把故乡写成世界的作家'},{n:'袁隆平',d:'一生与稻田为伍的科学家'},{n:'温铁军',d:'三农问题的乡土经济学家'}],
+    tension:'你扎得深，但世界在变。当根牵绊你走向新的可能，你会固守还是嫁接？你的课题是：让根保持流动，让本土成为创新的底座而非天花板。',
+    quotes:[{q:'入乡随俗。',a:'民间俗语'},{q:'安土重迁，黎民之性。',a:'《汉书》'},{q:'落叶归根。',a:'民间俗语'},{q:'仁者，人也，亲亲为大。',a:'《中庸》'},{q:'家和万事兴。',a:'民间谚语'}],
+    practices:['离开你的城市 7 天，在陌生地方生活','和家人尝试一次从未有过的对话话题','学一项和你当下生活无关的技能'] },
+
+  { code:'S-M+W+A+', poeticName:'对话建筑师', identityTag:'#调和大师型', slogan:'世界不缺意见，缺的是能让意见共存的空间。', rarity:5, tier:'rare',
+    animeDesign:'灰白长衫、双手架起两端的人影，中间搭建一座透明的桥。表情平静从容。色调：白 + 珍珠灰。',
+    icon:'bridge', phil:'哈贝马斯 · 儒家 · 对话伦理',
+    philosophy:'你相信真正的智慧不在独白，而在对话。你擅长在分歧中寻找共识，在冲突中看见共同的根。你是这个撕裂时代少有的中介者。',
+    figures:[{n:'许倬云',d:'跨越东西方的历史学家'},{n:'金庸',d:'在武侠里调和儒释道的小说家'},{n:'何光沪',d:'跨宗教对话的哲学家'},{n:'林怀民',d:'用舞蹈跨越东西方的编舞者'},{n:'周志文',d:'用散文构建对话的学者'}],
+    tension:'你在各方之间搭桥，但桥上没有你自己的房子。你的课题是：在调和中不失去立场，在倾听中保留拒绝的权利。',
+    quotes:[{q:'君子和而不同。',a:'《论语》'},{q:'万物并育而不相害，道并行而不相悖。',a:'《中庸》'},{q:'真理产生于对话。',a:'哈贝马斯'},{q:'兼容并包。',a:'蔡元培'},{q:'理解是一种慈悲。',a:'赵朴初'}],
+    practices:['在一次讨论中明确说出你的立场，不只做裁判','允许一次冲突不被调和','写下你"不愿意妥协"的三件事'] },
+
+  { code:'S+M+W-A-', poeticName:'辩证发烧友', identityTag:'#哲思内核型', slogan:'别劝我放下思考，那是我活着的方式。', rarity:4, tier:'rare',
+    animeDesign:'深绿大衣、戴圆框眼镜、手持一本翻开的厚书，指尖下漂浮着符号与光点。色调：墨绿 + 铜金。',
+    icon:'alchemist', phil:'黑格尔 · 王阳明 · 马克思',
+    philosophy:'你是把矛盾当作燃料的人。你相信真理不是静止的结论，而是在对立中不断生成。你享受思辨本身，不为得出答案，而为靠近真相。',
+    figures:[{n:'李泽厚',d:'《美的历程》的思想炼金师'},{n:'甘阳',d:'文化观念辩证发展的推动者'},{n:'刘擎',d:'在当代语境里辨析西方思想的学者'},{n:'陈嘉映',d:'哲学语言的追问者'},{n:'阿多诺',d:'否定辩证法的思想家'}],
+    tension:'你在思辨中燃烧，但人生需要一些不加思考的顺服。当你每件事都要分析到底，会错过很多只能"体验"的瞬间。你的课题是：允许自己偶尔不动脑。',
+    quotes:[{q:'知行合一。',a:'王阳明'},{q:'矛盾是推动发展的根本力量。',a:'黑格尔'},{q:'未经省察的人生不值得过。',a:'苏格拉底'},{q:'我思故我在。',a:'笛卡尔'},{q:'哲学是概念的自我运动。',a:'黑格尔'}],
+    practices:['做一件完全不分析的事，例如舞蹈','一周不用"但是"开头任何一句话','花一整天只观察不解释'] },
+
+  { code:'S+M+W+A-', poeticName:'实验开拓者', identityTag:'#先锋破局型', slogan:'别人画好的地图我不走，我自己画。', rarity:5, tier:'rare',
+    animeDesign:'银色机械风衣、右手握罗盘、左手举火把，身后是未被标注的山脉。色调：银灰 + 猩红。',
+    icon:'pioneer', phil:'尼采 · 杜威 · 实用主义',
+    philosophy:'你是一个把价值与行动熔接在一起的人。你不空谈理想，你验证理想。你在边界上试错，在未知处立旗。你是时代的先锋。',
+    figures:[{n:'任正非',d:'在不确定中不断重构企业的实验者'},{n:'张一鸣',d:'用算法重新定义信息分发者'},{n:'马云',d:'把理想主义转为商业试验的企业家'},{n:'李开复',d:'在产业变革中开路的技术人'},{n:'屠呦呦',d:'从传统中提炼现代药物的科学家'}],
+    tension:'你冲锋在前，但先锋容易孤独。当你的实验无人响应，你还能不能坚持？你的课题是：带队伍，也要让后来者跟得上。',
+    quotes:[{q:'不破不立。',a:'毛泽东'},{q:'在未来中生活。',a:'凯恩斯'},{q:'上帝已死，我们是他的继承者。',a:'尼采'},{q:'大道至简，知行合一。',a:'王阳明'},{q:'创新是破坏性的创造。',a:'熊彼特'}],
+    practices:['花一天做一件完全保守的事','带一个落后的人走完你的一段路','问自己：我打破的，真的值得打破吗？'] },
+
+  { code:'S+M+W-A+', poeticName:'人间回声', identityTag:'#社群共振型', slogan:'我就是你们，你们就是我。我的声音是无数声音的回响。', rarity:6, tier:'uncommon',
+    animeDesign:'彩色民俗披风、站在广场中心，周围是环形听众。敞开双臂。色调：大红 + 橙黄。',
+    icon:'resonator', phil:'儒家 · 群学 · 社群主义',
+    philosophy:'你天然活在群体之中。你的喜怒哀乐与周围共振，你的价值在集体中得到确认。你是那种在人群中才真正"在"的人。',
+    figures:[{n:'白先勇',d:'让群体记忆化作文学的作家'},{n:'余华',d:'写尽中国人命运群像的作家'},{n:'贾樟柯',d:'用镜头记录时代群像的导演'},{n:'赖声川',d:'用戏剧凝聚共同体情感的导演'},{n:'约翰·杜威',d:'民主即生活的实用主义者'}],
+    tension:'群体是你的能量源，也可能是你的枷锁。当你太过调谐他人，会不会忘了自己的音调？你的课题是：在共振中保有独奏的能力。',
+    quotes:[{q:'德不孤，必有邻。',a:'《论语》'},{q:'独乐乐不如众乐乐。',a:'《孟子》'},{q:'我之所以成为我，是因为他们。',a:'布伯'},{q:'群体的命运就是我的命运。',a:'群学经典'},{q:'个体是社会的一根弦。',a:'齐美尔'}],
+    practices:['一次彻底离群的独处周末','做一次完全不顾他人评价的决定','问自己：这份声音是我的吗？'] },
+
+  { code:'S+M+W+A+', poeticName:'道家顶流', identityTag:'#松弛通透型', slogan:'我不是放下了，我是本来就没拿起来那么紧。', rarity:3, tier:'legendary',
+    animeDesign:'素白长衫、赤足站在流水之上，身旁有落花与鹤。神情闲适。色调：月白 + 浅金。',
+    icon:'flow', phil:'庄子 · 禅宗 · 斯宾诺莎',
+    philosophy:'你达到了一种罕见的平衡：既深入世界，又不被世界所困。你的智慧不在掌控，而在随顺。你是那种"活明白了"的人。',
+    figures:[{n:'汪曾祺',d:'把日常写出禅意的作家'},{n:'木心',d:'把岁月炼成散文的诗人'},{n:'林清玄',d:'把佛学融入生活的散文家'},{n:'丰子恺',d:'用漫画讲出人生通透的艺术家'},{n:'周有光',d:'105 岁仍在通透观察世界的学者'}],
+    tension:'通透是最大的成就，也是最容易被误读的姿态。旁人看你"佛系"其实是你的修行深度。你的课题是：通透不要变成疏离，松弛不要变成无所谓。',
+    quotes:[{q:'上善若水。',a:'《道德经》'},{q:'无为而无不为。',a:'《道德经》'},{q:'心如止水。',a:'佛学'},{q:'此心安处是吾乡。',a:'苏轼'},{q:'至人无己，神人无功。',a:'《庄子》'}],
+    practices:['做一件你很在意结果的事，全力以赴','在一个小事上明确表达愤怒','承认一次你其实没有那么通透'] }
+];
+
+// intensity grading text templates
+const INTENSITY_LABELS = {
+  S_plus: ['摇摆型自主','轻度自主','明显自主','深度自主'],
+  S_minus: ['摇摆型秩序','轻度秩序','明显秩序','深度秩序'],
+  M_plus: ['摇摆型德性','轻度德性','明显德性','深度德性'],
+  M_minus: ['摇摆型理性','轻度理性','明显理性','深度理性'],
+  W_plus: ['摇摆型超越','轻度超越','明显超越','深度超越'],
+  W_minus: ['摇摆型此世','轻度此世','明显此世','深度此世'],
+  A_plus: ['摇摆型关系','轻度关系','明显关系','深度关系'],
+  A_minus: ['摇摆型独立','轻度独立','明显独立','深度独立'],
+};
+
+// wechat moment styles
+const WECHAT_STYLES = {
+  wenyi: {
+    name:'文艺范',
+    template: (a)=>`📍 ${a.poeticName}\n\n"${a.slogan}"\n\n 据说全网只有 ${a.rarity}% 的人是这一型。\n  ——${a.identityTag}`
+  },
+  drama: {
+    name:'抓马范',
+    template: (a)=>`不是吧不是吧！\n居然测出来是【${a.poeticName}】（${a.identityTag}）\n稀有度 ${a.rarity}%，我真的 emo 了……\n\n"${a.slogan}"\n\n谁懂啊救命，这也太准了吧 😭`
+  },
+  academic: {
+    name:'学术范',
+    template: (a)=>`测了一个基于东西方哲学的人格模型，结果是 ${a.code} 型：\n\n${a.poeticName}（${a.identityTag}）\n哲学谱系：${a.phil}\n人群占比：${a.rarity}%\n\n"${a.slogan}"\n\n比 MBTI 有意思多了。`
+  },
+  meme: {
+    name:'梗感范',
+    template: (a)=>`测出来是【${a.poeticName}】${a.identityTag}\n稀有度 ${a.rarity}%（${a.rarity<=5?'稀有中奖选手✨':a.rarity<=8?'小众但不冷门':'人间大多数抱团取暖'}）\n\n精准到我想报警 👮‍♂️\n"${a.slogan}"`
+  }
+};
+
+// archetype-specific wechat lines (overriding default templates for premium feel)
+const WECHAT_OVERRIDES = {
+  'S+M+W+A+': { wenyi:'📍道家顶流\n"我不是放下了，我是本来就没拿起来那么紧。"\n全网仅 3% · 稀有度：传说级\n今天终于被一个测试说中了。', drama:'家人们谁懂啊\n我测出来是【道家顶流】稀有度 3%！！！\n原来我的"佛系"不是摆烂，是人格底色 😭\n"我不是放下了，我是本来就没拿起来那么紧。"\n救命这也太通透了吧 🥹', academic:'基于东西方哲学的 16 型人格测试：\n结果 = S+M+W+A+ (道家顶流)\n哲学谱系：庄子 · 禅宗 · 斯宾诺莎\n人群占比：3%（传说级）\n\n"上善若水。无为而无不为。"\n比 MBTI 有意思多了。', meme:'测出来是【道家顶流】\n稀有度 3%（传说级天选松弛人✨）\n"我不是放下了，我是本来就没拿起来那么紧。"\n精准到想报警 👮 这游戏成精了。' }
+};
+
+// ============================================================
+// STATE
+// ============================================================
+let state = {
+  answers: new Array(QUESTIONS.length).fill(null),
+  hesitations: new Array(QUESTIONS.length).fill(false),
+  current: 0,
+  scores: { S:0, M:0, W:0, A:0 },
+  rawScores: { S:0, M:0, W:0, A:0 },
+  iScore: 0,
+  intensities: { S:'', M:'', W:'', A:'' },
+  shadowCodes: [],
+  playerName: '',
+  revealStage: 0,
+  shareFormat: 'square',
+  wechatStyle: 'wenyi'
+};
+
+// ============================================================
+// UTILITIES
+// ============================================================
+const $ = (id)=>document.getElementById(id);
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function tierLabel(tier){
+  return { legendary:'传说级', rare:'稀有', uncommon:'不常见', common:'常见' }[tier]||'';
+}
+
+// ============================================================
+// CURSOR
+// ============================================================
+const cursorDot = document.querySelector('.cursor-dot');
+const cursorRing = document.querySelector('.cursor-ring');
+let mx=0,my=0,rx=0,ry=0;
+window.addEventListener('mousemove',e=>{ mx=e.clientX; my=e.clientY; cursorDot.style.transform=`translate(${mx}px,${my}px) translate(-50%,-50%)`; });
+function tickCursor(){ rx+=(mx-rx)*0.2; ry+=(my-ry)*0.2; cursorRing.style.transform=`translate(${rx}px,${ry}px) translate(-50%,-50%)`; requestAnimationFrame(tickCursor); }
+tickCursor();
+document.addEventListener('mouseover',e=>{ if(e.target.matches('button,input,.choice-btn,.scale-btn,a,.arch-card,.shadow-card')) cursorRing.classList.add('hover'); });
+document.addEventListener('mouseout',e=>{ if(e.target.matches('button,input,.choice-btn,.scale-btn,a,.arch-card,.shadow-card')) cursorRing.classList.remove('hover'); });
+
+// ============================================================
+// STARFIELD
+// ============================================================
+const starCanvas = $('starfield'); const starCtx = starCanvas.getContext('2d');
+let stars = [];
+function initStars(){ starCanvas.width=window.innerWidth; starCanvas.height=window.innerHeight; stars=[]; for(let i=0;i<120;i++) stars.push({x:Math.random()*starCanvas.width,y:Math.random()*starCanvas.height,r:Math.random()*1.2+0.2,a:Math.random()*0.5+0.1,s:Math.random()*0.02+0.005}); }
+function tickStars(){ starCtx.clearRect(0,0,starCanvas.width,starCanvas.height); stars.forEach(st=>{ st.a+=st.s; if(st.a>0.6||st.a<0.1) st.s=-st.s; starCtx.fillStyle=`rgba(201,168,76,${st.a})`; starCtx.beginPath(); starCtx.arc(st.x,st.y,st.r,0,Math.PI*2); starCtx.fill(); }); requestAnimationFrame(tickStars); }
+initStars(); tickStars();
+window.addEventListener('resize',initStars);
+
+// ============================================================
+// PARTICLES
+// ============================================================
+const partCanvas = $('particles'); const partCtx = partCanvas.getContext('2d');
+let particles = [];
+function resizeParticles(){ partCanvas.width=window.innerWidth; partCanvas.height=window.innerHeight; }
+resizeParticles(); window.addEventListener('resize',resizeParticles);
+function emitParticles(x,y,count=30,color='201,168,76'){ for(let i=0;i<count;i++){ const a=Math.random()*Math.PI*2, v=Math.random()*3+1; particles.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-1,life:1,color,size:Math.random()*3+1}); } }
+function tickParticles(){ partCtx.clearRect(0,0,partCanvas.width,partCanvas.height); particles=particles.filter(p=>p.life>0); particles.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; p.vy+=0.08; p.life-=0.018; partCtx.fillStyle=`rgba(${p.color},${p.life})`; partCtx.beginPath(); partCtx.arc(p.x,p.y,p.size,0,Math.PI*2); partCtx.fill(); }); requestAnimationFrame(tickParticles); }
+tickParticles();
+
+// ============================================================
+// SVG ILLUSTRATIONS
+// ============================================================
+function illus(type, size=100){
+  const svgs = {
+    guardian: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="38" fill="none" stroke="#c9a84c" stroke-width="2"/><path d="M50 18 L50 82" stroke="#c9a84c" stroke-width="2"/><rect x="42" y="30" width="16" height="24" fill="none" stroke="#c9a84c" stroke-width="2"/><circle cx="50" cy="42" r="3" fill="#c9a84c"/><path d="M38 65 L62 65 M40 72 L60 72" stroke="#c9a84c" stroke-width="1.5"/></svg>`,
+    lawgiver: `<svg viewBox="0 0 100 100"><rect x="25" y="25" width="50" height="50" fill="none" stroke="#c9a84c" stroke-width="2"/><path d="M35 38 L65 38 M35 48 L65 48 M35 58 L55 58" stroke="#c9a84c" stroke-width="1.5"/><circle cx="50" cy="70" r="4" fill="#c9a84c"/></svg>`,
+    weaver: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="5" fill="#c9a84c"/><circle cx="28" cy="30" r="3" fill="none" stroke="#c9a84c" stroke-width="1.5"/><circle cx="72" cy="30" r="3" fill="none" stroke="#c9a84c" stroke-width="1.5"/><circle cx="28" cy="70" r="3" fill="none" stroke="#c9a84c" stroke-width="1.5"/><circle cx="72" cy="70" r="3" fill="none" stroke="#c9a84c" stroke-width="1.5"/><circle cx="50" cy="20" r="3" fill="none" stroke="#c9a84c" stroke-width="1.5"/><circle cx="50" cy="80" r="3" fill="none" stroke="#c9a84c" stroke-width="1.5"/><path d="M50 50 L28 30 M50 50 L72 30 M50 50 L28 70 M50 50 L72 70 M50 50 L50 20 M50 50 L50 80" stroke="#c9a84c" stroke-width="1" opacity="0.6"/></svg>`,
+    steward: `<svg viewBox="0 0 100 100"><path d="M20 65 Q50 35 80 65" fill="none" stroke="#c9a84c" stroke-width="2"/><circle cx="50" cy="50" r="8" fill="none" stroke="#c9a84c" stroke-width="2"/><path d="M50 42 L50 58 M42 50 L58 50" stroke="#c9a84c" stroke-width="1.5"/><path d="M30 75 L70 75" stroke="#c9a84c" stroke-width="1"/></svg>`,
+    explorer: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="30" fill="none" stroke="#c9a84c" stroke-width="2" stroke-dasharray="3 3"/><circle cx="50" cy="50" r="4" fill="#c9a84c"/><path d="M50 20 L50 30 M50 70 L50 80 M20 50 L30 50 M70 50 L80 50" stroke="#c9a84c" stroke-width="1.5"/></svg>`,
+    wanderer: `<svg viewBox="0 0 100 100"><path d="M15 75 Q30 60 45 70 T75 65 Q85 62 85 55" fill="none" stroke="#c9a84c" stroke-width="2"/><circle cx="15" cy="75" r="3" fill="#c9a84c"/><circle cx="85" cy="55" r="3" fill="#c9a84c"/><path d="M30 40 L40 25 L50 40 M55 35 L65 20 L75 35" fill="none" stroke="#c9a84c" stroke-width="1.5" opacity="0.6"/></svg>`,
+    networker: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="6" fill="#c9a84c"/><circle cx="22" cy="25" r="4" fill="none" stroke="#c9a84c" stroke-width="2"/><circle cx="78" cy="25" r="4" fill="none" stroke="#c9a84c" stroke-width="2"/><circle cx="22" cy="75" r="4" fill="none" stroke="#c9a84c" stroke-width="2"/><circle cx="78" cy="75" r="4" fill="none" stroke="#c9a84c" stroke-width="2"/><path d="M50 50 L22 25 M50 50 L78 25 M50 50 L22 75 M50 50 L78 75 M22 25 L78 25 M22 75 L78 75 M22 25 L22 75 M78 25 L78 75" stroke="#c9a84c" stroke-width="1" opacity="0.5"/></svg>`,
+    drifter: `<svg viewBox="0 0 100 100"><path d="M20 50 Q35 35 50 50 T80 50" fill="none" stroke="#c9a84c" stroke-width="2"/><path d="M20 60 Q35 45 50 60 T80 60" fill="none" stroke="#c9a84c" stroke-width="1.5" opacity="0.7"/><path d="M20 40 Q35 25 50 40 T80 40" fill="none" stroke="#c9a84c" stroke-width="1" opacity="0.5"/></svg>`,
+    priest: `<svg viewBox="0 0 100 100"><path d="M50 15 L50 85" stroke="#c9a84c" stroke-width="2"/><path d="M50 15 L40 35 L60 35 Z" fill="#c9a84c"/><circle cx="50" cy="60" r="12" fill="none" stroke="#c9a84c" stroke-width="1.5"/><path d="M38 60 L62 60 M50 48 L50 72" stroke="#c9a84c" stroke-width="1" opacity="0.6"/></svg>`,
+    healer: `<svg viewBox="0 0 100 100"><path d="M50 20 C35 20 25 35 25 50 C25 70 50 85 50 85 C50 85 75 70 75 50 C75 35 65 20 50 20 Z" fill="none" stroke="#c9a84c" stroke-width="2"/><path d="M50 40 L50 65 M40 52 L60 52" stroke="#c9a84c" stroke-width="2"/></svg>`,
+    rooter: `<svg viewBox="0 0 100 100"><path d="M50 15 L50 55" stroke="#c9a84c" stroke-width="2"/><path d="M50 55 L35 85 M50 55 L65 85 M50 55 L20 80 M50 55 L80 80" stroke="#c9a84c" stroke-width="1.5"/><circle cx="50" cy="25" r="10" fill="none" stroke="#c9a84c" stroke-width="2"/><path d="M42 20 L58 20 M42 28 L58 28" stroke="#c9a84c" stroke-width="1"/></svg>`,
+    bridge: `<svg viewBox="0 0 100 100"><path d="M15 60 Q50 30 85 60" fill="none" stroke="#c9a84c" stroke-width="2"/><path d="M15 60 L85 60" stroke="#c9a84c" stroke-width="1" opacity="0.5"/><path d="M25 60 L25 75 M40 55 L40 75 M50 50 L50 75 M60 55 L60 75 M75 60 L75 75" stroke="#c9a84c" stroke-width="1"/></svg>`,
+    alchemist: `<svg viewBox="0 0 100 100"><path d="M35 35 L50 20 L65 35 L65 65 L50 80 L35 65 Z" fill="none" stroke="#c9a84c" stroke-width="2"/><circle cx="50" cy="50" r="10" fill="none" stroke="#c9a84c" stroke-width="1.5"/><path d="M50 40 L50 60 M40 50 L60 50" stroke="#c9a84c" stroke-width="1.5"/><circle cx="50" cy="50" r="3" fill="#c9a84c"/></svg>`,
+    pioneer: `<svg viewBox="0 0 100 100"><path d="M50 15 L50 60" stroke="#c9a84c" stroke-width="2"/><path d="M50 15 L30 40 L50 35 L70 40 Z" fill="#c9a84c"/><path d="M35 65 L65 65 M40 75 L60 75" stroke="#c9a84c" stroke-width="1.5"/><circle cx="50" cy="85" r="3" fill="#c9a84c"/></svg>`,
+    resonator: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="8" fill="#c9a84c"/><circle cx="50" cy="50" r="18" fill="none" stroke="#c9a84c" stroke-width="1.5" opacity="0.7"/><circle cx="50" cy="50" r="28" fill="none" stroke="#c9a84c" stroke-width="1.2" opacity="0.5"/><circle cx="50" cy="50" r="38" fill="none" stroke="#c9a84c" stroke-width="1" opacity="0.3"/></svg>`,
+    flow: `<svg viewBox="0 0 100 100"><path d="M15 30 Q30 50 15 70 M30 30 Q45 50 30 70 M45 30 Q60 50 45 70 M60 30 Q75 50 60 70 M75 30 Q90 50 75 70" fill="none" stroke="#c9a84c" stroke-width="1.5" opacity="0.8"/></svg>`
+  };
+  return svgs[type] || svgs.guardian;
+}
+
+// ============================================================
+// FLOW CONTROL
+// ============================================================
+function enterPrologue(){
+  state.playerName = $('nameInput').value.trim() || '旅人';
+  showScreen('prologue');
+}
+
+function revealJourneySteps(){
+  const container = $('journeySteps');
+  container.innerHTML = DIMENSIONS.map((d,i)=>`
+    <div class="journey-step"><div class="step-num">${String(i+1).padStart(2,'0')}</div><div class="step-title">${d.name}</div><div class="step-desc">${d.interlude.text.slice(0,28)}...</div></div>
+  `).join('');
+  setTimeout(()=>{ document.querySelectorAll('.journey-step').forEach((s,i)=>setTimeout(()=>s.classList.add('revealed'),i*90)); },100);
+}
+
+function startQuiz(){
+  state.current = 0;
+  showScreen('quiz');
+  renderMiniAxes();
+  renderQuestion();
+}
+
+function renderMiniAxes(){
+  const axes = ['S','M','W','A'];
+  $('miniAxes').innerHTML = axes.map(ax=>`<div class="mini-axis"><div class="mini-axis-name">${ax}</div><div class="mini-axis-bar"><div class="mini-axis-dot" id="miniDot${ax}" style="left:50%"></div></div></div>`).join('');
+}
+
+function updateMiniAxes(){
+  ['S','M','W','A'].forEach(ax=>{
+    const raw = state.rawScores[ax];
+    const maxPoss = QUESTIONS.filter(q=>q.weights[ax]).reduce((s,q)=>s+Math.abs(q.weights[ax])*3,0) || 1;
+    const pct = 50 + (raw/maxPoss)*50;
+    const dot = $('miniDot'+ax);
+    if(dot) dot.style.left = Math.max(0,Math.min(100,pct))+'%';
+  });
+}
+
+function renderQuestion(){
+  const q = QUESTIONS[state.current];
+  const dim = DIMENSIONS[q.d];
+  const pct = ((state.current+1)/QUESTIONS.length*100).toFixed(0);
+  $('progressText').textContent = `${state.current+1} / ${QUESTIONS.length}`;
+  $('progressPercent').textContent = `${pct}%`;
+  $('progressFill').style.width = pct+'%';
+  $('dimBadge').textContent = `${dim.id} · ${dim.name}`;
+  $('dimBadge').style.borderColor = dim.color;
+  $('dimBadge').style.color = dim.color;
+  const hesActive = state.hesitations[state.current];
+  let answerHtml;
+  if(q.type==='scale'){
+    const buttons = [1,2,3,4,5,6,7].map(v=>`<button class="scale-btn ${state.answers[state.current]===v?'selected':''}" onclick="selectScale(${v})">${v}</button>`).join('');
+    answerHtml = `<div class="scale-container"><div class="scale-labels"><span>${q.labels[0]}</span><span>${q.labels[1]}</span></div><div class="scale-buttons">${buttons}</div></div>`;
+  } else {
+    answerHtml = `<div class="choices-container">${q.choices.map((c,i)=>`<button class="choice-btn ${state.answers[state.current]===i?'selected':''}" onclick="selectChoice(${i})">${String.fromCharCode(65+i)}. ${c}</button>`).join('')}</div>`;
+  }
+  $('questionWrapper').innerHTML = `
+    <div class="question-meta">${dim.name} · 第 ${state.current+1} 题</div>
+    <div class="question-text">${q.text}</div>
+    <div class="question-intent">${q.intent}</div>
+    ${answerHtml}
+    <div class="hesitate-row">
+      <button class="hesitate-btn ${hesActive?'active':''}" onclick="toggleHesitate()">${hesActive?'✓ 已标记犹豫':'我在这里犹豫了'}</button>
+    </div>
+  `;
+  $('prevBtn').disabled = state.current===0;
+  $('nextBtn').disabled = state.answers[state.current]===null;
+  $('nextBtn').textContent = state.current===QUESTIONS.length-1 ? '完成 →' : '下一题 →';
+}
+
+function toggleHesitate(){
+  state.hesitations[state.current] = !state.hesitations[state.current];
+  renderQuestion();
+}
+
+function selectScale(v){
+  state.answers[state.current] = v;
+  recalculateRunning();
+  renderQuestion();
+}
+
+function selectChoice(i){
+  state.answers[state.current] = i;
+  recalculateRunning();
+  renderQuestion();
+}
+
+function computeAnswerVal(q, ans){
+  if(q.type==='scale') return (ans-4); // -3..+3
+  const mid = (q.choices.length-1)/2;
+  return (ans-mid); // centered
+}
+
+function recalculateRunning(){
+  state.rawScores = { S:0, M:0, W:0, A:0 };
+  QUESTIONS.forEach((q,i)=>{
+    if(state.answers[i]===null) return;
+    const v = computeAnswerVal(q, state.answers[i]);
+    Object.entries(q.weights).forEach(([ax,w])=>{
+      if(ax==='I') return;
+      state.rawScores[ax] = (state.rawScores[ax]||0) + v*w;
+    });
+  });
+  updateMiniAxes();
+}
+
+function prevQuestion(){
+  if(state.current>0){ state.current--; renderQuestion(); }
+}
+
+function nextQuestion(){
+  if(state.answers[state.current]===null) return;
+  const isLast = state.current===QUESTIONS.length-1;
+  const q = QUESTIONS[state.current];
+  const nextIdx = state.current+1;
+  // check dimension transition for interlude
+  const currDim = q.d;
+  const nextDim = !isLast ? QUESTIONS[nextIdx].d : -1;
+  if(isLast){
+    return finishQuiz();
+  }
+  state.current++;
+  if(nextDim !== currDim){
+    // dimension just finished
+    showInterlude(currDim);
+  } else {
+    renderQuestion();
+  }
+}
+
+function showInterlude(dimIdx){
+  const dim = DIMENSIONS[dimIdx];
+  const ilu = dim.interlude;
+  $('interIcon').textContent = ilu.icon;
+  $('interTitle').textContent = `${dim.name} · 完成`;
+  $('interText').textContent = ilu.text;
+  $('interQuoteText').textContent = ilu.quote;
+  $('interQuoteAuthor').textContent = ilu.author;
+  $('dimDots').innerHTML = DIMENSIONS.map((_,i)=>`<div class="dim-dot ${i<=dimIdx?'done':''}"></div>`).join('');
+  $('interlude').classList.add('show');
+  emitParticles(window.innerWidth/2, window.innerHeight/2, 40);
+}
+
+function dismissInterlude(){
+  $('interlude').classList.remove('show');
+  setTimeout(renderQuestion, 300);
+}
+
+function finishQuiz(){
+  showScreen('calculating');
+  runCalculation();
+}
+
+// ============================================================
+// SCORING
+// ============================================================
+function runCalculation(){
+  const steps = ['读取 S 轴 · 自我定位','读取 M 轴 · 道德根基','读取 W 轴 · 世界观取向','读取 A 轴 · 行动取向','整合 I 轴 · 整合度','匹配原型','计算稀有度','绘制地图'];
+  let pct = 0, step = 0;
+  const interval = setInterval(()=>{
+    pct += 2.5;
+    $('calcFill').style.width = pct+'%';
+    const newStep = Math.floor(pct/13);
+    if(newStep!==step && newStep<steps.length){ step=newStep; $('calcStep').textContent = steps[step]; }
+    if(pct>=100){
+      clearInterval(interval);
+      computeScores();
+      setTimeout(()=>renderAxesReveal(), 400);
+    }
+  }, 70);
+}
+
+function computeScores(){
+  // raw sums
+  const raw = { S:0, M:0, W:0, A:0 };
+  const maxPoss = { S:0, M:0, W:0, A:0 };
+  let iRaw = 0;
+  let iMax = 0;
+  QUESTIONS.forEach((q,i)=>{
+    const v = computeAnswerVal(q, state.answers[i]);
+    Object.entries(q.weights).forEach(([ax,w])=>{
+      if(ax==='I'){
+        iRaw += v*w;
+        iMax += Math.abs(w)*3;
+      } else {
+        raw[ax] = (raw[ax]||0) + v*w;
+        maxPoss[ax] = (maxPoss[ax]||0) + Math.abs(w)*3;
+      }
+    });
+  });
+  // normalize to -100..100
+  ['S','M','W','A'].forEach(ax=>{
+    state.scores[ax] = Math.round((raw[ax]/(maxPoss[ax]||1))*100);
+  });
+  state.rawScores = raw;
+  // I axis: integration = hesitation count + I-weighted answers + axis balance
+  const hesCount = state.hesitations.filter(Boolean).length;
+  const iNormalized = (iRaw/(iMax||1))*50 + 50; // 0..100
+  const axisBalance = 100 - (Math.max(...['S','M','W','A'].map(ax=>Math.abs(state.scores[ax])))); // higher when axes are moderate
+  state.iScore = Math.round((iNormalized*0.4 + axisBalance*0.3 + Math.min(hesCount*8, 40)*0.75));
+  state.iScore = Math.max(0, Math.min(100, state.iScore));
+  // intensity grading
+  ['S','M','W','A'].forEach(ax=>{
+    const abs = Math.abs(state.scores[ax]);
+    const dir = state.scores[ax]>=0 ? '_plus':'_minus';
+    const levelIdx = abs<15?0 : abs<35?1 : abs<60?2 : 3;
+    state.intensities[ax] = INTENSITY_LABELS[ax+dir][levelIdx];
+  });
+  // shadow codes: 1 axis flipped
+  const code = getCode();
+  const shadows = [];
+  ['S','M','W','A'].forEach(ax=>{
+    const flipped = code.replace(new RegExp(ax+'[+-]'), m => ax + (m[1]==='+'?'-':'+'));
+    // pick 2 weakest axes to produce shadows
+    shadows.push({ code:flipped, axis:ax, strength:Math.abs(state.scores[ax]) });
+  });
+  shadows.sort((a,b)=>a.strength-b.strength);
+  state.shadowCodes = shadows.slice(0,2).map(s=>s.code);
+}
+
+function getCode(){
+  const s=state.scores;
+  return `S${s.S>=0?'+':'-'}M${s.M>=0?'+':'-'}W${s.W>=0?'+':'-'}A${s.A>=0?'+':'-'}`;
+}
+
+function getArchetype(code){
+  return ARCHETYPES.find(a=>a.code===(code||getCode())) || ARCHETYPES[0];
+}
+
+// ============================================================
+// AXES REVEAL
+// ============================================================
+function renderAxesReveal(){
+  showScreen('axes-reveal');
+  const axes = [
+    { key:'S', name:'自我 / 秩序', top:'独立自主 +', bot:'结构秩序 −' },
+    { key:'M', name:'德性 / 理性', top:'德性直觉 +', bot:'理性原则 −' },
+    { key:'W', name:'超越 / 此世', top:'超越信仰 +', bot:'此世当下 −' },
+    { key:'A', name:'关系 / 独立', top:'关系织网 +', bot:'独立独行 −' }
+  ];
+  $('verticalAxes').innerHTML = axes.map(a=>{
+    const score = state.scores[a.key];
+    const pct = 50 - score/2; // top=more positive
+    return `<div class="vaxis"><div class="vaxis-label-top">${a.top}</div><div class="vaxis-bar"><div class="vaxis-mid"></div><div class="vaxis-dot" id="vdot${a.key}" style="top:50%"></div></div><div class="vaxis-label-bot">${a.bot}</div><div class="vaxis-name">${a.key}</div><div class="vaxis-score">${score>=0?'+':''}${score}</div></div>`;
+  }).join('');
+  setTimeout(()=>{
+    axes.forEach((a,i)=>setTimeout(()=>{
+      const dot = $('vdot'+a.key);
+      const pct = 50 - state.scores[a.key]/2;
+      dot.style.top = pct+'%';
+      dot.classList.add('revealed');
+    }, i*300));
+  }, 200);
+}
+
+// ============================================================
+// REVEAL CEREMONY
+// ============================================================
+function enterRevealCeremony(){
+  state.revealStage = 0;
+  showScreen('reveal');
+  renderRevealStage();
+}
+
+function renderRevealStage(){
+  const a = getArchetype();
+  const stage = state.revealStage;
+  const stageDiv = $('revealStage');
+  let html = '';
+  if(stage===0){
+    html = `
+      <div class="reveal-rarity-wrap">
+        <div class="rarity-num" id="rarityAnimNum">00</div>
+        <div class="rarity-label">RARITY · 稀有度</div>
+        <div class="rarity-tier ${a.tier}">${tierLabel(a.tier)}</div>
+      </div>
+      <button class="reveal-continue" onclick="advanceReveal()">继续揭示 →</button>
+    `;
+    stageDiv.innerHTML = html;
+    setTimeout(()=>document.querySelector('.reveal-rarity-wrap').classList.add('show'), 100);
+    animateRarityNumber(a.rarity);
+    emitParticles(window.innerWidth/2, window.innerHeight/2, 60);
+  } else if(stage===1){
+    const axes = [
+      { key:'S', name:'S 轴' },{ key:'M', name:'M 轴' },{ key:'W', name:'W 轴' },{ key:'A', name:'A 轴' }
+    ];
+    html = `
+      <h3 style="font-family:'Noto Serif SC',serif;font-size:1.5rem;color:var(--gold);margin-bottom:1.5rem;">你的四条经纬</h3>
+      <div class="reveal-intensities">
+        ${axes.map(ax=>`<div class="reveal-int-row"><div class="reveal-int-axis">${ax.key}</div><div class="reveal-int-grade">${state.intensities[ax.key]}</div><div class="reveal-int-score">${state.scores[ax.key]>=0?'+':''}${state.scores[ax.key]}</div></div>`).join('')}
+      </div>
+      <button class="reveal-continue" onclick="advanceReveal()">继续揭示 →</button>
+    `;
+    stageDiv.innerHTML = html;
+    document.querySelectorAll('.reveal-int-row').forEach((r,i)=>setTimeout(()=>r.classList.add('show'), 200+i*350));
+  } else if(stage===2){
+    html = `
+      <div style="margin-bottom:1.5rem;opacity:0.7;font-size:0.85rem;letter-spacing:0.3em;color:rgba(201,168,76,0.7);">${a.code}</div>
+      <div class="reveal-name">${a.poeticName}</div>
+      <div class="reveal-tag">${a.identityTag}</div>
+      <button class="reveal-continue" onclick="advanceReveal()" style="margin-top:2rem;">继续揭示 →</button>
+    `;
+    stageDiv.innerHTML = html;
+    setTimeout(()=>document.querySelector('.reveal-name').classList.add('show'),200);
+    setTimeout(()=>document.querySelector('.reveal-tag').classList.add('show'),900);
+    emitParticles(window.innerWidth/2, window.innerHeight/3, 80, '201,168,76');
+  } else if(stage===3){
+    html = `
+      <div style="width:180px;height:180px;margin:0 auto 1.5rem;">${illus(a.icon)}</div>
+      <div class="reveal-name show" style="font-size:clamp(2rem,5vw,2.8rem);">${a.poeticName}</div>
+      <div class="reveal-tag show">${a.identityTag}</div>
+      <div class="reveal-slogan">${a.slogan}</div>
+      <button class="reveal-continue" onclick="advanceReveal()">查看完整解读 →</button>
+    `;
+    stageDiv.innerHTML = html;
+    setTimeout(()=>document.querySelector('.reveal-slogan').classList.add('show'),300);
+  }
+}
+
+function animateRarityNumber(target){
+  const el = $('rarityAnimNum');
+  if(!el) return;
+  let cur = 0;
+  const dur = 2000;
+  const start = performance.now();
+  function tick(t){
+    const p = Math.min(1, (t-start)/dur);
+    const eased = 1 - Math.pow(1-p, 3);
+    cur = Math.round(eased*target);
+    el.textContent = cur+'%';
+    if(p<1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+function advanceReveal(){
+  state.revealStage++;
+  if(state.revealStage>=4){
+    renderResult();
+    return;
+  }
+  renderRevealStage();
+}
+
+function skipReveal(){
+  renderResult();
+}
+
+// ============================================================
+// RESULT PAGE
+// ============================================================
+function renderResult(){
+  const a = getArchetype();
+  const shadow1 = getArchetype(state.shadowCodes[0]);
+  const shadow2 = getArchetype(state.shadowCodes[1]);
+  const iText = integrationText(state.iScore);
+  $('resultInner').innerHTML = `
+    <div class="result-hero">
+      <div class="result-rarity-badge ${a.tier}">${tierLabel(a.tier)} · ${a.rarity}%</div>
+      <div class="result-illus">${illus(a.icon)}</div>
+      <div class="result-code">${a.code}</div>
+      <h1 class="result-poetic-name">${a.poeticName}</h1>
+      <div class="result-identity-tag">${a.identityTag}</div>
+      <div class="result-slogan">"${a.slogan}"</div>
+      <div class="result-player-name">旅人 · ${state.playerName}</div>
+    </div>
+
+    <div class="result-section" id="rs1">
+      <h2 class="section-title">四轴强度</h2>
+      <div class="intensity-grid">
+        ${['S','M','W','A'].map(ax=>`<div class="intensity-card"><div class="int-axis-name">${ax}</div><div class="int-grade">${state.intensities[ax]}</div><div class="int-score">${state.scores[ax]>=0?'+':''}${state.scores[ax]}</div></div>`).join('')}
+      </div>
+    </div>
+
+    <div class="result-section" id="rs2">
+      <h2 class="section-title">哲学特征</h2>
+      <div class="section-body"><p>${a.philosophy}</p><p style="color:rgba(201,168,76,0.8);font-style:italic;">哲学谱系：${a.phil}</p></div>
+    </div>
+
+    <div class="result-section" id="rs3">
+      <h2 class="section-title">典型人物</h2>
+      <div class="figures-grid">${a.figures.map(f=>`<div class="figure-card"><div class="figure-name">${f.n}</div><div class="figure-desc">${f.d}</div></div>`).join('')}</div>
+    </div>
+
+    <div class="result-section" id="rs4">
+      <h2 class="section-title">内在张力</h2>
+      <div class="section-body"><p>${a.tension}</p></div>
+    </div>
+
+    <div class="result-section" id="rs5">
+      <h2 class="section-title">五句箴言</h2>
+      <div class="quotes-list">${a.quotes.map(q=>`<div class="quote-card"><div class="quote-text">"${q.q}"</div><div class="quote-attr">—— ${q.a}</div></div>`).join('')}</div>
+    </div>
+
+    <div class="result-section" id="rs6">
+      <h2 class="section-title">你的下一步实践</h2>
+      <div class="practices-list">${a.practices.map((p,i)=>`<div class="practice-card"><div class="practice-num">${i+1}</div><div class="practice-text">${p}</div></div>`).join('')}</div>
+    </div>
+
+    <div class="result-section" id="rs7">
+      <h2 class="section-title">你的阴影原型</h2>
+      <p class="section-body" style="margin-bottom:1rem;">这是你内在"未活出"的两个可能性。他们是你的补角，也是你可以向之学习的镜子。</p>
+      <div class="shadow-grid">
+        <div class="shadow-card" onclick="showArchetypeModal('${shadow1.code}')"><div class="shadow-label">SHADOW 1</div><div class="shadow-name">${shadow1.poeticName}</div><div class="shadow-tag">${shadow1.identityTag}</div></div>
+        <div class="shadow-card" onclick="showArchetypeModal('${shadow2.code}')"><div class="shadow-label">SHADOW 2</div><div class="shadow-name">${shadow2.poeticName}</div><div class="shadow-tag">${shadow2.identityTag}</div></div>
+      </div>
+    </div>
+
+    <div class="result-section" id="rs8">
+      <h2 class="section-title">整合度 · I 轴</h2>
+      <div class="integration-box">
+        <div class="integration-score">${state.iScore}</div>
+        <div class="integration-label">Integration Meta-Score</div>
+        <div class="integration-text">${iText}</div>
+      </div>
+    </div>
+
+    <div class="result-section" id="rs9">
+      <h2 class="section-title">16 原型全地图</h2>
+      <div class="all-archetypes">${ARCHETYPES.map(arc=>`<div class="arch-card ${arc.code===a.code?'current':''}" onclick="showArchetypeModal('${arc.code}')"><div class="arch-illus">${illus(arc.icon)}</div><div class="arch-name">${arc.poeticName}</div><div class="arch-tag">${arc.identityTag}</div></div>`).join('')}</div>
+    </div>
+
+    <div class="action-row">
+      <button class="action-btn legend" onclick="openShareModal()">生成分享卡</button>
+      <button class="action-btn legend" onclick="openWechatModal()">朋友圈文案</button>
+      <button class="action-btn" onclick="openCompatModal()">契合度测试</button>
+      <button class="action-btn ghost" onclick="exportPDF()">导出 PDF</button>
+      <button class="action-btn ghost" onclick="restartGame()">重测一次</button>
+    </div>
+  `;
+  showScreen('result');
+  setTimeout(()=>{
+    document.querySelectorAll('.result-section').forEach((s,i)=>setTimeout(()=>s.classList.add('visible'), 150+i*100));
+  }, 100);
+}
+
+function integrationText(score){
+  if(score>=80) return '你是一个高度整合的灵魂。你能容纳矛盾，承认自己的多面性，在冲突中找到共存的空间。你的智慧来自对"既然…又…"的安住。这是难得的成熟。';
+  if(score>=60) return '你正在成长为一个整合型人格。你开始接受自己内部的张力，学会不急于消除矛盾。继续保持这种开放，岁月会把你淬炼得更通透。';
+  if(score>=40) return '你处在探索整合的路上。你的答案偶尔前后摇摆，那不是缺陷，而是你在诚实面对复杂。给自己时间，不急于下结论。';
+  return '你的立场鲜明，答案决绝。这是一种难得的锐利，但也可能是尚未遇到足够强的反例。愿你在未来某一天，遇见一个让你愿意重新思考的瞬间。';
+}
+
+function showArchetypeModal(code){
+  const a = getArchetype(code);
+  $('modalContent').innerHTML = `
+    <div style="width:80px;height:80px;margin-bottom:1rem;">${illus(a.icon)}</div>
+    <div style="font-size:0.75rem;letter-spacing:0.25em;color:rgba(201,168,76,0.6);margin-bottom:0.4rem;">${a.code} · ${tierLabel(a.tier)} ${a.rarity}%</div>
+    <h3 class="modal-title">${a.poeticName}</h3>
+    <div class="modal-sub">${a.identityTag}</div>
+    <div style="font-style:italic;color:var(--gold);padding:0.8rem 0 1rem;border-bottom:1px solid rgba(201,168,76,0.15);margin-bottom:1rem;">"${a.slogan}"</div>
+    <div class="modal-body">${a.philosophy}</div>
+    <div style="margin-top:1.25rem;font-size:0.82rem;color:rgba(201,168,76,0.75);">${a.phil}</div>
+  `;
+  $('modal').classList.add('show');
+}
+
+function closeModal(){ $('modal').classList.remove('show'); }
+function restartGame(){
+  state = { answers:new Array(QUESTIONS.length).fill(null), hesitations:new Array(QUESTIONS.length).fill(false), current:0, scores:{S:0,M:0,W:0,A:0}, rawScores:{S:0,M:0,W:0,A:0}, iScore:0, intensities:{S:'',M:'',W:'',A:''}, shadowCodes:[], playerName:'', revealStage:0, shareFormat:'square', wechatStyle:'wenyi' };
+  $('nameInput').value = '';
+  showScreen('intro');
+}
+
+function exportPDF(){
+  const a = getArchetype();
+  document.title = `灵魂地图 · ${a.poeticName}（${state.playerName}）`;
+  window.print();
+  setTimeout(()=>document.title='灵魂地图 · 16 种人格原型', 1000);
+}
+
+// ============================================================
+// SHARE CARD (Canvas)
+// ============================================================
+const SHARE_FORMATS = {
+  square: { name:'朋友圈（方）', w:1080, h:1080 },
+  xhs: { name:'小红书 (3:4)', w:1080, h:1440 },
+  weibo: { name:'微博（横）', w:1280, h:720 },
+  wechat: { name:'微信对话', w:900, h:1200 }
+};
+
+function openShareModal(){
+  $('shareModal').classList.add('show');
+  $('shareFormatTabs').innerHTML = Object.entries(SHARE_FORMATS).map(([k,f])=>`<button class="share-format-tab ${k===state.shareFormat?'active':''}" onclick="switchShareFormat('${k}')">${f.name}</button>`).join('');
+  drawShareCard();
+}
+
+function closeShareModal(){ $('shareModal').classList.remove('show'); }
+
+function switchShareFormat(fmt){
+  state.shareFormat = fmt;
+  document.querySelectorAll('.share-format-tab').forEach(t=>t.classList.remove('active'));
+  event.target.classList.add('active');
+  drawShareCard();
+}
+
+function drawShareCard(){
+  const fmt = SHARE_FORMATS[state.shareFormat];
+  const canvas = $('shareCanvas');
+  canvas.width = fmt.w; canvas.height = fmt.h;
+  canvas.style.maxWidth = Math.min(fmt.w, 520)+'px';
+  const ctx = canvas.getContext('2d');
+  const a = getArchetype();
+
+  // background gradient
+  const grad = ctx.createLinearGradient(0,0,fmt.w,fmt.h);
+  grad.addColorStop(0,'#1a1a2e'); grad.addColorStop(0.5,'#0f1624'); grad.addColorStop(1,'#05060c');
+  ctx.fillStyle = grad; ctx.fillRect(0,0,fmt.w,fmt.h);
+
+  // border
+  ctx.strokeStyle = 'rgba(201,168,76,0.35)'; ctx.lineWidth = 2;
+  ctx.strokeRect(40,40,fmt.w-80,fmt.h-80);
+
+  // decorative gold lines
+  ctx.strokeStyle = 'rgba(201,168,76,0.6)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(fmt.w/2-120,120); ctx.lineTo(fmt.w/2+120,120); ctx.stroke();
+
+  // top eyebrow
+  ctx.fillStyle = 'rgba(201,168,76,0.7)';
+  ctx.font = '300 22px "Noto Serif SC"';
+  ctx.textAlign = 'center';
+  ctx.fillText('灵 魂 地 图 · SOUL CARTOGRAPHY', fmt.w/2, 95);
+
+  // rarity badge
+  const rarityText = `稀有度 ${a.rarity}% · ${tierLabel(a.tier)}`;
+  ctx.fillStyle = a.tier==='legendary'?'#b892ff':a.tier==='rare'?'#ffd770':a.tier==='uncommon'?'#8ad4c8':'#a8a8a8';
+  ctx.font = '500 24px "Noto Sans SC"';
+  ctx.fillText(rarityText, fmt.w/2, 175);
+
+  // code
+  ctx.fillStyle = 'rgba(201,168,76,0.55)';
+  ctx.font = 'italic 28px "Playfair Display"';
+  ctx.fillText(a.code, fmt.w/2, 225);
+
+  // poetic name (large)
+  ctx.fillStyle = '#c9a84c';
+  const nameFontSize = fmt.w < 1000 ? 80 : fmt.w > 1200 ? 90 : 100;
+  ctx.font = `700 ${nameFontSize}px "Noto Serif SC"`;
+  ctx.fillText(a.poeticName, fmt.w/2, fmt.h/2 - 60);
+
+  // identity tag
+  ctx.fillStyle = '#b892ff';
+  ctx.font = '500 32px "Noto Sans SC"';
+  ctx.fillText(a.identityTag, fmt.w/2, fmt.h/2 + 10);
+
+  // slogan (wrapped)
+  ctx.fillStyle = 'rgba(245,240,232,0.85)';
+  ctx.font = 'italic 34px "Noto Serif SC"';
+  const sloganLines = wrapText(ctx, a.slogan, fmt.w - 200);
+  sloganLines.forEach((line,i)=>{
+    ctx.fillText(line, fmt.w/2, fmt.h/2 + 90 + i*50);
+  });
+
+  // axes mini
+  const axY = fmt.h - 240;
+  ctx.fillStyle = 'rgba(245,240,232,0.4)';
+  ctx.font = '400 18px "Noto Sans SC"';
+  ['S','M','W','A'].forEach((ax,i)=>{
+    const x = fmt.w/2 - 180 + i*120;
+    ctx.fillStyle = 'rgba(245,240,232,0.4)';
+    ctx.fillText(ax, x, axY);
+    // bar
+    ctx.strokeStyle = 'rgba(245,240,232,0.15)';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(x-30,axY+20); ctx.lineTo(x+30,axY+20); ctx.stroke();
+    // dot
+    const pos = x + (state.scores[ax]/100)*28;
+    ctx.fillStyle = '#c9a84c';
+    ctx.beginPath(); ctx.arc(pos, axY+20, 5, 0, Math.PI*2); ctx.fill();
+    // score
+    ctx.fillStyle = 'rgba(201,168,76,0.75)';
+    ctx.font = '500 16px "Playfair Display"';
+    ctx.fillText((state.scores[ax]>=0?'+':'')+state.scores[ax], x, axY+50);
+  });
+
+  // player name
+  ctx.fillStyle = 'rgba(245,240,232,0.5)';
+  ctx.font = '300 22px "Noto Serif SC"';
+  ctx.fillText(`旅人 · ${state.playerName}`, fmt.w/2, fmt.h - 120);
+
+  // footer
+  ctx.fillStyle = 'rgba(201,168,76,0.4)';
+  ctx.font = '300 18px "Noto Sans SC"';
+  ctx.fillText('40 题 · 16 原型 · 东西方哲学', fmt.w/2, fmt.h - 70);
+}
+
+function wrapText(ctx, text, maxWidth){
+  const chars = text.split('');
+  const lines = [];
+  let line = '';
+  for(const ch of chars){
+    const test = line+ch;
+    if(ctx.measureText(test).width > maxWidth && line){ lines.push(line); line = ch; }
+    else line = test;
+  }
+  if(line) lines.push(line);
+  return lines;
+}
+
+function downloadShareCard(){
+  const canvas = $('shareCanvas');
+  const a = getArchetype();
+  const link = document.createElement('a');
+  link.download = `灵魂地图-${a.poeticName}-${state.playerName}.png`;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+  toast('图片已下载');
+}
+
+async function copyShareCardToClipboard(){
+  try{
+    const canvas = $('shareCanvas');
+    canvas.toBlob(async blob=>{
+      try{
+        await navigator.clipboard.write([new ClipboardItem({'image/png': blob})]);
+        toast('已复制到剪贴板');
+      }catch(e){ toast('请使用下载图片'); }
+    });
+  }catch(e){ toast('请使用下载图片'); }
+}
+
+// ============================================================
+// WECHAT MOMENT TEXTS
+// ============================================================
+function openWechatModal(){
+  $('wechatModal').classList.add('show');
+  $('wechatTabs').innerHTML = Object.entries(WECHAT_STYLES).map(([k,s])=>`<button class="wechat-tab ${k===state.wechatStyle?'active':''}" onclick="switchWechatStyle('${k}')">${s.name}</button>`).join('');
+  updateWechatText();
+}
+function closeWechatModal(){ $('wechatModal').classList.remove('show'); }
+function switchWechatStyle(style){
+  state.wechatStyle = style;
+  document.querySelectorAll('.wechat-tab').forEach(t=>t.classList.remove('active'));
+  event.target.classList.add('active');
+  updateWechatText();
+}
+function updateWechatText(){
+  const a = getArchetype();
+  const override = WECHAT_OVERRIDES[a.code];
+  const text = override ? override[state.wechatStyle] : WECHAT_STYLES[state.wechatStyle].template(a);
+  $('wechatTextBox').textContent = text;
+}
+function copyWechatText(){
+  const text = $('wechatTextBox').textContent;
+  navigator.clipboard.writeText(text).then(()=>toast('文案已复制'));
+}
+
+// ============================================================
+// COMPATIBILITY
+// ============================================================
+function openCompatModal(){
+  $('compatModal').classList.add('show');
+  $('compatSelfCode').textContent = getCode();
+  $('compatResult').innerHTML = '';
+  $('compatOtherCode').value = '';
+  $('compatOtherCode').focus();
+}
+function closeCompatModal(){ $('compatModal').classList.remove('show'); }
+
+const RELATIONSHIP_TYPES = {
+  mirror: { name:'镜像型', scoreRange:[92,98] },
+  neighbor: { name:'邻居型', scoreRange:[75,88] },
+  dialogue: { name:'对话型', scoreRange:[60,74] },
+  challenge: { name:'挑战型', scoreRange:[45,59] },
+  attract: { name:'互吸型', scoreRange:[82,95] }
+};
+
+const COMPAT_DESCRIPTIONS = {
+  mirror: ['像照镜子一样熟悉，却也容易看到自己的阴影。你们之间不需要多解释，但要警惕回声室效应。','同频是最深的幸运，也是最安静的陷阱。相互看见的同时，也要彼此推开一点点。','两个相似的灵魂，像并排行走的两棵树——根在同一片土里，但必须各自伸展枝叶。'],
+  neighbor: ['你们只差一个轴，却足够带来陌生的风景。像邻居之间隔着篱笆聊天：足够近以理解，足够远以惊讶。','非常契合的一对。差异恰到好处：不会让人累，但能让人想。','一步之遥的不同。你们能互相修补，但也要尊重那道"篱笆"的存在。'],
+  dialogue: ['你们差了两个轴。对话会精彩，但也要耐心。像两门不同的语言相遇，需要翻译，但翻译之后会有惊喜。','差异会带来长久的兴趣，前提是双方都愿意慢慢理解。这是一段"需要努力但值得"的关系。','既不容易，也不无聊。这是一场要用一辈子练习的对话。'],
+  challenge: ['你们是互为镜像的补角。每次相处都是一次小型认知地震。但挑战者往往是最好的老师。','差异极大，磨合也会剧烈。但如果你们愿意停留，这段关系会让彼此都成为更大的人。','你们像冰与火。走得近会剧烈，但留下的痕迹最深。'],
+  attract: ['相反却互补，像阴阳两仪。你们之间有一种神秘的吸力：彼此都拥有对方缺失的那一块。','吸引力来自完全的不同。这样的关系浓烈，但要警惕激情淡去后的空白。','两块拼图的完美咬合。只要你们不试图把对方改造成自己，就会走得很远。']
+};
+
+function computeCompat(){
+  const other = $('compatOtherCode').value.trim().toUpperCase().replace(/\s/g,'');
+  const pattern = /^S[+-]M[+-]W[+-]A[+-]$/;
+  if(!pattern.test(other)){
+    $('compatResult').innerHTML = '<div style="text-align:center;color:var(--rust);padding:1rem;">请输入正确格式，例如 S+M-W+A-</div>';
+    return;
+  }
+  const self = getCode();
+  if(self===other){
+    const desc = COMPAT_DESCRIPTIONS.mirror[Math.floor(Math.random()*3)];
+    $('compatResult').innerHTML = `<div class="compat-result"><div class="compat-score">96%</div><div class="compat-type">镜像型 · MIRROR</div><div class="compat-desc">${desc}</div></div>`;
+    return;
+  }
+  // compute differences
+  const axes = ['S','M','W','A'];
+  let diffs = 0;
+  axes.forEach(ax=>{
+    const selfSign = self[self.indexOf(ax)+1];
+    const otherSign = other[other.indexOf(ax)+1];
+    if(selfSign !== otherSign) diffs++;
+  });
+  let type, score, descPool;
+  if(diffs===0){ type='mirror'; score=96; descPool=COMPAT_DESCRIPTIONS.mirror; }
+  else if(diffs===1){ type='neighbor'; score=80+Math.floor(Math.random()*8); descPool=COMPAT_DESCRIPTIONS.neighbor; }
+  else if(diffs===2){ type='dialogue'; score=64+Math.floor(Math.random()*10); descPool=COMPAT_DESCRIPTIONS.dialogue; }
+  else if(diffs===3){ type='challenge'; score=48+Math.floor(Math.random()*11); descPool=COMPAT_DESCRIPTIONS.challenge; }
+  else { type='attract'; score=86+Math.floor(Math.random()*9); descPool=COMPAT_DESCRIPTIONS.attract; }
+  const typeName = RELATIONSHIP_TYPES[type].name;
+  const desc = descPool[Math.floor(Math.random()*descPool.length)];
+  const otherA = getArchetype(other);
+  $('compatResult').innerHTML = `<div class="compat-result"><div class="compat-score">${score}%</div><div class="compat-type">${typeName} · ${type.toUpperCase()}</div><div style="margin-top:0.75rem;color:rgba(201,168,76,0.85);font-size:0.9rem;">${getArchetype().poeticName} × ${otherA.poeticName}</div><div class="compat-desc">${desc}</div></div>`;
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+function toast(msg){
+  const t = $('copyToast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(()=>t.classList.remove('show'), 2000);
+}
+
+// ============================================================
+// KEYBOARD
+// ============================================================
+document.addEventListener('keydown', e=>{
+  if($('quiz').classList.contains('active')){
+    const q = QUESTIONS[state.current];
+    if(e.key==='ArrowRight' || e.key==='Enter'){ if(!$('nextBtn').disabled) nextQuestion(); }
+    else if(e.key==='ArrowLeft'){ if(!$('prevBtn').disabled) prevQuestion(); }
+    else if(e.key==='h' || e.key==='H'){ toggleHesitate(); }
+    else {
+      const n = parseInt(e.key);
+      if(!isNaN(n)){
+        if(q.type==='scale' && n>=1 && n<=7) selectScale(n);
+        else if(q.type==='choice' && n>=1 && n<=q.choices.length) selectChoice(n-1);
+      }
+    }
+  } else if(e.key==='Escape'){
+    closeModal(); closeShareModal(); closeWechatModal(); closeCompatModal();
+    if($('interlude').classList.contains('show')) dismissInterlude();
+  } else if($('interlude').classList.contains('show') && (e.key==='Enter'||e.key==='ArrowRight'||e.key===' ')){
+    e.preventDefault(); dismissInterlude();
+  } else if($('axes-reveal').classList.contains('active') && (e.key==='Enter'||e.key==='ArrowRight'||e.key===' ')){
+    e.preventDefault(); enterRevealCeremony();
+  } else if($('reveal').classList.contains('active') && (e.key==='Enter'||e.key==='ArrowRight'||e.key===' ')){
+    e.preventDefault(); advanceReveal();
+  }
+});
+
+// init
+$('nameInput').focus();
+</script>
+</body>
+</html>
