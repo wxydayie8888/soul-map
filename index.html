@@ -399,6 +399,37 @@ body {
   .nav-row { padding: 0.6rem 1rem 0.8rem; }
   .nav-hint { display: none; }
   .result-inner { padding: 2rem 1rem 3rem; }
+  /* mobile: larger touch targets */
+  .wechat-tab { padding: 0.7rem 1.2rem !important; font-size: 0.82rem !important; min-height: 44px; }
+  .action-btn { width: 100%; padding: 0.9rem 1.2rem; font-size: 0.9rem; }
+  .action-row { flex-direction: column; gap: 0.6rem; }
+  .choice-btn { padding: 0.9rem 1.2rem; min-height: 48px; font-size: 0.92rem; }
+  .hesitate-btn { padding: 0.7rem 1.4rem; min-height: 44px; }
+  /* mobile: modal as bottom drawer */
+  .modal-backdrop .modal { position: fixed; bottom: 0; left: 0; right: 0; max-width: 100%; max-height: 80vh; margin: 0; border-radius: 1rem 1rem 0 0; animation: slideUpDrawer 0.35s ease-out; }
+  @keyframes slideUpDrawer { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  /* mobile: result hero tighter */
+  .result-code-mbti { font-size: 2.2rem !important; }
+  .result-poetic-name { font-size: 1.8rem !important; }
+  .result-mantra { font-size: 0.95rem !important; }
+  .result-slogan { font-size: 0.92rem !important; padding: 0.8rem 1rem !important; }
+  /* mobile: books/figures grids single column */
+  .books-grid, .figures-grid { grid-template-columns: 1fr !important; }
+  .intensity-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  /* mobile: floating share bar larger */
+  #floatingShareBar .action-btn { width: auto; padding: 0.6rem 1rem; font-size: 0.8rem; }
+}
+@media (max-width: 480px) {
+  .hero-title { letter-spacing: 0.08em; }
+  .hero-desc { font-size: 0.9rem; }
+  .hero-meta { gap: 1.2rem; }
+  .mandala { width: 160px; height: 160px; margin-bottom: 2rem; }
+  .prologue-title { font-size: 1.5rem !important; }
+  .question-text { font-size: 1rem !important; }
+  .question-intent { font-size: 0.78rem; padding: 0.4rem 0 0.4rem 0.8rem; }
+  .scale-btn { max-width: 44px; font-size: 0.78rem; }
+  .all-archetypes { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important; }
+  .shadow-grid { grid-template-columns: 1fr !important; }
 }
 
 @media print {
@@ -976,6 +1007,18 @@ const WECHAT_STYLES = {
   meme: {
     name:'梗感范',
     template: (a)=>`测出来是【${a.poeticName}】${a.identityTag}\n稀有度 ${a.rarity}%（${a.rarity<=5?'稀有中奖选手✨':a.rarity<=8?'小众但不冷门':'人间大多数抱团取暖'}）\n\n精准到我想报警 👮‍♂️\n"${a.slogan}"`
+  },
+  cp: {
+    name:'CP范',
+    template: (a)=>`和朋友一起测了「灵魂地图」，\n我是 ${a.displayCode||a.code} · ${a.poeticName}\n\n"${a.slogan}"\n\n想看看我们的灵魂契合度是多少 😏\n你也来测 👉 ${window.location.href}`
+  },
+  lonely: {
+    name:'深夜emo',
+    template: (a)=>`凌晨两点测了个灵魂地图。\n\n原来我是「${a.poeticName}」，${a.rarity}% 的人是这种。\n"${a.slogan}"\n\n好像……突然被一个测试理解了。\n说不上来为什么，有点想哭。`
+  },
+  fomo: {
+    name:'Fomo范',
+    template: (a)=>`天啊我居然是全网 ${a.rarity}% 的 ${a.poeticName}？！\n\n${a.identityTag}\n"${a.slogan}"\n\n这个测试比 MBTI 准到离谱，谁来测测看你是什么！\n👉 ${window.location.href}`
   }
 };
 
@@ -1558,6 +1601,7 @@ function renderQuestion(){
     ${answerHtml}
     <div class="hesitate-row">
       <button class="hesitate-btn ${hesActive?'active':''}" onclick="toggleHesitate()">${hesActive?'✓ 已标记犹豫':'我在这里犹豫了'}</button>
+      <button class="hesitate-btn resonance-btn" onclick="toggleResonance()" style="border-color:rgba(245,212,66,0.35);color:rgba(245,212,66,0.75);">${resonanceCount>0?`💫 已记录 ${resonanceCount} 次共鸣`:'这题戳到我了 💫'}</button>
     </div>
   `;
   $('prevBtn').disabled = state.current===0;
@@ -1622,8 +1666,10 @@ function nextQuestion(){
     setTimeout(finishQuiz, 1800);
     return;
   }
-  // milestone check before advancing
+  // soul flash at Q12 and Q28
   const qNum = state.current + 1; // 1-based just answered
+  if(qNum === 12 || qNum === 28){ showSoulFlash(qNum); }
+  // milestone check before advancing
   if(MILESTONES[qNum]){
     showMilestone(qNum);
     setTimeout(()=>{
@@ -1674,6 +1720,38 @@ function dismissInterlude(){
 function finishQuiz(){
   showScreen('calculating');
   runCalculation();
+}
+
+// Soul flash — mid-quiz "the system is reading you" moment
+function showSoulFlash(qNum){
+  const axes = ['S','M','W','A'];
+  const strongest = axes.reduce((a,b)=>Math.abs(state.rawScores[a]||0)>Math.abs(state.rawScores[b]||0)?a:b);
+  const dir = (state.rawScores[strongest]||0) >= 0;
+  const labels = { S:['自主','秩序'], M:['德性','理性'], W:['超越','此世'], A:['关系','独立'] };
+  const label = dir ? labels[strongest][0] : labels[strongest][1];
+  const msgs = {
+    12: `你的灵魂正在偏向「${label}」这一端……\n但还有 28 题可能翻转一切。`,
+    28: `你的轮廓越来越清晰了……\n「${label}」维度即将定格。`
+  };
+  const msg = msgs[qNum];
+  if(!msg) return;
+  const el = document.createElement('div');
+  el.style.cssText = 'position:fixed;inset:0;z-index:350;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(13,17,23,0.93);pointer-events:none;opacity:0;transition:opacity 0.5s;padding:2rem;';
+  el.innerHTML = `<div style="font-size:1.6rem;margin-bottom:1rem;">🔮</div><div style="font-family:'Noto Serif SC',serif;font-size:1.05rem;color:rgba(245,240,232,0.85);text-align:center;line-height:2;letter-spacing:0.1em;white-space:pre-line;">${msg}</div>`;
+  document.body.appendChild(el);
+  requestAnimationFrame(()=>el.style.opacity='1');
+  emitParticles(window.innerWidth/2, window.innerHeight/2, 40, '199,125,255');
+  setTimeout(()=>{ el.style.opacity='0'; setTimeout(()=>el.remove(),500); }, 2500);
+}
+
+// Resonance tracking ("这题戳到我了")
+let resonanceCount = 0;
+function toggleResonance(){
+  resonanceCount++;
+  const btn = document.querySelector('.resonance-btn');
+  if(btn){ btn.textContent = `💫 已记录 ${resonanceCount} 次共鸣`; btn.classList.add('active'); }
+  emitParticles(window.innerWidth/2, window.innerHeight*0.6, 20, '245,212,66');
+  playClickSound();
 }
 
 // Gold flash feedback on answer selection
@@ -1821,15 +1899,28 @@ function renderAxesReveal(){
 function enterRevealCeremony(){
   state.revealStage = 0;
   showScreen('reveal');
-  // add nebula background to reveal screen
   const revealEl = $('reveal');
   if(!revealEl.querySelector('.reveal-nebula')){
     const neb = document.createElement('div');
     neb.className = 'reveal-nebula';
     revealEl.insertBefore(neb, revealEl.firstChild);
   }
+  // mobile: merge 4 stages into 2 (skip stage 0 and 1 separately)
+  if(isMobile){
+    state.revealStage = 0; // will render combined stage A
+  }
   playRevealChime();
   renderRevealStage();
+}
+
+function advanceRevealMobile(){
+  // mobile: only 2 stages: A (rarity+axes) → B (code+name+slogan) → result
+  if(state.revealStage <= 1){
+    state.revealStage = 2;
+    renderRevealStage();
+  } else {
+    renderResult();
+  }
 }
 
 function renderRevealStage(){
@@ -1917,6 +2008,7 @@ function animateRarityNumber(target){
 }
 
 function advanceReveal(){
+  if(isMobile) return advanceRevealMobile();
   state.revealStage++;
   if(state.revealStage>=4){
     renderResult();
@@ -1954,6 +2046,8 @@ function renderResult(){
       <div class="result-slogan">"${a.slogan}"</div>
       <div class="result-player-name">旅人 · ${state.playerName}</div>
       <div class="ethics-note">这不是你的人生标签，只是一次哲学对话。</div>
+      ${renderEmojiVote()}
+      ${resonanceCount>0?`<div style="font-size:0.78rem;color:rgba(245,212,66,0.6);text-align:center;margin-top:0.5rem;">💫 你在 ${resonanceCount} 道题上感到了共鸣</div>`:''}
     </div>
 
     <div class="result-section" id="rs1">
@@ -2040,8 +2134,10 @@ function renderResult(){
     <div class="action-row">
       <button class="action-btn legend" onclick="openShareModal()">生成分享卡</button>
       <button class="action-btn legend" onclick="openWechatModal()">朋友圈文案</button>
-      <button class="action-btn legend" onclick="copyFriendInvite()">发给朋友测</button>
+      <button class="action-btn legend" onclick="isMobile?nativeShare():copyFriendInvite()">发给朋友测</button>
+      <button class="action-btn" onclick="generateGuessGame()">🎲 猜猜我是哪种</button>
       <button class="action-btn" onclick="openCompatModal()">契合度测试</button>
+      <button class="action-btn" onclick="generateVideoScript()">🎬 短视频脚本</button>
       <button class="action-btn ghost" onclick="exportPDF()">导出 PDF</button>
       <button class="action-btn ghost" onclick="restartGame()">重测一次</button>
     </div>
@@ -2050,7 +2146,7 @@ function renderResult(){
     <div id="floatingShareBar" style="position:fixed;bottom:-60px;left:0;right:0;z-index:100;display:flex;justify-content:center;gap:0.8rem;padding:0.8rem 1rem;background:rgba(13,17,23,0.95);backdrop-filter:blur(12px);border-top:1px solid rgba(201,168,76,0.2);transition:bottom 0.4s cubic-bezier(0.4,0,0.2,1);">
       <button class="action-btn" style="padding:0.5rem 1.2rem;font-size:0.82rem;" onclick="openShareModal()">📸 截图</button>
       <button class="action-btn" style="padding:0.5rem 1.2rem;font-size:0.82rem;" onclick="openWechatModal()">✍️ 文案</button>
-      <button class="action-btn" style="padding:0.5rem 1.2rem;font-size:0.82rem;" onclick="copyFriendInvite()">💌 发给朋友</button>
+      <button class="action-btn" style="padding:0.5rem 1.2rem;font-size:0.82rem;" onclick="isMobile?nativeShare():copyFriendInvite()">💌 分享</button>
     </div>
   `;
   showScreen('result');
@@ -2087,12 +2183,59 @@ function showArchetypeModal(code){
 }
 
 function closeModal(){ $('modal').classList.remove('show'); }
+// Web Share API (mobile native share)
+async function nativeShare(){
+  const a = getArchetype();
+  if(navigator.share){
+    try {
+      await navigator.share({
+        title: `灵魂地图 · ${a.displayCode||a.code} · ${a.poeticName}`,
+        text: `我是 ${a.displayCode||a.code} · ${a.poeticName}（${a.identityTag}）\n"${a.slogan}"\n你来测测看？`,
+        url: window.location.href
+      });
+    } catch(e){ /* user cancelled */ }
+  } else {
+    copyFriendInvite();
+  }
+}
+
+// Emoji vote ("你觉得准吗")
+function renderEmojiVote(){
+  const votes = [
+    {emoji:'😱', label:'太准了'},
+    {emoji:'🤔', label:'有点准'},
+    {emoji:'😅', label:'不太像'},
+    {emoji:'💀', label:'我emo了'}
+  ];
+  return `<div style="display:flex;justify-content:center;gap:0.8rem;flex-wrap:wrap;margin:1.2rem 0;">
+    ${votes.map(v=>`<button onclick="this.style.transform='scale(1.3)';this.style.background='rgba(201,168,76,0.15)';toast('你的评价已记录 ${v.emoji}');emitParticles(event.clientX,event.clientY,15,'201,168,76')" style="padding:0.6rem 1rem;border:1px solid rgba(245,240,232,0.15);background:transparent;border-radius:2rem;cursor:pointer;font-size:0.85rem;color:rgba(245,240,232,0.7);transition:all 0.2s;display:flex;align-items:center;gap:0.4rem;"><span style="font-size:1.2rem;">${v.emoji}</span>${v.label}</button>`).join('')}
+  </div>`;
+}
+
 // "Send to friend" one-click copy
 function copyFriendInvite(){
   const a = getArchetype();
   const url = window.location.href;
   const text = `我刚测完「灵魂地图」，我是 ${a.displayCode||a.code} · ${a.poeticName}（${a.identityTag}）\n\n"${a.slogan}"\n\n你来测测看我们的契合度 👉 ${url}`;
   navigator.clipboard.writeText(text).then(()=>toast('邀请文案已复制，发给朋友吧！')).catch(()=>toast('复制失败'));
+}
+
+// "猜猜我是哪种" interactive guessing game
+function generateGuessGame(){
+  const me = getArchetype();
+  // pick 3 random wrong archetypes + correct one
+  const others = ARCHETYPES.filter(a=>a.code!==me.code).sort(()=>Math.random()-0.5).slice(0,3);
+  const options = [...others, me].sort(()=>Math.random()-0.5);
+  const correctIdx = options.findIndex(a=>a.code===me.code);
+  const text = `🔮 猜猜我是哪种灵魂？\n\n线索：\n"${me.slogan}"\n${me.identityTag}\n\n选一个：\nA. ${options[0].poeticName}\nB. ${options[1].poeticName}\nC. ${options[2].poeticName}\nD. ${options[3].poeticName}\n\n答案：${String.fromCharCode(65+correctIdx)} 👉 来测你的 ${window.location.href}`;
+  navigator.clipboard.writeText(text).then(()=>toast('猜谜文案已复制！发给朋友猜猜看'));
+}
+
+// 15 秒短视频脚本生成
+function generateVideoScript(){
+  const a = getArchetype();
+  const script = `📹 15 秒「灵魂揭秘」口播脚本\n\n【画面 1 · 0-3秒】\n黑屏出字："你知道你的灵魂是什么形状吗？"\n\n【画面 2 · 3-7秒】\n手机屏幕录屏：快进答题过程\n配字幕："40 道题，从东西方哲学的角度"\n\n【画面 3 · 7-11秒】\n揭晓结果，手机展示：\n"${a.displayCode||a.code} · ${a.poeticName}"\n"${a.slogan}"\n你露出惊讶/感动表情\n\n【画面 4 · 11-15秒】\n展示箴言卡片 + 指向链接\n配字幕："全网只有 ${a.rarity}% 的人是这种"\n\n【配乐建议】Hans Zimmer - Cornfield Chase 或 坂本龙一 - Merry Christmas Mr. Lawrence\n\n【标签】#灵魂地图 #哲学人格测试 #MBTI替代 #${a.poeticName}`;
+  navigator.clipboard.writeText(script).then(()=>toast('短视频脚本已复制！'));
 }
 
 // Floating share bar scroll logic
@@ -2125,6 +2268,7 @@ function exportPDF(){
 const SHARE_FORMATS = {
   square: { name:'朋友圈（方）', w:1080, h:1080 },
   xhs: { name:'小红书 (3:4)', w:1080, h:1440 },
+  namecard: { name:'灵魂名片', w:480, h:480 },
   weibo: { name:'微博（横）', w:1280, h:720 },
   wechat: { name:'微信对话', w:900, h:1200 }
 };
