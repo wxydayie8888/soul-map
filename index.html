@@ -25,6 +25,11 @@
   --rare: #ffd770;
   --uncommon: #8ad4c8;
   --common: #a8a8a8;
+  /* Z-gen accent (多巴胺系) */
+  --dopamine: #c77dff;
+  --cyber: #4cc9f0;
+  --neon-gold: #f5d442;
+  --liquid: #7b2ff7;
   /* dimension hues (10) */
   --d0: #c9a84c; --d1: #d4762a; --d2: #8b3a2a; --d3: #4a6741;
   --d4: #2a6b6e; --d5: #5c4a7a; --d6: #3d4f5c; --d7: #b892ff;
@@ -406,13 +411,66 @@ body {
 }
 
 /* streak removed; hesitate badge position */
+
+/* ===== PAPER TEXTURE OVERLAY ===== */
+.paper-grain { position: fixed; inset: 0; z-index: 999; pointer-events: none; mix-blend-mode: soft-light; opacity: 0.08; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); background-size: 256px; }
+.paper-breathe { animation: paperBreathe 8s ease-in-out infinite; }
+@keyframes paperBreathe { 0%,100% { opacity: 0.06; } 50% { opacity: 0.10; } }
+
+/* ===== INK WASH TRANSITION ===== */
+.ink-wash { position: fixed; inset: 0; z-index: 200; pointer-events: none; background: radial-gradient(circle at var(--ink-x, 50%) var(--ink-y, 50%), rgba(13,17,23,1) 0%, transparent 70%); opacity: 0; transition: opacity 0.3s; }
+.ink-wash.active { opacity: 1; animation: inkSpread 0.7s ease-out forwards; }
+@keyframes inkSpread { 0% { background-size: 0% 0%; opacity: 1; } 50% { background-size: 300% 300%; opacity: 1; } 100% { background-size: 400% 400%; opacity: 0; } }
+
+/* ===== CURSOR TRAIL PARTICLES ===== */
+.cursor-trail { position: fixed; pointer-events: none; z-index: 9998; border-radius: 50%; background: var(--gold); opacity: 0; width: 4px; height: 4px; mix-blend-mode: screen; }
+
+/* ===== CONSTELLATION PROGRESS ===== */
+.constellation-progress { position: relative; height: 20px; width: 100%; }
+.constellation-svg { width: 100%; height: 20px; overflow: visible; }
+.constellation-star { fill: rgba(245,240,232,0.15); transition: fill 0.5s, r 0.4s, filter 0.4s; }
+.constellation-star.answered { fill: var(--gold); filter: drop-shadow(0 0 4px rgba(201,168,76,0.6)); }
+.constellation-star.current { fill: var(--dopamine); r: 4; filter: drop-shadow(0 0 8px rgba(199,125,255,0.8)); animation: starPulse 1.5s ease-in-out infinite; }
+.constellation-line { stroke: rgba(245,240,232,0.06); stroke-width: 1; transition: stroke 0.5s; }
+.constellation-line.active { stroke: rgba(201,168,76,0.35); }
+@keyframes starPulse { 0%,100% { r: 3; } 50% { r: 5; } }
+
+/* ===== THREE.JS CONTAINER ===== */
+#three-bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+/* ===== ENHANCED REVEAL ===== */
+.reveal-nebula { position: fixed; inset: 0; z-index: -1; background: radial-gradient(ellipse at 30% 40%, rgba(184,146,255,0.15), transparent 60%), radial-gradient(ellipse at 70% 60%, rgba(76,201,240,0.1), transparent 50%), radial-gradient(ellipse at 50% 50%, rgba(201,168,76,0.08), transparent 70%); animation: nebulaShift 6s ease-in-out infinite alternate; }
+@keyframes nebulaShift { 0% { transform: scale(1) rotate(0deg); } 100% { transform: scale(1.1) rotate(3deg); } }
+
+.gold-dust-reveal { animation: goldDustIn 2s ease-out both; }
+@keyframes goldDustIn { 0% { opacity: 0; filter: blur(20px); transform: scale(0.7); } 40% { opacity: 1; filter: blur(5px); } 100% { filter: blur(0); transform: scale(1); } }
+
+.scroll-unfold { animation: scrollUnfold 1.5s cubic-bezier(0.16, 1, 0.3, 1) both; transform-origin: top center; }
+@keyframes scrollUnfold { 0% { clip-path: inset(0 0 100% 0); opacity: 0; } 100% { clip-path: inset(0 0 0 0); opacity: 1; } }
+
+/* ===== GENERATIVE ART SIGNATURE ===== */
+.gen-art-canvas { width: 200px; height: 200px; margin: 0 auto 1.5rem; border: 1px solid rgba(201,168,76,0.15); background: rgba(13,17,23,0.6); }
+
+/* ===== SCREEN TRANSITIONS ===== */
+.screen { transition: opacity 0.8s cubic-bezier(0.4,0,0.2,1), visibility 0.8s, transform 0.8s cubic-bezier(0.4,0,0.2,1); transform: scale(0.98); }
+.screen.active { transform: scale(1); }
+
+/* ===== SOUND TOGGLE ===== */
+.sound-toggle { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 500; width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(201,168,76,0.3); background: rgba(13,17,23,0.8); color: rgba(201,168,76,0.6); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; font-size: 1.1rem; backdrop-filter: blur(8px); }
+.sound-toggle:hover { border-color: var(--gold); color: var(--gold); }
+.sound-toggle.on { border-color: var(--gold); color: var(--gold); background: rgba(201,168,76,0.1); }
+@media (pointer: coarse) { .sound-toggle { bottom: 1rem; right: 1rem; } }
 </style>
 </head>
 <body>
+<canvas id="three-bg"></canvas>
 <canvas id="starfield"></canvas>
 <canvas id="particles"></canvas>
+<div class="paper-grain paper-breathe"></div>
+<div class="ink-wash" id="inkWash"></div>
 <div class="cursor-ring"></div>
 <div class="cursor-dot"></div>
+<button class="sound-toggle" id="soundToggle" onclick="toggleSound()" title="环境音效">🔇</button>
 
 <!-- INTRO -->
 <section class="screen active" id="intro">
@@ -958,37 +1016,330 @@ function tierLabel(tier){
 }
 
 // ============================================================
-// CURSOR
+// DEVICE DETECTION
+// ============================================================
+const isMobile = window.matchMedia('(pointer: coarse)').matches;
+const isLowEnd = navigator.deviceMemory ? navigator.deviceMemory < 4 : false;
+const useWebGL = !isMobile && !isLowEnd;
+
+// ============================================================
+// CURSOR + TRAIL
 // ============================================================
 const cursorDot = document.querySelector('.cursor-dot');
 const cursorRing = document.querySelector('.cursor-ring');
 let mx=0,my=0,rx=0,ry=0;
-window.addEventListener('mousemove',e=>{ mx=e.clientX; my=e.clientY; cursorDot.style.transform=`translate(${mx}px,${my}px) translate(-50%,-50%)`; });
-function tickCursor(){ rx+=(mx-rx)*0.2; ry+=(my-ry)*0.2; cursorRing.style.transform=`translate(${rx}px,${ry}px) translate(-50%,-50%)`; requestAnimationFrame(tickCursor); }
+const trailDots = [];
+const TRAIL_COUNT = isMobile ? 0 : 18;
+for(let i=0;i<TRAIL_COUNT;i++){
+  const d = document.createElement('div');
+  d.className = 'cursor-trail';
+  d.style.cssText = `width:${Math.max(2, 5-i*0.25)}px;height:${Math.max(2, 5-i*0.25)}px;`;
+  document.body.appendChild(d);
+  trailDots.push({el:d, x:0, y:0});
+}
+window.addEventListener('mousemove',e=>{
+  mx=e.clientX; my=e.clientY;
+  cursorDot.style.transform=`translate(${mx}px,${my}px) translate(-50%,-50%)`;
+});
+function tickCursor(){
+  rx+=(mx-rx)*0.18; ry+=(my-ry)*0.18;
+  cursorRing.style.transform=`translate(${rx}px,${ry}px) translate(-50%,-50%)`;
+  // trail
+  for(let i=trailDots.length-1;i>0;i--){
+    trailDots[i].x += (trailDots[i-1].x - trailDots[i].x)*0.35;
+    trailDots[i].y += (trailDots[i-1].y - trailDots[i].y)*0.35;
+  }
+  if(trailDots.length>0){ trailDots[0].x+=(mx-trailDots[0].x)*0.5; trailDots[0].y+=(my-trailDots[0].y)*0.5; }
+  trailDots.forEach((d,i)=>{
+    const opacity = (1 - i/TRAIL_COUNT) * 0.5;
+    d.el.style.transform = `translate(${d.x}px,${d.y}px) translate(-50%,-50%)`;
+    d.el.style.opacity = opacity;
+  });
+  requestAnimationFrame(tickCursor);
+}
 tickCursor();
 document.addEventListener('mouseover',e=>{ if(e.target.matches('button,input,.choice-btn,.scale-btn,a,.arch-card,.shadow-card')) cursorRing.classList.add('hover'); });
 document.addEventListener('mouseout',e=>{ if(e.target.matches('button,input,.choice-btn,.scale-btn,a,.arch-card,.shadow-card')) cursorRing.classList.remove('hover'); });
 
 // ============================================================
-// STARFIELD
+// STARFIELD (2D canvas — fallback + always-on layer)
 // ============================================================
 const starCanvas = $('starfield'); const starCtx = starCanvas.getContext('2d');
 let stars = [];
-function initStars(){ starCanvas.width=window.innerWidth; starCanvas.height=window.innerHeight; stars=[]; for(let i=0;i<120;i++) stars.push({x:Math.random()*starCanvas.width,y:Math.random()*starCanvas.height,r:Math.random()*1.2+0.2,a:Math.random()*0.5+0.1,s:Math.random()*0.02+0.005}); }
-function tickStars(){ starCtx.clearRect(0,0,starCanvas.width,starCanvas.height); stars.forEach(st=>{ st.a+=st.s; if(st.a>0.6||st.a<0.1) st.s=-st.s; starCtx.fillStyle=`rgba(201,168,76,${st.a})`; starCtx.beginPath(); starCtx.arc(st.x,st.y,st.r,0,Math.PI*2); starCtx.fill(); }); requestAnimationFrame(tickStars); }
+const STAR_COUNT = isMobile ? 60 : 180;
+function initStars(){ starCanvas.width=window.innerWidth; starCanvas.height=window.innerHeight; stars=[]; for(let i=0;i<STAR_COUNT;i++) stars.push({x:Math.random()*starCanvas.width,y:Math.random()*starCanvas.height,r:Math.random()*1.4+0.2,a:Math.random()*0.5+0.1,s:Math.random()*0.015+0.004,hue:Math.random()>0.85?'184,146,255':Math.random()>0.5?'76,201,240':'201,168,76'}); }
+function tickStars(){ starCtx.clearRect(0,0,starCanvas.width,starCanvas.height); stars.forEach(st=>{ st.a+=st.s; if(st.a>0.6||st.a<0.08) st.s=-st.s; starCtx.fillStyle=`rgba(${st.hue},${st.a})`; starCtx.beginPath(); starCtx.arc(st.x,st.y,st.r,0,Math.PI*2); starCtx.fill(); }); requestAnimationFrame(tickStars); }
 initStars(); tickStars();
 window.addEventListener('resize',initStars);
 
 // ============================================================
-// PARTICLES
+// THREE.JS PARTICLE FIELD (desktop only)
+// ============================================================
+const threeBg = $('three-bg');
+let threeScene, threeCamera, threeRenderer, threeParticles, threeRAF;
+function initThreeField(){
+  if(!useWebGL || typeof THREE === 'undefined') { threeBg.style.display='none'; return; }
+  try {
+    threeScene = new THREE.Scene();
+    threeCamera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000);
+    threeCamera.position.z = 300;
+    threeRenderer = new THREE.WebGLRenderer({ canvas: threeBg, alpha: true, antialias: false });
+    threeRenderer.setSize(window.innerWidth, window.innerHeight);
+    threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    // particles
+    const count = 800;
+    const geo = new THREE.BufferGeometry();
+    const pos = new Float32Array(count*3);
+    const colors = new Float32Array(count*3);
+    const sizes = new Float32Array(count);
+    for(let i=0;i<count;i++){
+      pos[i*3] = (Math.random()-0.5)*600;
+      pos[i*3+1] = (Math.random()-0.5)*600;
+      pos[i*3+2] = (Math.random()-0.5)*400;
+      const c = Math.random();
+      if(c>0.85){ colors[i*3]=0.72; colors[i*3+1]=0.57; colors[i*3+2]=1; } // dopamine purple
+      else if(c>0.7){ colors[i*3]=0.3; colors[i*3+1]=0.79; colors[i*3+2]=0.94; } // cyber blue
+      else { colors[i*3]=0.79; colors[i*3+1]=0.66; colors[i*3+2]=0.3; } // gold
+      sizes[i] = Math.random()*2+0.5;
+    }
+    geo.setAttribute('position', new THREE.BufferAttribute(pos,3));
+    geo.setAttribute('color', new THREE.BufferAttribute(colors,3));
+    geo.setAttribute('size', new THREE.BufferAttribute(sizes,1));
+    const mat = new THREE.PointsMaterial({ size: 2, vertexColors: true, transparent: true, opacity: 0.7, sizeAttenuation: true, blending: THREE.AdditiveBlending, depthWrite: false });
+    threeParticles = new THREE.Points(geo, mat);
+    threeScene.add(threeParticles);
+    // mouse interaction
+    let tmx=0, tmy=0;
+    window.addEventListener('mousemove', e=>{
+      tmx = (e.clientX/window.innerWidth - 0.5)*2;
+      tmy = (e.clientY/window.innerHeight - 0.5)*2;
+    });
+    function animate(){
+      threeRAF = requestAnimationFrame(animate);
+      threeParticles.rotation.y += 0.0003;
+      threeParticles.rotation.x += 0.0001;
+      threeCamera.position.x += (tmx*30 - threeCamera.position.x)*0.02;
+      threeCamera.position.y += (-tmy*30 - threeCamera.position.y)*0.02;
+      threeCamera.lookAt(0,0,0);
+      threeRenderer.render(threeScene, threeCamera);
+    }
+    animate();
+    window.addEventListener('resize', ()=>{
+      threeCamera.aspect = window.innerWidth/window.innerHeight;
+      threeCamera.updateProjectionMatrix();
+      threeRenderer.setSize(window.innerWidth, window.innerHeight);
+    });
+    // FPS guard: if fps drops below 20 for 3 seconds, kill Three.js
+    let fpsSamples = [], lastTime = performance.now();
+    function fpsGuard(){
+      const now = performance.now();
+      fpsSamples.push(1000/(now-lastTime));
+      lastTime = now;
+      if(fpsSamples.length > 60){
+        const avg = fpsSamples.reduce((a,b)=>a+b)/fpsSamples.length;
+        if(avg < 20){ cancelAnimationFrame(threeRAF); threeBg.style.display='none'; return; }
+        fpsSamples = [];
+      }
+      requestAnimationFrame(fpsGuard);
+    }
+    requestAnimationFrame(fpsGuard);
+  } catch(e) { threeBg.style.display='none'; }
+}
+
+// ============================================================
+// PARTICLES (event-driven burst)
 // ============================================================
 const partCanvas = $('particles'); const partCtx = partCanvas.getContext('2d');
 let particles = [];
 function resizeParticles(){ partCanvas.width=window.innerWidth; partCanvas.height=window.innerHeight; }
 resizeParticles(); window.addEventListener('resize',resizeParticles);
 function emitParticles(x,y,count=30,color='201,168,76'){ for(let i=0;i<count;i++){ const a=Math.random()*Math.PI*2, v=Math.random()*3+1; particles.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-1,life:1,color,size:Math.random()*3+1}); } }
-function tickParticles(){ partCtx.clearRect(0,0,partCanvas.width,partCanvas.height); particles=particles.filter(p=>p.life>0); particles.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; p.vy+=0.08; p.life-=0.018; partCtx.fillStyle=`rgba(${p.color},${p.life})`; partCtx.beginPath(); partCtx.arc(p.x,p.y,p.size,0,Math.PI*2); partCtx.fill(); }); requestAnimationFrame(tickParticles); }
+function tickParticles(){ partCtx.clearRect(0,0,partCanvas.width,partCanvas.height); particles=particles.filter(p=>p.life>0); particles.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; p.vy+=0.06; p.life-=0.015; partCtx.fillStyle=`rgba(${p.color},${p.life})`; partCtx.beginPath(); partCtx.arc(p.x,p.y,p.size,0,Math.PI*2); partCtx.fill(); }); requestAnimationFrame(tickParticles); }
 tickParticles();
+
+// ============================================================
+// INK WASH TRANSITION
+// ============================================================
+function inkWash(onMid){
+  const el = $('inkWash');
+  el.style.setProperty('--ink-x', mx+'px');
+  el.style.setProperty('--ink-y', my+'px');
+  el.classList.add('active');
+  setTimeout(()=>{ if(onMid) onMid(); }, 350);
+  setTimeout(()=>{ el.classList.remove('active'); }, 750);
+}
+
+// ============================================================
+// CONSTELLATION PROGRESS BAR
+// ============================================================
+function renderConstellationProgress(current, total){
+  const container = document.querySelector('.progress-container');
+  if(!container) return;
+  const w = container.offsetWidth;
+  const gap = w / (total + 1);
+  // layout stars in a slightly wavy line
+  const pts = [];
+  for(let i=0;i<total;i++){
+    const x = gap * (i+1);
+    const y = 10 + Math.sin(i*0.7)*4;
+    pts.push({x, y});
+  }
+  let svg = `<svg class="constellation-svg" viewBox="0 0 ${w} 20">`;
+  // lines
+  for(let i=0;i<total-1;i++){
+    const cls = i < current ? 'active' : '';
+    svg += `<line x1="${pts[i].x}" y1="${pts[i].y}" x2="${pts[i+1].x}" y2="${pts[i+1].y}" class="constellation-line ${cls}"/>`;
+  }
+  // stars
+  for(let i=0;i<total;i++){
+    const cls = i < current ? 'answered' : i===current ? 'current' : '';
+    const r = i===current ? 4 : i<current ? 2.5 : 2;
+    svg += `<circle cx="${pts[i].x}" cy="${pts[i].y}" r="${r}" class="constellation-star ${cls}"/>`;
+  }
+  svg += '</svg>';
+  // replace progress bar content
+  const progBar = container.querySelector('.progress-bar');
+  if(progBar){
+    progBar.style.display = 'none';
+    let conEl = container.querySelector('.constellation-progress');
+    if(!conEl){ conEl = document.createElement('div'); conEl.className='constellation-progress'; container.appendChild(conEl); }
+    conEl.innerHTML = svg;
+  }
+}
+
+// ============================================================
+// GENERATIVE ART SIGNATURE
+// ============================================================
+function drawGenArt(canvas, archetype, playerName){
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width = 200;
+  const h = canvas.height = 200;
+  // seed from code + name
+  let seed = 0;
+  const seedStr = (archetype.displayCode||archetype.code) + (playerName||'');
+  for(let i=0;i<seedStr.length;i++) seed = ((seed<<5)-seed)+seedStr.charCodeAt(i);
+  const rng = ()=>{ seed=(seed*16807+0)%2147483647; return (seed&0x7fffffff)/0x7fffffff; };
+  ctx.fillStyle = 'rgba(13,17,23,0.9)';
+  ctx.fillRect(0,0,w,h);
+  // style based on archetype axes
+  const code = archetype.displayCode || 'OREI';
+  const isF = code[0]==='F'; // free = flowing lines; O = geometric
+  const isV = code[1]==='V'; // virtue = warm; R = cool
+  const isS = code[2]==='S'; // sacred = spirals; E = grids
+  const isW = code[3]==='W'; // we = connected; I = isolated
+  const hue1 = isV ? 'rgba(201,168,76,' : 'rgba(76,201,240,';
+  const hue2 = isS ? 'rgba(184,146,255,' : 'rgba(138,212,200,';
+  // draw
+  ctx.lineWidth = 1;
+  const count = 40 + Math.floor(rng()*30);
+  for(let i=0;i<count;i++){
+    ctx.strokeStyle = (rng()>0.5?hue1:hue2) + (0.2+rng()*0.5) + ')';
+    ctx.beginPath();
+    if(isF){
+      // flowing curves
+      const sx=rng()*w, sy=rng()*h;
+      ctx.moveTo(sx, sy);
+      for(let j=0;j<3;j++){
+        ctx.quadraticCurveTo(rng()*w, rng()*h, rng()*w, rng()*h);
+      }
+    } else {
+      // geometric
+      const cx=rng()*w, cy=rng()*h, size=20+rng()*60;
+      const sides = 3+Math.floor(rng()*4);
+      for(let j=0;j<=sides;j++){
+        const ang = (j/sides)*Math.PI*2 + rng()*0.3;
+        const px = cx+Math.cos(ang)*size, py = cy+Math.sin(ang)*size;
+        j===0 ? ctx.moveTo(px,py) : ctx.lineTo(px,py);
+      }
+      ctx.closePath();
+    }
+    ctx.stroke();
+    // connective dots for W types
+    if(isW && rng()>0.6){
+      ctx.fillStyle = hue1 + '0.4)';
+      ctx.beginPath();
+      ctx.arc(rng()*w, rng()*h, 1+rng()*3, 0, Math.PI*2);
+      ctx.fill();
+    }
+  }
+  // sacred spirals overlay
+  if(isS){
+    ctx.strokeStyle = hue2 + '0.25)';
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();
+    for(let a=0;a<Math.PI*8;a+=0.05){
+      const r = a*3;
+      ctx.lineTo(w/2+Math.cos(a+rng()*0.2)*r, h/2+Math.sin(a+rng()*0.2)*r);
+    }
+    ctx.stroke();
+  }
+  // center glow
+  const grd = ctx.createRadialGradient(w/2,h/2,0,w/2,h/2,60);
+  grd.addColorStop(0, hue1+'0.15)');
+  grd.addColorStop(1, 'transparent');
+  ctx.fillStyle = grd;
+  ctx.fillRect(0,0,w,h);
+}
+
+// ============================================================
+// SOUND SYSTEM (ambient, default off)
+// ============================================================
+let soundOn = false;
+let audioCtx = null;
+function toggleSound(){
+  soundOn = !soundOn;
+  $('soundToggle').textContent = soundOn ? '🔊' : '🔇';
+  $('soundToggle').classList.toggle('on', soundOn);
+  if(soundOn && !audioCtx){
+    audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    playAmbient();
+  }
+  if(audioCtx){ audioCtx[soundOn?'resume':'suspend'](); }
+}
+function playAmbient(){
+  if(!audioCtx) return;
+  // soft ambient drone
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.value = 120;
+  gain.gain.value = 0.03;
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start();
+  // second harmonic
+  const osc2 = audioCtx.createOscillator();
+  const gain2 = audioCtx.createGain();
+  osc2.type = 'sine';
+  osc2.frequency.value = 180;
+  gain2.gain.value = 0.015;
+  osc2.connect(gain2).connect(audioCtx.destination);
+  osc2.start();
+}
+function playClickSound(){
+  if(!soundOn || !audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.value = 800 + Math.random()*400;
+  gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+0.15);
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start(); osc.stop(audioCtx.currentTime+0.15);
+}
+function playRevealChime(){
+  if(!soundOn || !audioCtx) return;
+  [440, 554, 659, 880].forEach((f,i)=>{
+    setTimeout(()=>{
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine'; osc.frequency.value = f;
+      gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+1.5);
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start(); osc.stop(audioCtx.currentTime+1.5);
+    }, i*300);
+  });
+}
 
 // ============================================================
 // SVG ILLUSTRATIONS
@@ -1060,6 +1411,8 @@ function renderQuestion(){
   $('progressText').textContent = `${state.current+1} / ${QUESTIONS.length}`;
   $('progressPercent').textContent = `${pct}%`;
   $('progressFill').style.width = pct+'%';
+  // constellation progress (overlay on linear bar)
+  try { renderConstellationProgress(state.current, QUESTIONS.length); } catch(e){}
   $('dimBadge').textContent = `${dim.id} · ${dim.name}`;
   $('dimBadge').style.borderColor = dim.color;
   $('dimBadge').style.color = dim.color;
@@ -1093,12 +1446,14 @@ function toggleHesitate(){
 function selectScale(v){
   state.answers[state.current] = v;
   recalculateRunning();
+  playClickSound();
   renderQuestion();
 }
 
 function selectChoice(i){
   state.answers[state.current] = i;
   recalculateRunning();
+  playClickSound();
   renderQuestion();
 }
 
@@ -1138,8 +1493,8 @@ function nextQuestion(){
   }
   state.current++;
   if(nextDim !== currDim){
-    // dimension just finished
-    showInterlude(currDim);
+    // dimension just finished — ink wash then interlude
+    inkWash(()=>showInterlude(currDim));
   } else {
     renderQuestion();
   }
@@ -1276,6 +1631,14 @@ function renderAxesReveal(){
 function enterRevealCeremony(){
   state.revealStage = 0;
   showScreen('reveal');
+  // add nebula background to reveal screen
+  const revealEl = $('reveal');
+  if(!revealEl.querySelector('.reveal-nebula')){
+    const neb = document.createElement('div');
+    neb.className = 'reveal-nebula';
+    revealEl.insertBefore(neb, revealEl.firstChild);
+  }
+  playRevealChime();
   renderRevealStage();
 }
 
@@ -1320,19 +1683,27 @@ function renderRevealStage(){
       <button class="reveal-continue" onclick="advanceReveal()" style="margin-top:2rem;">继续揭示 →</button>
     `;
     stageDiv.innerHTML = html;
+    // gold dust reveal animation
+    const codeEl = stageDiv.querySelector('div');
+    if(codeEl) codeEl.classList.add('gold-dust-reveal');
     setTimeout(()=>document.querySelector('.reveal-name').classList.add('show'),200);
     setTimeout(()=>document.querySelector('.reveal-tag').classList.add('show'),900);
-    emitParticles(window.innerWidth/2, window.innerHeight/3, 80, '201,168,76');
+    emitParticles(window.innerWidth/2, window.innerHeight/3, 120, '184,146,255');
+    playRevealChime();
   } else if(stage===3){
     html = `
-      <div style="width:180px;height:180px;margin:0 auto 1.5rem;">${illus(a.icon)}</div>
-      <div class="reveal-name show" style="font-size:clamp(2rem,5vw,2.8rem);">${a.poeticName}</div>
+      <canvas class="gen-art-canvas" id="revealGenArt"></canvas>
+      <div class="reveal-name show gold-dust-reveal" style="font-size:clamp(2rem,5vw,2.8rem);">${a.poeticName}</div>
       <div class="reveal-tag show">${a.identityTag}</div>
-      <div class="reveal-slogan">${a.slogan}</div>
+      <div class="reveal-slogan scroll-unfold">"${a.slogan}"</div>
       <button class="reveal-continue" onclick="advanceReveal()">查看完整解读 →</button>
     `;
     stageDiv.innerHTML = html;
+    // draw generative art signature
+    const genCanvas = $('revealGenArt');
+    if(genCanvas) drawGenArt(genCanvas, a, state.playerName);
     setTimeout(()=>document.querySelector('.reveal-slogan').classList.add('show'),300);
+    emitParticles(window.innerWidth/2, window.innerHeight/4, 100, '201,168,76');
   }
 }
 
@@ -1378,7 +1749,7 @@ function renderResult(){
   $('resultInner').innerHTML = `
     <div class="result-hero">
       <div class="result-rarity-badge ${a.tier}">${tierLabel(a.tier)} · ${a.rarity}%</div>
-      <div class="result-illus">${illus(a.icon)}</div>
+      <canvas class="gen-art-canvas" id="resultGenArt"></canvas>
       <div class="result-code-mbti">${a.displayCode||a.code}</div>
       <div class="result-code-legacy">${a.code}</div>
       <h1 class="result-poetic-name">${a.poeticName}</h1>
@@ -1479,8 +1850,12 @@ function renderResult(){
     </div>
   `;
   showScreen('result');
+  // draw generative art signature in result hero
   setTimeout(()=>{
-    document.querySelectorAll('.result-section').forEach((s,i)=>setTimeout(()=>s.classList.add('visible'), 150+i*100));
+    const gc = $('resultGenArt');
+    if(gc) drawGenArt(gc, a, state.playerName);
+    // scroll-unfold reveal for result sections
+    document.querySelectorAll('.result-section').forEach((s,i)=>setTimeout(()=>{ s.classList.add('visible'); s.classList.add('scroll-unfold'); }, 150+i*120));
   }, 100);
 }
 
@@ -1821,5 +2196,6 @@ document.addEventListener('keydown', e=>{
 // init
 $('nameInput').focus();
 </script>
+<script src="https://unpkg.com/three@0.160.0/build/three.min.js" defer onload="initThreeField()"></script>
 </body>
 </html>
