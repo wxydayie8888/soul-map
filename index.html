@@ -1229,47 +1229,54 @@ function drawGenArt(canvas, archetype, playerName){
   const isW = code[3]==='W'; // we = connected; I = isolated
   const hue1 = isV ? 'rgba(201,168,76,' : 'rgba(76,201,240,';
   const hue2 = isS ? 'rgba(184,146,255,' : 'rgba(138,212,200,';
-  // draw
-  ctx.lineWidth = 1;
-  const count = 40 + Math.floor(rng()*30);
+  // draw — minimalist, breathable
+  ctx.lineWidth = 0.8;
+  const count = 12 + Math.floor(rng()*8); // fewer lines, more space
   for(let i=0;i<count;i++){
-    ctx.strokeStyle = (rng()>0.5?hue1:hue2) + (0.2+rng()*0.5) + ')';
+    ctx.strokeStyle = (rng()>0.5?hue1:hue2) + (0.1+rng()*0.25) + ')'; // lower opacity
     ctx.beginPath();
     if(isF){
-      // flowing curves
-      const sx=rng()*w, sy=rng()*h;
-      ctx.moveTo(sx, sy);
-      for(let j=0;j<3;j++){
-        ctx.quadraticCurveTo(rng()*w, rng()*h, rng()*w, rng()*h);
+      // flowing curves — gentle arcs from center outward
+      const cx=w/2+(rng()-0.5)*80, cy=h/2+(rng()-0.5)*80;
+      ctx.moveTo(cx, cy);
+      for(let j=0;j<2;j++){
+        const dx=cx+(rng()-0.5)*120, dy=cy+(rng()-0.5)*120;
+        ctx.quadraticCurveTo(cx+(rng()-0.5)*60, cy+(rng()-0.5)*60, dx, dy);
       }
     } else {
-      // geometric
-      const cx=rng()*w, cy=rng()*h, size=20+rng()*60;
-      const sides = 3+Math.floor(rng()*4);
+      // geometric — concentric shapes near center
+      const cx=w/2+(rng()-0.5)*40, cy=h/2+(rng()-0.5)*40;
+      const size=15+rng()*40;
+      const sides = 3+Math.floor(rng()*3);
+      const rot = rng()*Math.PI*2;
       for(let j=0;j<=sides;j++){
-        const ang = (j/sides)*Math.PI*2 + rng()*0.3;
+        const ang = rot+(j/sides)*Math.PI*2;
         const px = cx+Math.cos(ang)*size, py = cy+Math.sin(ang)*size;
         j===0 ? ctx.moveTo(px,py) : ctx.lineTo(px,py);
       }
       ctx.closePath();
     }
     ctx.stroke();
-    // connective dots for W types
-    if(isW && rng()>0.6){
-      ctx.fillStyle = hue1 + '0.4)';
-      ctx.beginPath();
-      ctx.arc(rng()*w, rng()*h, 1+rng()*3, 0, Math.PI*2);
-      ctx.fill();
+  }
+  // subtle dots for W types (connected souls)
+  if(isW){
+    for(let i=0;i<8;i++){
+      if(rng()>0.4){
+        ctx.fillStyle = hue1 + '0.25)';
+        ctx.beginPath();
+        ctx.arc(w/2+(rng()-0.5)*120, h/2+(rng()-0.5)*120, 1+rng()*2, 0, Math.PI*2);
+        ctx.fill();
+      }
     }
   }
-  // sacred spirals overlay
+  // sacred spiral — single gentle spiral from center
   if(isS){
-    ctx.strokeStyle = hue2 + '0.25)';
+    ctx.strokeStyle = hue2 + '0.15)';
     ctx.lineWidth = 0.5;
     ctx.beginPath();
-    for(let a=0;a<Math.PI*8;a+=0.05){
-      const r = a*3;
-      ctx.lineTo(w/2+Math.cos(a+rng()*0.2)*r, h/2+Math.sin(a+rng()*0.2)*r);
+    for(let a=0;a<Math.PI*6;a+=0.08){
+      const r = a*2.5;
+      ctx.lineTo(w/2+Math.cos(a)*r, h/2+Math.sin(a)*r);
     }
     ctx.stroke();
   }
@@ -1801,7 +1808,7 @@ function renderResult(){
   $('resultInner').innerHTML = `
     <div class="result-hero">
       <div class="result-rarity-badge ${a.tier}">${tierLabel(a.tier)} · ${a.rarity}%</div>
-      <canvas class="gen-art-canvas" id="resultGenArt"></canvas>
+      <div class="result-illus">${illus(a.icon)}</div>
       <div class="result-code-mbti">${a.displayCode||a.code}</div>
       <div class="result-code-legacy">${a.code}</div>
       <h1 class="result-poetic-name">${a.poeticName}</h1>
