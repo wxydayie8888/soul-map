@@ -1298,22 +1298,74 @@ function toggleSound(){
 }
 function playAmbient(){
   if(!audioCtx) return;
-  // soft ambient drone
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  osc.type = 'sine';
-  osc.frequency.value = 120;
-  gain.gain.value = 0.03;
-  osc.connect(gain).connect(audioCtx.destination);
-  osc.start();
-  // second harmonic
-  const osc2 = audioCtx.createOscillator();
-  const gain2 = audioCtx.createGain();
-  osc2.type = 'sine';
-  osc2.frequency.value = 180;
-  gain2.gain.value = 0.015;
-  osc2.connect(gain2).connect(audioCtx.destination);
-  osc2.start();
+  // Generative ambient pad: layered detuned sines + filtered noise = ethereal "thinking" atmosphere
+  const now = audioCtx.currentTime;
+  const master = audioCtx.createGain();
+  master.gain.value = 0.04;
+  master.connect(audioCtx.destination);
+
+  // Pad layer: 4 detuned sine oscillators forming a Cmaj7 chord (C3-E3-G3-B3)
+  // Very slow LFO modulates volume for breathing effect
+  const padFreqs = [130.81, 164.81, 196.00, 246.94]; // C3 E3 G3 B3
+  padFreqs.forEach((freq, i) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    const lfo = audioCtx.createOscillator();
+    const lfoGain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = freq + (Math.random() - 0.5) * 1.5; // slight detune for warmth
+    gain.gain.value = 0.012;
+    // slow breathing LFO (0.05-0.12 Hz, each voice slightly different)
+    lfo.type = 'sine';
+    lfo.frequency.value = 0.05 + i * 0.02;
+    lfoGain.gain.value = 0.006;
+    lfo.connect(lfoGain).connect(gain.gain);
+    lfo.start();
+    osc.connect(gain).connect(master);
+    osc.start();
+  });
+
+  // Shimmer layer: high sine with slow tremolo (like distant wind chimes)
+  const shimmer = audioCtx.createOscillator();
+  const shimGain = audioCtx.createGain();
+  const shimLfo = audioCtx.createOscillator();
+  const shimLfoGain = audioCtx.createGain();
+  shimmer.type = 'sine';
+  shimmer.frequency.value = 1318.5; // E6 — airy sparkle
+  shimGain.gain.value = 0.004;
+  shimLfo.type = 'sine';
+  shimLfo.frequency.value = 0.08;
+  shimLfoGain.gain.value = 0.003;
+  shimLfo.connect(shimLfoGain).connect(shimGain.gain);
+  shimLfo.start();
+  shimmer.connect(shimGain).connect(master);
+  shimmer.start();
+
+  // Filtered noise layer: gentle "air" / vinyl warmth
+  const bufSize = audioCtx.sampleRate * 2;
+  const noiseBuf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+  const data = noiseBuf.getChannelData(0);
+  for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+  const noiseNode = audioCtx.createBufferSource();
+  noiseNode.buffer = noiseBuf;
+  noiseNode.loop = true;
+  const noiseFilter = audioCtx.createBiquadFilter();
+  noiseFilter.type = 'lowpass';
+  noiseFilter.frequency.value = 400;
+  noiseFilter.Q.value = 0.7;
+  const noiseGain = audioCtx.createGain();
+  noiseGain.gain.value = 0.008;
+  noiseNode.connect(noiseFilter).connect(noiseGain).connect(master);
+  noiseNode.start();
+
+  // Sub-bass warmth (very low sine, felt more than heard)
+  const sub = audioCtx.createOscillator();
+  const subGain = audioCtx.createGain();
+  sub.type = 'sine';
+  sub.frequency.value = 55; // A1
+  subGain.gain.value = 0.015;
+  sub.connect(subGain).connect(master);
+  sub.start();
 }
 function playClickSound(){
   if(!soundOn || !audioCtx) return;
