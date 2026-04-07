@@ -501,6 +501,7 @@ body {
 <div class="ink-wash" id="inkWash"></div>
 <div class="cursor-ring"></div>
 <div class="cursor-dot"></div>
+<audio id="bgMusic" loop preload="none" src="https://assets.mixkit.co/music/442/442.mp3"></audio>
 <button class="sound-toggle" id="soundToggle" onclick="toggleSound()" title="环境音效">🔇</button>
 
 <!-- INTRO -->
@@ -1363,97 +1364,26 @@ function drawGenArt(canvas, archetype, playerName){
 // ============================================================
 let soundOn = false;
 let audioCtx = null;
+const bgMusic = document.getElementById('bgMusic');
 function toggleSound(){
   soundOn = !soundOn;
   $('soundToggle').textContent = soundOn ? '🔊' : '🔇';
   $('soundToggle').classList.toggle('on', soundOn);
+  // Background nature music
+  if(bgMusic){
+    bgMusic.volume = 0.15;
+    if(soundOn) bgMusic.play().catch(()=>{});
+    else bgMusic.pause();
+  }
+  // Web Audio API for click/reveal sounds
   if(soundOn && !audioCtx){
     audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-    playAmbient();
   }
   if(audioCtx){ audioCtx[soundOn?'resume':'suspend'](); }
 }
-function playAmbient(){
-  if(!audioCtx) return;
-  // 颂钵疗愈音景：Singing Bowl Healing Soundscape
-  // Each bowl = 3 partial pairs (fundamental, ~2.76x, ~5.4x), each pair micro-detuned for natural beating
-  // Healing frequencies: 174Hz (安全), 285Hz (转化), 396Hz (释放), 528Hz (爱)
-  const now = audioCtx.currentTime;
-  const master = audioCtx.createGain();
-  master.gain.value = 0.045;
-  master.connect(audioCtx.destination);
-
-  const bowlFreqs = isMobile ? [174, 285, 528] : [174, 285, 396, 528]; // 3 on mobile, 4 on desktop
-  const bowlDelays = [0, 4, 8, 13]; // stagger entrance
-
-  function createBowl(baseFreq, delay){
-    const partials = [
-      { ratio: 1, vol: 0.018 },      // fundamental
-      { ratio: 2.76, vol: 0.008 },   // 3rd partial (characteristic bowl timbre)
-      { ratio: 5.4, vol: 0.004 }     // 5th partial (shimmer)
-    ];
-    setTimeout(()=>{
-      partials.forEach(p => {
-        const freq = baseFreq * p.ratio;
-        // Two oscillators per partial, detuned 0.5-1.5Hz for natural beating
-        const detune = 0.5 + Math.random();
-        for(let d = 0; d < 2; d++){
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          const lfo = audioCtx.createOscillator();
-          const lfoGain = audioCtx.createGain();
-          osc.type = 'sine';
-          osc.frequency.value = freq + (d === 0 ? detune/2 : -detune/2);
-          // Slow attack (2s fade in) + breathing LFO
-          gain.gain.setValueAtTime(0, audioCtx.currentTime);
-          gain.gain.linearRampToValueAtTime(p.vol, audioCtx.currentTime + 2);
-          // Very slow breathing (0.03-0.07 Hz = 14-33 second cycles)
-          lfo.type = 'sine';
-          lfo.frequency.value = 0.03 + Math.random() * 0.04;
-          lfoGain.gain.value = p.vol * 0.4;
-          lfo.connect(lfoGain).connect(gain.gain);
-          lfo.start();
-          osc.connect(gain).connect(master);
-          osc.start();
-        }
-      });
-    }, delay * 1000);
-  }
-
-  // Create staggered bowls
-  bowlFreqs.forEach((freq, i) => createBowl(freq, bowlDelays[i]));
-
-  // Re-trigger bowls every 22 seconds for continuous resonance
-  setInterval(()=>{
-    const idx = Math.floor(Math.random() * bowlFreqs.length);
-    createBowl(bowlFreqs[idx], 0);
-  }, 22000);
-
-  // Breath layer: very gentle bandpass noise (wind through temple)
-  const bufSize = audioCtx.sampleRate * 2;
-  const noiseBuf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
-  const noiseData = noiseBuf.getChannelData(0);
-  for(let i = 0; i < bufSize; i++) noiseData[i] = Math.random() * 2 - 1;
-  const noiseNode = audioCtx.createBufferSource();
-  noiseNode.buffer = noiseBuf;
-  noiseNode.loop = true;
-  const bandpass = audioCtx.createBiquadFilter();
-  bandpass.type = 'bandpass';
-  bandpass.frequency.value = 500;
-  bandpass.Q.value = 0.5;
-  const noiseGain = audioCtx.createGain();
-  noiseGain.gain.value = 0.005;
-  // Slow volume modulation on breath
-  const breathLfo = audioCtx.createOscillator();
-  const breathLfoGain = audioCtx.createGain();
-  breathLfo.type = 'sine';
-  breathLfo.frequency.value = 0.06; // ~17s breathing cycle
-  breathLfoGain.gain.value = 0.003;
-  breathLfo.connect(breathLfoGain).connect(noiseGain.gain);
-  breathLfo.start();
-  noiseNode.connect(bandpass).connect(noiseGain).connect(master);
-  noiseNode.start();
-}
+// Background music now handled by <audio id="bgMusic"> element (Nature Yoga by Arulo, Mixkit Free License)
+// No Web Audio API ambient needed — playAmbient is a no-op stub
+function playAmbient(){}
 // Pentatonic click sound — progresses with quiz (C4→D4→E4→G4→A4→C5)
 const PENTATONIC = [262, 294, 330, 392, 440, 523]; // C D E G A C'
 function playClickSound(){
@@ -2456,7 +2386,41 @@ async function generatePDFDoc(){
   const shadow1 = getArchetype(state.shadowCodes[0]);
   const shadow2 = getArchetype(state.shadowCodes[1]);
 
-  // Helper
+  // ===== TAROT CARD STYLE PDF =====
+  // Shared tarot helpers
+  function tarotBg(ctx,w,h){
+    // Deep mystical purple background
+    const g=ctx.createLinearGradient(0,0,0,h);
+    g.addColorStop(0,'#12091d'); g.addColorStop(0.3,'#1a0f2e'); g.addColorStop(0.7,'#120a20'); g.addColorStop(1,'#0a0612');
+    ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
+    // Outer border (thin gold)
+    ctx.strokeStyle='rgba(201,168,76,0.4)'; ctx.lineWidth=1.5; ctx.strokeRect(25,25,w-50,h-50);
+    // Inner border (thicker gold)
+    ctx.strokeStyle='rgba(201,168,76,0.25)'; ctx.lineWidth=2.5; ctx.strokeRect(45,45,w-90,h-90);
+    // Corner stars ✦
+    const corners=[[55,55],[w-55,55],[55,h-55],[w-55,h-55]];
+    ctx.fillStyle='rgba(201,168,76,0.5)'; ctx.font='18px serif'; ctx.textAlign='center';
+    corners.forEach(([x,y])=>ctx.fillText('✦',x,y+6));
+    // Subtle radial glow from center
+    const glow=ctx.createRadialGradient(w/2,h/3,0,w/2,h/3,h/2);
+    glow.addColorStop(0,'rgba(184,146,255,0.06)'); glow.addColorStop(1,'transparent');
+    ctx.fillStyle=glow; ctx.fillRect(0,0,w,h);
+  }
+  function tarotDivider(ctx,y,w){
+    ctx.fillStyle='rgba(201,168,76,0.5)'; ctx.font='14px serif'; ctx.textAlign='center';
+    ctx.fillText('✦ ─────────── ✦',w/2,y);
+  }
+  function tarotPageNum(ctx,num,w,h){
+    const roman=['I','II','III','IV','V'];
+    ctx.fillStyle='rgba(201,168,76,0.35)'; ctx.font='italic 20px "Playfair Display"'; ctx.textAlign='center';
+    ctx.fillText(roman[num]||'',w/2,h-35);
+  }
+  function tarotTitle(ctx,main,sub,w,y){
+    ctx.textAlign='center';
+    ctx.fillStyle='#c9a84c'; ctx.font='bold 32px "Noto Serif SC"'; ctx.fillText(main,w/2,y);
+    ctx.fillStyle='rgba(201,168,76,0.5)'; ctx.font='italic 16px "Playfair Display"'; ctx.fillText(sub,w/2,y+28);
+  }
+
   function addPage(drawFn, isFirst){
     if(!isFirst) doc.addPage();
     ctx.clearRect(0,0,PW,PH);
@@ -2464,108 +2428,165 @@ async function generatePDFDoc(){
     doc.addImage(canvas.toDataURL('image/jpeg',0.92),'JPEG',0,0,210,297);
   }
 
-  // Page 1: Cover
+  // P1: THE SOUL · 灵魂（封面）
   addPage((ctx,w,h)=>{
-    cardBg(ctx,w,h);
+    tarotBg(ctx,w,h);
+    tarotTitle(ctx,'THE SOUL · 灵魂','PHILOSOPHICAL SOUL CARTOGRAPHY',w,90);
+    tarotDivider(ctx,130,w);
     ctx.textAlign='center';
-    ctx.fillStyle='rgba(201,168,76,0.5)'; ctx.font='300 24px "Noto Sans SC"'; ctx.fillText('灵 魂 地 图',w/2,250);
-    ctx.fillStyle='rgba(245,240,232,0.3)'; ctx.font='italic 18px "Playfair Display"'; ctx.fillText('PHILOSOPHICAL SOUL CARTOGRAPHY',w/2,285);
-    ctx.fillStyle='#b892ff'; ctx.font='bold 140px "Playfair Display"'; ctx.fillText(a.displayCode||a.code,w/2,500);
-    ctx.fillStyle='#c9a84c'; ctx.font='bold 80px "Noto Serif SC"'; ctx.fillText(a.poeticName,w/2,620);
-    ctx.fillStyle='rgba(184,146,255,0.7)'; ctx.font='500 32px "Noto Sans SC"'; ctx.fillText(a.identityTag,w/2,680);
-    if(a.mantra){ ctx.fillStyle='#ffd770'; ctx.font='400 36px "Noto Serif SC"'; ctx.fillText(`「 ${a.mantra} 」`,w/2,740); }
-    ctx.fillStyle='rgba(245,240,232,0.7)'; ctx.font='italic 28px "Noto Serif SC"'; wrapText(ctx,`"${a.slogan}"`,w/2,830,w-200,38);
-    ctx.fillStyle='rgba(245,240,232,0.4)'; ctx.font='300 22px "Noto Sans SC"';
-    ctx.fillText(`旅人 · ${state.playerName}`,w/2,h-120);
-    ctx.fillText(new Date().toLocaleDateString('zh-CN'),w/2,h-85);
+    // Rarity
     ctx.fillStyle=a.tier==='legendary'?'#b892ff':a.tier==='rare'?'#ffd770':'#8ad4c8';
-    ctx.font='500 26px "Noto Sans SC"'; ctx.fillText(`${tierLabel(a.tier)} · ${a.rarity}%`,w/2,180);
+    ctx.font='500 22px "Noto Sans SC"'; ctx.fillText(`${tierLabel(a.tier)} · ${a.rarity}%`,w/2,170);
+    // Large code
+    ctx.fillStyle='#b892ff'; ctx.font='bold 120px "Playfair Display"';
+    ctx.shadowColor='rgba(184,146,255,0.4)'; ctx.shadowBlur=30;
+    ctx.fillText(a.displayCode||a.code,w/2,340); ctx.shadowBlur=0;
+    // Poetic name
+    ctx.fillStyle='#c9a84c'; ctx.font='bold 72px "Noto Serif SC"';
+    ctx.shadowColor='rgba(201,168,76,0.3)'; ctx.shadowBlur=20;
+    ctx.fillText(a.poeticName,w/2,450); ctx.shadowBlur=0;
+    // Identity tag + mantra
+    ctx.fillStyle='rgba(184,146,255,0.7)'; ctx.font='500 28px "Noto Sans SC"'; ctx.fillText(a.identityTag,w/2,510);
+    if(a.mantra){ ctx.fillStyle='#ffd770'; ctx.font='400 30px "Noto Serif SC"'; ctx.fillText(`「 ${a.mantra} 」`,w/2,560); }
+    tarotDivider(ctx,600,w);
+    // Slogan
+    ctx.fillStyle='rgba(245,240,232,0.75)'; ctx.font='italic 26px "Noto Serif SC"';
+    wrapText(ctx,`"${a.slogan}"`,w/2,650,w-180,36);
+    // Philosophy lineage
+    ctx.fillStyle='rgba(201,168,76,0.45)'; ctx.font='400 18px "Noto Sans SC"'; ctx.fillText(a.phil,w/2,780);
+    tarotDivider(ctx,820,w);
+    // Player info + date
+    ctx.fillStyle='rgba(245,240,232,0.4)'; ctx.font='300 20px "Noto Sans SC"';
+    ctx.fillText(`旅人 · ${state.playerName}`,w/2,h-100);
+    ctx.fillText(new Date().toLocaleDateString('zh-CN'),w/2,h-70);
+    tarotPageNum(ctx,0,w,h);
   }, true);
 
-  // Page 2: Soul Portrait
+  // P2: THE MAP · 地图（画像 + 四轴 + 人物）
   addPage((ctx,w,h)=>{
-    cardBg(ctx,w,h);
-    ctx.textAlign='center';
-    ctx.fillStyle='#c9a84c'; ctx.font='bold 36px "Noto Serif SC"'; ctx.fillText('灵魂画像',w/2,90);
-    ctx.fillStyle='rgba(245,240,232,0.8)'; ctx.font='400 22px "Noto Serif SC"'; ctx.textAlign='left';
-    wrapText(ctx,a.philosophy,80,150,w-160,34);
-    // 4 axis bars (reuse drawCard2 logic)
-    drawCard2_AxisMap(ctx,w,h);
+    tarotBg(ctx,w,h);
+    tarotTitle(ctx,'THE MAP · 地图','SOUL PORTRAIT & AXES',w,85);
+    tarotDivider(ctx,125,w);
+    // Philosophy description
+    ctx.fillStyle='rgba(245,240,232,0.8)'; ctx.font='400 19px "Noto Serif SC"'; ctx.textAlign='left';
+    let y=wrapText(ctx,a.philosophy,70,160,w-140,27)+20;
+    tarotDivider(ctx,y,w); y+=25;
+    // 4 axis bars
+    const axes=[{k:'S',n:'自主 F / 秩序 O'},{k:'M',n:'德性 V / 理性 R'},{k:'W',n:'超越 S / 此世 E'},{k:'A',n:'关系 W / 独立 I'}];
+    axes.forEach(ax=>{
+      const score=state.scores[ax.k]; const pct=(score+100)/200;
+      ctx.fillStyle='rgba(245,240,232,0.5)'; ctx.font='400 16px "Noto Sans SC"'; ctx.fillText(`${ax.k} · ${ax.n}`,70,y);
+      ctx.fillStyle='rgba(245,240,232,0.08)'; ctx.fillRect(70,y+8,w-140,20);
+      ctx.fillStyle='rgba(245,240,232,0.12)'; ctx.fillRect(w/2-1,y+8,2,20);
+      const fillW=Math.abs(pct-0.5)*(w-140); const fillX=pct>=0.5?w/2:w/2-fillW;
+      ctx.fillStyle=score>=0?'rgba(201,168,76,0.5)':'rgba(184,146,255,0.4)';
+      ctx.fillRect(fillX,y+10,fillW,16);
+      ctx.fillStyle='#c9a84c'; ctx.font='600 16px "Playfair Display"'; ctx.textAlign='right';
+      ctx.fillText(`${score>=0?'+':''}${score} · ${state.intensities[ax.k]}`,w-70,y); ctx.textAlign='left';
+      y+=55;
+    });
+    tarotDivider(ctx,y,w); y+=25;
+    // 5 figures
+    ctx.fillStyle='rgba(201,168,76,0.6)'; ctx.font='bold 20px "Noto Serif SC"'; ctx.fillText('典型人物',70,y); y+=30;
+    (a.figures||[]).forEach(f=>{
+      ctx.fillStyle='#c9a84c'; ctx.font='bold 17px "Noto Serif SC"'; ctx.fillText(f.n,85,y);
+      ctx.fillStyle='rgba(245,240,232,0.5)'; ctx.font='400 15px "Noto Sans SC"'; ctx.fillText(`— ${f.d}`,85+ctx.measureText(f.n).width+10,y);
+      y+=28;
+    });
+    tarotPageNum(ctx,1,w,h);
   });
 
-  // Page 3: Story
+  // P3: THE STORY · 故事
   addPage((ctx,w,h)=>{
-    cardBg(ctx,w,h);
-    ctx.textAlign='center';
-    ctx.fillStyle='#c9a84c'; ctx.font='bold 36px "Noto Serif SC"'; ctx.fillText('你的故事',w/2,90);
-    let y=150;
-    ctx.textAlign='left';
+    tarotBg(ctx,w,h);
+    tarotTitle(ctx,'THE STORY · 故事','MICROFICTION & DIALOGUE',w,85);
+    tarotDivider(ctx,125,w);
+    let y=155; ctx.textAlign='left';
     if(a.microfiction){
-      ctx.fillStyle='rgba(201,168,76,0.6)'; ctx.font='bold 24px "Noto Serif SC"'; ctx.fillText(`${a.poeticName}的一天`,80,y); y+=15;
-      ctx.fillStyle='rgba(245,240,232,0.8)'; ctx.font='italic 21px "Noto Serif SC"'; y=wrapText(ctx,a.microfiction,80,y+25,w-160,30)+30;
+      ctx.fillStyle='rgba(201,168,76,0.6)'; ctx.font='bold 20px "Noto Serif SC"'; ctx.fillText(`${a.poeticName}的一天`,70,y); y+=25;
+      ctx.fillStyle='rgba(245,240,232,0.8)'; ctx.font='italic 18px "Noto Serif SC"'; y=wrapText(ctx,a.microfiction,70,y,w-140,26)+15;
+      tarotDivider(ctx,y,w); y+=20;
     }
     if(a.depthStory){
-      ctx.fillStyle='rgba(201,168,76,0.6)'; ctx.font='bold 24px "Noto Serif SC"'; ctx.fillText('一个值得深读的故事',80,y); y+=15;
-      ctx.fillStyle='rgba(245,240,232,0.75)'; ctx.font='400 20px "Noto Serif SC"'; y=wrapText(ctx,a.depthStory,80,y+25,w-160,28)+30;
+      ctx.fillStyle='rgba(201,168,76,0.6)'; ctx.font='bold 20px "Noto Serif SC"'; ctx.fillText('一个值得深读的故事',70,y); y+=25;
+      ctx.fillStyle='rgba(245,240,232,0.75)'; ctx.font='400 17px "Noto Serif SC"'; y=wrapText(ctx,a.depthStory,70,y,w-140,24)+15;
+      tarotDivider(ctx,y,w); y+=20;
     }
     if(a.opponent){
-      ctx.fillStyle='rgba(201,168,76,0.6)'; ctx.font='bold 24px "Noto Serif SC"'; ctx.fillText(`与 ${a.opponent.n} 的对话`,80,y); y+=15;
-      ctx.fillStyle='rgba(184,146,255,0.7)'; ctx.font='italic 20px "Noto Serif SC"'; ctx.fillText(`"${a.opponent.challenge}"`,80,y+25); y+=55;
-      ctx.fillStyle='rgba(245,240,232,0.7)'; ctx.font='400 19px "Noto Serif SC"'; wrapText(ctx,a.opponent.dialogue,80,y,w-160,27);
+      ctx.fillStyle='rgba(201,168,76,0.6)'; ctx.font='bold 20px "Noto Serif SC"'; ctx.fillText(`与 ${a.opponent.n} 的对话`,70,y); y+=25;
+      ctx.fillStyle='rgba(184,146,255,0.65)'; ctx.font='italic 17px "Noto Serif SC"'; ctx.fillText(`"${a.opponent.challenge}"`,70,y); y+=30;
+      ctx.fillStyle='rgba(245,240,232,0.7)'; ctx.font='400 16px "Noto Serif SC"'; wrapText(ctx,a.opponent.dialogue,70,y,w-140,23);
     }
+    tarotPageNum(ctx,2,w,h);
   });
 
-  // Page 4: Wisdom
+  // P4: THE WISDOM · 智慧（全部 8 句箴言 + 书 + 实践）
   addPage((ctx,w,h)=>{
-    cardBg(ctx,w,h);
-    ctx.textAlign='center';
-    ctx.fillStyle='#c9a84c'; ctx.font='bold 36px "Noto Serif SC"'; ctx.fillText('智慧箴言',w/2,90);
-    let y=150;
-    ctx.textAlign='left';
-    // Best 4 quotes
-    const topQuotes=a.quotes.filter(q=>q.qEn).concat(a.quotes.filter(q=>!q.qEn)).slice(0,4);
-    topQuotes.forEach(q=>{
-      if(q.qEn){ ctx.fillStyle='rgba(201,168,76,0.55)'; ctx.font='italic 18px "Playfair Display"'; y=wrapText(ctx,`"${q.qEn}"`,80,y,w-160,24)+5; }
-      ctx.fillStyle='rgba(245,240,232,0.85)'; ctx.font='bold 22px "Noto Serif SC"'; y=wrapText(ctx,`"${q.q}"`,80,y,w-160,30)+5;
-      ctx.fillStyle='rgba(201,168,76,0.7)'; ctx.font='400 18px "Noto Sans SC"'; ctx.fillText(`—— ${q.a}`,80,y); y+=45;
+    tarotBg(ctx,w,h);
+    tarotTitle(ctx,'THE WISDOM · 智慧','QUOTES · BOOKS · PRACTICES',w,85);
+    tarotDivider(ctx,125,w);
+    let y=150; ctx.textAlign='left';
+    // All 8 quotes (compact)
+    a.quotes.forEach((q,i)=>{
+      if(y>h-280) return; // safety
+      if(q.qEn){ ctx.fillStyle='rgba(201,168,76,0.45)'; ctx.font='italic 14px "Playfair Display"'; y=wrapText(ctx,`"${q.qEn}"`,70,y,w-140,19)+2; }
+      ctx.fillStyle='rgba(245,240,232,0.85)'; ctx.font='bold 17px "Noto Serif SC"'; y=wrapText(ctx,`"${q.q}"`,70,y,w-140,23)+2;
+      ctx.fillStyle='rgba(201,168,76,0.6)'; ctx.font='400 14px "Noto Sans SC"'; ctx.fillText(`—— ${q.a}`,70,y); y+=28;
     });
+    tarotDivider(ctx,y,w); y+=20;
     // Books
     if(a.books&&a.books.length){
-      y=Math.max(y,h-350);
-      ctx.fillStyle='rgba(201,168,76,0.6)'; ctx.font='bold 24px "Noto Serif SC"'; ctx.fillText('推荐阅读',80,y); y+=35;
+      ctx.fillStyle='rgba(201,168,76,0.6)'; ctx.font='bold 18px "Noto Serif SC"'; ctx.fillText('推荐阅读',70,y); y+=25;
       a.books.forEach(b=>{
-        ctx.fillStyle='#ffd770'; ctx.font='600 20px "Noto Serif SC"'; ctx.fillText(b.title,80,y);
-        ctx.fillStyle='rgba(245,240,232,0.5)'; ctx.font='400 18px "Noto Sans SC"'; ctx.fillText(`${b.author} — ${b.why}`,80,y+25); y+=60;
+        ctx.fillStyle='#ffd770'; ctx.font='600 16px "Noto Serif SC"'; ctx.fillText(b.title,85,y);
+        ctx.fillStyle='rgba(245,240,232,0.45)'; ctx.font='400 14px "Noto Sans SC"'; ctx.fillText(`${b.author} — ${b.why}`,85,y+20); y+=45;
       });
     }
+    // Practices
+    if(y<h-150){
+      tarotDivider(ctx,y,w); y+=20;
+      ctx.fillStyle='rgba(201,168,76,0.6)'; ctx.font='bold 18px "Noto Serif SC"'; ctx.fillText('实践建议',70,y); y+=25;
+      (a.practices||[]).forEach((p,i)=>{
+        ctx.fillStyle='rgba(138,212,200,0.7)'; ctx.font='bold 16px "Noto Sans SC"'; ctx.fillText(`${i+1}.`,70,y);
+        ctx.fillStyle='rgba(245,240,232,0.7)'; ctx.font='400 15px "Noto Sans SC"'; y=wrapText(ctx,p,95,y,w-165,21)+8;
+      });
+    }
+    tarotPageNum(ctx,3,w,h);
   });
 
-  // Page 5: Shadow & Growth
+  // P5: THE FATE · 命运（张力 + 冥想 + 阴影 + 整合度）
   addPage((ctx,w,h)=>{
-    cardBg(ctx,w,h);
-    ctx.textAlign='center';
-    ctx.fillStyle='#c9a84c'; ctx.font='bold 36px "Noto Serif SC"'; ctx.fillText('阴影与成长',w/2,90);
-    let y=150;
-    ctx.textAlign='left';
+    tarotBg(ctx,w,h);
+    tarotTitle(ctx,'THE FATE · 命运','SHADOW · REVERSAL · INTEGRATION',w,85);
+    tarotDivider(ctx,125,w);
+    let y=155; ctx.textAlign='left';
     // Tension
-    ctx.fillStyle='rgba(201,168,76,0.6)'; ctx.font='bold 24px "Noto Serif SC"'; ctx.fillText('内在张力',80,y); y+=30;
-    ctx.fillStyle='rgba(245,240,232,0.8)'; ctx.font='400 20px "Noto Serif SC"'; y=wrapText(ctx,a.tension,80,y,w-160,28)+30;
+    ctx.fillStyle='rgba(201,168,76,0.6)'; ctx.font='bold 20px "Noto Serif SC"'; ctx.fillText('内在张力',70,y); y+=25;
+    ctx.fillStyle='rgba(245,240,232,0.8)'; ctx.font='400 17px "Noto Serif SC"'; y=wrapText(ctx,a.tension,70,y,w-140,24)+15;
+    tarotDivider(ctx,y,w); y+=20;
     // Reversal
     if(a.reversal){
-      ctx.fillStyle='rgba(201,168,76,0.6)'; ctx.font='bold 24px "Noto Serif SC"'; ctx.fillText('反向冥想',80,y); y+=30;
-      ctx.fillStyle='rgba(245,240,232,0.7)'; ctx.font='italic 20px "Noto Serif SC"'; y=wrapText(ctx,a.reversal,80,y,w-160,28)+30;
+      ctx.fillStyle='rgba(201,168,76,0.6)'; ctx.font='bold 20px "Noto Serif SC"'; ctx.fillText('反向冥想',70,y); y+=25;
+      ctx.fillStyle='rgba(245,240,232,0.65)'; ctx.font='italic 16px "Noto Serif SC"'; y=wrapText(ctx,a.reversal,70,y,w-140,22)+15;
+      tarotDivider(ctx,y,w); y+=20;
     }
     // Shadows
-    ctx.fillStyle='rgba(201,168,76,0.6)'; ctx.font='bold 24px "Noto Serif SC"'; ctx.fillText('你的阴影原型',80,y); y+=35;
+    ctx.fillStyle='rgba(201,168,76,0.6)'; ctx.font='bold 20px "Noto Serif SC"'; ctx.fillText('阴影原型',70,y); y+=30;
     [shadow1,shadow2].forEach((s,i)=>{
-      ctx.fillStyle='#b892ff'; ctx.font='bold 22px "Noto Serif SC"'; ctx.fillText(`Shadow ${i+1}: ${s.poeticName}`,100,y);
-      ctx.fillStyle='rgba(245,240,232,0.5)'; ctx.font='400 18px "Noto Sans SC"'; ctx.fillText(s.identityTag+' · '+s.slogan.slice(0,30)+'…',100,y+28); y+=70;
+      ctx.fillStyle='#b892ff'; ctx.font='bold 18px "Noto Serif SC"'; ctx.fillText(`Shadow ${i+1}: ${s.displayCode||s.code} · ${s.poeticName}`,85,y);
+      ctx.fillStyle='rgba(245,240,232,0.45)'; ctx.font='400 15px "Noto Sans SC"'; ctx.fillText(`${s.identityTag} · "${s.slogan.slice(0,35)}…"`,85,y+22); y+=55;
     });
-    // Integration
+    tarotDivider(ctx,y,w); y+=20;
+    // Integration score
     ctx.textAlign='center';
-    ctx.fillStyle='#ffd770'; ctx.font='bold 64px "Playfair Display"'; ctx.fillText(state.iScore.toString(),w/2,h-180);
-    ctx.fillStyle='rgba(255,215,112,0.6)'; ctx.font='300 18px "Noto Sans SC"'; ctx.fillText('INTEGRATION · 整合度',w/2,h-130);
-    ctx.fillStyle='rgba(245,240,232,0.5)'; ctx.font='400 18px "Noto Sans SC"'; ctx.fillText('这不是你的人生标签，只是一次哲学对话。',w/2,h-70);
+    ctx.fillStyle='#ffd770'; ctx.font='bold 56px "Playfair Display"';
+    ctx.shadowColor='rgba(255,215,112,0.3)'; ctx.shadowBlur=20;
+    ctx.fillText(state.iScore.toString(),w/2,h-200); ctx.shadowBlur=0;
+    ctx.fillStyle='rgba(255,215,112,0.5)'; ctx.font='300 16px "Noto Sans SC"'; ctx.fillText('INTEGRATION · 整合度',w/2,h-155);
+    // Ethics
+    ctx.fillStyle='rgba(245,240,232,0.3)'; ctx.font='400 14px "Noto Sans SC"'; ctx.fillText('这不是你的人生标签，只是一次哲学对话。',w/2,h-100);
+    ctx.fillText(`灵魂地图 · ${a.displayCode||a.code} · ${state.playerName} · ${new Date().toLocaleDateString('zh-CN')}`,w/2,h-75);
+    tarotPageNum(ctx,4,w,h);
   });
 
   return doc;
