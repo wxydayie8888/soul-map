@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>灵魂地图 · 管理后台</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system, 'Noto Sans SC', sans-serif; background:#0d1117; color:#e6edf3; padding:2rem; min-height:100vh; }
+h1 { font-size:1.5rem; color:#c9a84c; margin-bottom:0.5rem; }
+.subtitle { color:rgba(230,237,243,0.5); font-size:0.85rem; margin-bottom:2rem; }
+.login-box { max-width:400px; margin:4rem auto; text-align:center; }
+.login-box input { width:100%; padding:0.8rem 1rem; background:rgba(255,255,255,0.05); border:1px solid rgba(201,168,76,0.3); color:#e6edf3; font-size:1rem; margin:1rem 0; }
+.login-box button { padding:0.8rem 2rem; background:transparent; border:1px solid #c9a84c; color:#c9a84c; cursor:pointer; font-size:1rem; }
+.login-box button:hover { background:#c9a84c; color:#0d1117; }
+.dashboard { display:none; }
+.stats-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1rem; margin-bottom:2rem; }
+.stat-card { padding:1.5rem; border:1px solid rgba(201,168,76,0.2); background:rgba(201,168,76,0.03); text-align:center; }
+.stat-num { font-size:2.5rem; color:#c9a84c; font-weight:700; }
+.stat-label { font-size:0.8rem; color:rgba(230,237,243,0.5); margin-top:0.3rem; letter-spacing:0.1em; }
+.section-title { font-size:1.1rem; color:#c9a84c; margin:2rem 0 1rem; padding-bottom:0.5rem; border-bottom:1px solid rgba(201,168,76,0.2); }
+.dist-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:0.5rem; margin-bottom:2rem; }
+.dist-card { padding:0.8rem; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.02); display:flex; justify-content:space-between; align-items:center; }
+.dist-code { color:#b892ff; font-weight:600; font-family:monospace; }
+.dist-name { font-size:0.82rem; color:rgba(230,237,243,0.7); }
+.dist-count { color:#ffd770; font-weight:700; font-size:1.1rem; }
+table { width:100%; border-collapse:collapse; font-size:0.82rem; }
+th { text-align:left; padding:0.6rem 0.8rem; border-bottom:1px solid rgba(201,168,76,0.3); color:#c9a84c; font-weight:500; }
+td { padding:0.5rem 0.8rem; border-bottom:1px solid rgba(255,255,255,0.05); color:rgba(230,237,243,0.8); }
+tr:hover td { background:rgba(201,168,76,0.04); }
+.export-btn { padding:0.5rem 1.2rem; background:transparent; border:1px solid rgba(138,212,200,0.4); color:#8ad4c8; cursor:pointer; font-size:0.82rem; margin-top:1rem; }
+.export-btn:hover { background:rgba(138,212,200,0.1); }
+</style>
+</head>
+<body>
+
+<div class="login-box" id="loginBox">
+  <h1>灵魂地图 · 管理后台</h1>
+  <p class="subtitle">SOUL MAP ADMIN</p>
+  <input type="password" id="adminKey" placeholder="输入管理密钥">
+  <br>
+  <button onclick="loadDashboard()">进入</button>
+</div>
+
+<div class="dashboard" id="dashboard">
+  <h1>灵魂地图 · 数据看板</h1>
+  <p class="subtitle">SOUL MAP ANALYTICS</p>
+
+  <div class="stats-grid" id="statsGrid"></div>
+
+  <div class="section-title">16 原型分布</div>
+  <div class="dist-grid" id="distGrid"></div>
+
+  <div class="section-title">最近 50 条记录</div>
+  <button class="export-btn" onclick="exportCSV()">导出 CSV</button>
+  <div style="overflow-x:auto;margin-top:1rem;">
+    <table id="recentTable">
+      <thead><tr><th>时间</th><th>姓名</th><th>年龄</th><th>性别</th><th>邮箱</th><th>编码</th><th>原型</th><th>稀有度</th><th>整合度</th><th>犹豫</th><th>共鸣</th></tr></thead>
+      <tbody id="recentBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+let statsData = null;
+
+async function loadDashboard() {
+  const key = document.getElementById('adminKey').value.trim();
+  if (!key) return alert('请输入管理密钥');
+
+  try {
+    const resp = await fetch(`/api/stats?key=${encodeURIComponent(key)}`);
+    const data = await resp.json();
+    if (data.error) return alert('认证失败: ' + data.error);
+
+    statsData = data;
+    document.getElementById('loginBox').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    renderDashboard(data);
+  } catch (e) {
+    alert('连接失败: ' + e.message);
+  }
+}
+
+function renderDashboard(data) {
+  // Stats cards
+  const today = data.daily?.[0]?.count || 0;
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card"><div class="stat-num">${data.total}</div><div class="stat-label">累计测试人数</div></div>
+    <div class="stat-card"><div class="stat-num">${today}</div><div class="stat-label">今日测试</div></div>
+    <div class="stat-card"><div class="stat-num">${data.distribution?.length || 0}</div><div class="stat-label">已解锁原型数</div></div>
+    <div class="stat-card"><div class="stat-num">${data.recent?.filter(r=>r.email)?.length || 0}/50</div><div class="stat-label">近50条留邮箱率</div></div>
+  `;
+
+  // Distribution
+  document.getElementById('distGrid').innerHTML = (data.distribution || []).map(d => `
+    <div class="dist-card">
+      <div><div class="dist-code">${d.display_code}</div><div class="dist-name">${d.poetic_name || ''}</div></div>
+      <div class="dist-count">${d.count}</div>
+    </div>
+  `).join('');
+
+  // Recent table
+  document.getElementById('recentBody').innerHTML = (data.recent || []).map(r => `
+    <tr>
+      <td>${new Date(r.created_at).toLocaleString('zh-CN', {month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}</td>
+      <td>${r.name || '-'}</td>
+      <td>${r.age || '-'}</td>
+      <td>${r.gender || '-'}</td>
+      <td>${r.email ? r.email.replace(/(.{3}).*(@.*)/, '$1***$2') : '-'}</td>
+      <td style="color:#b892ff;font-weight:600;">${r.display_code}</td>
+      <td>${r.poetic_name || '-'}</td>
+      <td>${r.rarity_tier || '-'}</td>
+      <td>${r.i_score ?? '-'}</td>
+      <td>${r.hesitations ?? '-'}</td>
+      <td>${r.resonances ?? '-'}</td>
+    </tr>
+  `).join('');
+}
+
+function exportCSV() {
+  if (!statsData?.recent) return;
+  const headers = ['时间','姓名','年龄','性别','邮箱','编码','原型','稀有度','整合度','犹豫','共鸣'];
+  const rows = statsData.recent.map(r => [
+    r.created_at, r.name, r.age, r.gender, r.email,
+    r.display_code, r.poetic_name, r.rarity_tier, r.i_score, r.hesitations, r.resonances
+  ]);
+  const csv = [headers, ...rows].map(r => r.map(c => `"${(c??'').toString().replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = `灵魂地图-数据-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click(); URL.revokeObjectURL(url);
+}
+
+document.getElementById('adminKey').addEventListener('keydown', e => { if(e.key==='Enter') loadDashboard(); });
+</script>
+</body>
+</html>
