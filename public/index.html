@@ -1245,6 +1245,7 @@ function renderConstellationProgress(current, total){
   const container = document.querySelector('.progress-container');
   if(!container) return;
   const w = container.offsetWidth;
+  if(w === 0) return; // guard: quiz screen not yet visible
   const gap = w / (total + 1);
   // layout stars in a slightly wavy line
   const pts = [];
@@ -1374,74 +1375,84 @@ function toggleSound(){
 }
 function playAmbient(){
   if(!audioCtx) return;
-  // Generative ambient pad: layered detuned sines + filtered noise = ethereal "thinking" atmosphere
+  // 颂钵疗愈音景：Singing Bowl Healing Soundscape
+  // Each bowl = 3 partial pairs (fundamental, ~2.76x, ~5.4x), each pair micro-detuned for natural beating
+  // Healing frequencies: 174Hz (安全), 285Hz (转化), 396Hz (释放), 528Hz (爱)
   const now = audioCtx.currentTime;
   const master = audioCtx.createGain();
-  master.gain.value = 0.04;
+  master.gain.value = 0.045;
   master.connect(audioCtx.destination);
 
-  // Pad layer: 4 detuned sine oscillators forming a Cmaj7 chord (C3-E3-G3-B3)
-  // Very slow LFO modulates volume for breathing effect
-  const padFreqs = [130.81, 164.81, 196.00, 246.94]; // C3 E3 G3 B3
-  padFreqs.forEach((freq, i) => {
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    const lfo = audioCtx.createOscillator();
-    const lfoGain = audioCtx.createGain();
-    osc.type = 'sine';
-    osc.frequency.value = freq + (Math.random() - 0.5) * 1.5; // slight detune for warmth
-    gain.gain.value = 0.012;
-    // slow breathing LFO (0.05-0.12 Hz, each voice slightly different)
-    lfo.type = 'sine';
-    lfo.frequency.value = 0.05 + i * 0.02;
-    lfoGain.gain.value = 0.006;
-    lfo.connect(lfoGain).connect(gain.gain);
-    lfo.start();
-    osc.connect(gain).connect(master);
-    osc.start();
-  });
+  const bowlFreqs = isMobile ? [174, 285, 528] : [174, 285, 396, 528]; // 3 on mobile, 4 on desktop
+  const bowlDelays = [0, 4, 8, 13]; // stagger entrance
 
-  // Shimmer layer: high sine with slow tremolo (like distant wind chimes)
-  const shimmer = audioCtx.createOscillator();
-  const shimGain = audioCtx.createGain();
-  const shimLfo = audioCtx.createOscillator();
-  const shimLfoGain = audioCtx.createGain();
-  shimmer.type = 'sine';
-  shimmer.frequency.value = 1318.5; // E6 — airy sparkle
-  shimGain.gain.value = 0.004;
-  shimLfo.type = 'sine';
-  shimLfo.frequency.value = 0.08;
-  shimLfoGain.gain.value = 0.003;
-  shimLfo.connect(shimLfoGain).connect(shimGain.gain);
-  shimLfo.start();
-  shimmer.connect(shimGain).connect(master);
-  shimmer.start();
+  function createBowl(baseFreq, delay){
+    const partials = [
+      { ratio: 1, vol: 0.018 },      // fundamental
+      { ratio: 2.76, vol: 0.008 },   // 3rd partial (characteristic bowl timbre)
+      { ratio: 5.4, vol: 0.004 }     // 5th partial (shimmer)
+    ];
+    setTimeout(()=>{
+      partials.forEach(p => {
+        const freq = baseFreq * p.ratio;
+        // Two oscillators per partial, detuned 0.5-1.5Hz for natural beating
+        const detune = 0.5 + Math.random();
+        for(let d = 0; d < 2; d++){
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          const lfo = audioCtx.createOscillator();
+          const lfoGain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = freq + (d === 0 ? detune/2 : -detune/2);
+          // Slow attack (2s fade in) + breathing LFO
+          gain.gain.setValueAtTime(0, audioCtx.currentTime);
+          gain.gain.linearRampToValueAtTime(p.vol, audioCtx.currentTime + 2);
+          // Very slow breathing (0.03-0.07 Hz = 14-33 second cycles)
+          lfo.type = 'sine';
+          lfo.frequency.value = 0.03 + Math.random() * 0.04;
+          lfoGain.gain.value = p.vol * 0.4;
+          lfo.connect(lfoGain).connect(gain.gain);
+          lfo.start();
+          osc.connect(gain).connect(master);
+          osc.start();
+        }
+      });
+    }, delay * 1000);
+  }
 
-  // Filtered noise layer: gentle "air" / vinyl warmth
+  // Create staggered bowls
+  bowlFreqs.forEach((freq, i) => createBowl(freq, bowlDelays[i]));
+
+  // Re-trigger bowls every 22 seconds for continuous resonance
+  setInterval(()=>{
+    const idx = Math.floor(Math.random() * bowlFreqs.length);
+    createBowl(bowlFreqs[idx], 0);
+  }, 22000);
+
+  // Breath layer: very gentle bandpass noise (wind through temple)
   const bufSize = audioCtx.sampleRate * 2;
   const noiseBuf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
-  const data = noiseBuf.getChannelData(0);
-  for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+  const noiseData = noiseBuf.getChannelData(0);
+  for(let i = 0; i < bufSize; i++) noiseData[i] = Math.random() * 2 - 1;
   const noiseNode = audioCtx.createBufferSource();
   noiseNode.buffer = noiseBuf;
   noiseNode.loop = true;
-  const noiseFilter = audioCtx.createBiquadFilter();
-  noiseFilter.type = 'lowpass';
-  noiseFilter.frequency.value = 400;
-  noiseFilter.Q.value = 0.7;
+  const bandpass = audioCtx.createBiquadFilter();
+  bandpass.type = 'bandpass';
+  bandpass.frequency.value = 500;
+  bandpass.Q.value = 0.5;
   const noiseGain = audioCtx.createGain();
-  noiseGain.gain.value = 0.008;
-  noiseNode.connect(noiseFilter).connect(noiseGain).connect(master);
+  noiseGain.gain.value = 0.005;
+  // Slow volume modulation on breath
+  const breathLfo = audioCtx.createOscillator();
+  const breathLfoGain = audioCtx.createGain();
+  breathLfo.type = 'sine';
+  breathLfo.frequency.value = 0.06; // ~17s breathing cycle
+  breathLfoGain.gain.value = 0.003;
+  breathLfo.connect(breathLfoGain).connect(noiseGain.gain);
+  breathLfo.start();
+  noiseNode.connect(bandpass).connect(noiseGain).connect(master);
   noiseNode.start();
-
-  // Sub-bass warmth (very low sine, felt more than heard)
-  const sub = audioCtx.createOscillator();
-  const subGain = audioCtx.createGain();
-  sub.type = 'sine';
-  sub.frequency.value = 55; // A1
-  subGain.gain.value = 0.015;
-  sub.connect(subGain).connect(master);
-  sub.start();
 }
 // Pentatonic click sound — progresses with quiz (C4→D4→E4→G4→A4→C5)
 const PENTATONIC = [262, 294, 330, 392, 440, 523]; // C D E G A C'
@@ -2008,12 +2019,14 @@ function renderRevealStage(){
   const stageDiv = $('revealStage');
   let html = '';
   if(stage===0){
+    const mobileAxesHtml = isMobile ? `<div class="reveal-intensities" style="margin-top:1.5rem;">${['S','M','W','A'].map(ax=>`<div class="reveal-int-row"><div class="reveal-int-axis">${ax}</div><div class="reveal-int-grade">${state.intensities[ax]}</div><div class="reveal-int-score">${state.scores[ax]>=0?'+':''}${state.scores[ax]}</div></div>`).join('')}</div>` : '';
     html = `
       <div class="reveal-rarity-wrap">
         <div class="rarity-num" id="rarityAnimNum">00</div>
         <div class="rarity-label">RARITY · 稀有度</div>
         <div class="rarity-tier ${a.tier}">${tierLabel(a.tier)}</div>
       </div>
+      ${mobileAxesHtml}
       <button class="reveal-continue" onclick="advanceReveal()">继续揭示 →</button>
     `;
     stageDiv.innerHTML = html;
@@ -2021,6 +2034,7 @@ function renderRevealStage(){
     animateRarityNumber(a.rarity);
     emitParticles(window.innerWidth/2, window.innerHeight/2, 60);
     playRevealSound(0);
+    if(isMobile) setTimeout(()=>document.querySelectorAll('.reveal-int-row').forEach((r,i)=>setTimeout(()=>r.classList.add('show'), 800+i*250)), 100);
   } else if(stage===1){
     const axes = [
       { key:'S', name:'S 轴' },{ key:'M', name:'M 轴' },{ key:'W', name:'W 轴' },{ key:'A', name:'A 轴' }
@@ -2325,7 +2339,9 @@ function initFloatingShareBar(){
   if(!resultScreen) return;
   resultScreen.addEventListener('scroll', ()=>{
     const bar = $('floatingShareBar');
-    const scrollPct = resultScreen.scrollTop / (resultScreen.scrollHeight - resultScreen.clientHeight);
+    const scrollRange = resultScreen.scrollHeight - resultScreen.clientHeight;
+    if(scrollRange <= 0) { bar.style.bottom = '0'; return; }
+    const scrollPct = resultScreen.scrollTop / scrollRange;
     bar.style.bottom = scrollPct > 0.3 ? '0' : '-60px';
   });
 }
@@ -2370,6 +2386,9 @@ function switchShareFormat(fmt){
 }
 
 function drawShareCard(){
+  document.fonts.ready.then(()=>_drawShareCardInner());
+}
+function _drawShareCardInner(){
   const fmt = SHARE_FORMATS[state.shareFormat];
   const canvas = $('shareCanvas');
   canvas.width = fmt.w; canvas.height = fmt.h;
@@ -2517,14 +2536,14 @@ async function copyShareCardToClipboard(){
 // ============================================================
 function openWechatModal(){
   $('wechatModal').classList.add('show');
-  $('wechatTabs').innerHTML = Object.entries(WECHAT_STYLES).map(([k,s])=>`<button class="wechat-tab ${k===state.wechatStyle?'active':''}" onclick="switchWechatStyle('${k}')">${s.name}</button>`).join('');
+  $('wechatTabs').innerHTML = Object.entries(WECHAT_STYLES).map(([k,s])=>`<button class="wechat-tab ${k===state.wechatStyle?'active':''}" onclick="switchWechatStyle('${k}',this)">${s.name}</button>`).join('');
   updateWechatText();
 }
 function closeWechatModal(){ $('wechatModal').classList.remove('show'); }
-function switchWechatStyle(style){
+function switchWechatStyle(style, el){
   state.wechatStyle = style;
   document.querySelectorAll('.wechat-tab').forEach(t=>t.classList.remove('active'));
-  event.target.classList.add('active');
+  if(el) el.classList.add('active');
   updateWechatText();
 }
 function updateWechatText(){

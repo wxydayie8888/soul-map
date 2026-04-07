@@ -51,8 +51,14 @@ tr:hover td { background:rgba(201,168,76,0.04); }
   <div class="section-title">16 原型分布</div>
   <div class="dist-grid" id="distGrid"></div>
 
-  <div class="section-title">最近 50 条记录</div>
-  <button class="export-btn" onclick="exportCSV()">导出 CSV</button>
+  <div class="section-title">每日趋势（近 30 天）</div>
+  <div id="dailyChart" style="display:flex;align-items:flex-end;gap:3px;height:100px;margin-bottom:2rem;padding:0.5rem;border:1px solid rgba(255,255,255,0.05);"></div>
+
+  <div class="section-title">最近 100 条记录</div>
+  <div style="display:flex;gap:0.8rem;margin-top:0.5rem;">
+    <button class="export-btn" onclick="exportCSV()">导出近100条 CSV</button>
+    <button class="export-btn" onclick="exportAll()" style="border-color:rgba(201,168,76,0.4);color:#c9a84c;">导出全部数据 CSV</button>
+  </div>
   <div style="overflow-x:auto;margin-top:1rem;">
     <table id="recentTable">
       <thead><tr><th>时间</th><th>姓名</th><th>年龄</th><th>性别</th><th>邮箱</th><th>编码</th><th>原型</th><th>稀有度</th><th>整合度</th><th>犹豫</th><th>共鸣</th></tr></thead>
@@ -85,11 +91,14 @@ async function loadDashboard() {
 function renderDashboard(data) {
   // Stats cards
   const today = data.daily?.[0]?.count || 0;
+  const emailCount = data.recent?.filter(r=>r.email)?.length || 0;
+  const recentCount = data.recent?.length || 0;
+  const emailPct = recentCount > 0 ? Math.round(emailCount/recentCount*100) : 0;
   document.getElementById('statsGrid').innerHTML = `
     <div class="stat-card"><div class="stat-num">${data.total}</div><div class="stat-label">累计测试人数</div></div>
     <div class="stat-card"><div class="stat-num">${today}</div><div class="stat-label">今日测试</div></div>
     <div class="stat-card"><div class="stat-num">${data.distribution?.length || 0}</div><div class="stat-label">已解锁原型数</div></div>
-    <div class="stat-card"><div class="stat-num">${data.recent?.filter(r=>r.email)?.length || 0}/50</div><div class="stat-label">近50条留邮箱率</div></div>
+    <div class="stat-card"><div class="stat-num">${emailCount}/${recentCount} (${emailPct}%)</div><div class="stat-label">近100条留邮箱率</div></div>
   `;
 
   // Distribution
@@ -99,6 +108,19 @@ function renderDashboard(data) {
       <div class="dist-count">${d.count}</div>
     </div>
   `).join('');
+
+  // Daily trend chart
+  const dailyData = (data.daily || []).reverse(); // oldest first
+  const maxCount = Math.max(...dailyData.map(d=>d.count), 1);
+  document.getElementById('dailyChart').innerHTML = dailyData.length === 0 ? '<span style="color:rgba(230,237,243,0.3);">暂无数据</span>' : dailyData.map(d=>{
+    const h = Math.max(4, (d.count/maxCount)*90);
+    const date = d.date.slice(5); // MM-DD
+    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+      <div style="font-size:0.6rem;color:rgba(201,168,76,0.8);">${d.count}</div>
+      <div style="width:100%;height:${h}px;background:linear-gradient(to top,rgba(201,168,76,0.6),rgba(184,146,255,0.4));border-radius:2px 2px 0 0;"></div>
+      <div style="font-size:0.5rem;color:rgba(230,237,243,0.4);white-space:nowrap;">${date}</div>
+    </div>`;
+  }).join('');
 
   // Recent table
   document.getElementById('recentBody').innerHTML = (data.recent || []).map(r => `
@@ -130,6 +152,23 @@ function exportCSV() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a'); a.href = url; a.download = `灵魂地图-数据-${new Date().toISOString().slice(0,10)}.csv`;
   a.click(); URL.revokeObjectURL(url);
+}
+
+async function exportAll() {
+  const key = document.getElementById('adminKey').value.trim();
+  try {
+    const resp = await fetch(`/api/export?key=${encodeURIComponent(key)}`);
+    const data = await resp.json();
+    if(data.error) return alert(data.error);
+    const subs = data.submissions || [];
+    const headers = ['ID','时间','姓名','年龄','性别','邮箱','内部编码','展示编码','原型','稀有度','稀有度%','分数JSON','强度JSON','整合度','犹豫','共鸣','UA','来源'];
+    const rows = subs.map(r => [r.id,r.created_at,r.name,r.age,r.gender,r.email,r.archetype_code,r.display_code,r.poetic_name,r.rarity_tier,r.rarity_pct,r.scores_json,r.intensities_json,r.i_score,r.hesitations,r.resonances,r.user_agent,r.referrer]);
+    const csv = [headers,...rows].map(r=>r.map(c=>`"${(c??'').toString().replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href=url; a.download=`灵魂地图-全部数据-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+  } catch(e) { alert('导出失败: '+e.message); }
 }
 
 document.getElementById('adminKey').addEventListener('keydown', e => { if(e.key==='Enter') loadDashboard(); });

@@ -29,6 +29,9 @@ export default {
     if (path === '/api/stats' && request.method === 'GET') {
       return handleStats(request, env);
     }
+    if (path === '/api/export' && request.method === 'GET') {
+      return handleExport(request, env);
+    }
 
     // Let Cloudflare Pages handle static assets (index.html, etc.)
     return env.ASSETS.fetch(request);
@@ -157,13 +160,13 @@ async function handleStats(request, env) {
       ORDER BY count DESC
     `).all();
 
-    // Recent 50 submissions
+    // Recent 100 submissions
     const { results: recent } = await env.DB.prepare(`
       SELECT id, created_at, name, age, gender, email,
              display_code, poetic_name, rarity_tier, i_score, hesitations, resonances
       FROM submissions
       ORDER BY created_at DESC
-      LIMIT 50
+      LIMIT 100
     `).all();
 
     // Daily trend (last 30 days)
@@ -181,6 +184,26 @@ async function handleStats(request, env) {
       recent: recent || [],
       daily: daily || []
     });
+  } catch (e) {
+    return jsonResponse({ error: e.message }, 500);
+  }
+}
+
+/**
+ * GET /api/export?key=ADMIN_KEY
+ * Export ALL submissions as JSON (for CSV conversion on client)
+ */
+async function handleExport(request, env) {
+  const url = new URL(request.url);
+  const key = url.searchParams.get('key');
+  if (!env.ADMIN_KEY || key !== env.ADMIN_KEY) {
+    return jsonResponse({ error: 'Unauthorized' }, 401);
+  }
+  try {
+    const { results } = await env.DB.prepare(
+      'SELECT * FROM submissions ORDER BY created_at DESC'
+    ).all();
+    return jsonResponse({ submissions: results || [] });
   } catch (e) {
     return jsonResponse({ error: e.message }, 500);
   }
