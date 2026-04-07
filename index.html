@@ -253,7 +253,7 @@ body {
 .result-rarity-badge.common { border-color: var(--common); color: var(--common); background: rgba(168,168,168,0.08); }
 .result-illus { width: 150px; height: 150px; margin: 0 auto 1.5rem; }
 .result-code { font-family: 'Playfair Display', serif; font-size: 0.8rem; color: rgba(201,168,76,0.6); letter-spacing: 0.3em; margin-bottom: 0.4rem; }
-.result-poetic-name { font-family: 'Noto Serif SC', serif; font-size: clamp(2.2rem, 5vw, 3rem); font-weight: 700; color: var(--gold); margin-bottom: 0.5rem; letter-spacing: 0.05em; text-shadow: 0 0 30px rgba(201,168,76,0.3); }
+.result-poetic-name { font-family: 'Noto Serif SC', serif; font-size: clamp(2.8rem, 7vw, 4rem); font-weight: 700; color: var(--gold); margin-bottom: 0.5rem; letter-spacing: 0.08em; text-shadow: 0 0 40px rgba(201,168,76,0.45), 0 0 80px rgba(201,168,76,0.2); }
 .result-identity-tag { font-size: 0.95rem; color: var(--legendary); letter-spacing: 0.2em; margin-bottom: 1.2rem; }
 .result-slogan { font-family: 'Noto Serif SC', serif; font-style: italic; font-size: 1.05rem; color: rgba(245,240,232,0.85); max-width: 540px; margin: 0 auto 1.5rem; line-height: 1.8; padding: 1rem 1.5rem; border-top: 1px solid rgba(201,168,76,0.15); border-bottom: 1px solid rgba(201,168,76,0.15); }
 .result-player-name { font-size: 0.85rem; color: rgba(245,240,232,0.55); letter-spacing: 0.15em; }
@@ -720,12 +720,12 @@ const QUESTIONS = [
   { d:4, text:'一件让你痛苦的事情过去后，你更倾向：', intent:'痛苦是教训还是伤疤？', type:'choice', weights:{ W:2 }, choices:['总结教训，避免重蹈','接纳它成为我的一部分','分享它，帮助有类似经历的人','彻底放下，不再回头看'] },
 
   // D6 · 真理与认知 (3 questions)
-  { d:5, text:'关于"真理"，你更相信：', intent:'柏拉图有理念，庄子说言不尽意。', type:'choice', weights:{ W:2 }, choices:['存在客观的、可抵达的真理','只有视角，没有绝对真理','真理在实践中被检验','真理在体验中被体悟'] },
+  { d:5, text:'你和朋友看完同一部电影，解读完全相反。你会觉得：', intent:'柏拉图有理念，庄子说言不尽意。真理是一个还是多个？', type:'choice', weights:{ W:2 }, choices:['肯定有一个更"对"的解读','每个人看到的都是真的，没有对错','谁的解读经得住追问，谁更接近真相','最打动你的那个解读就是"真理"'] },
   { d:5, text:'刷到一条观点和你完全相反的帖子，你会：', intent:'算法时代的信念屏障。固执是坚定，还是封闭？', type:'scale', weights:{ W:1, S:1 }, labels:['点反对，坚持自己的立场','点进去认真看，愿意修正'] },
-  { d:5, text:'直觉和理性，你更依赖：', intent:'理性是船，直觉是罗盘。', type:'scale', weights:{ W:2 }, labels:['理性分析','直觉感知'] },
+  { d:5, text:'做重要决定的时候，你是"Excel 列优缺点"那种，还是"感觉对了就冲"那种？', intent:'理性是船，直觉是罗盘。你的决策操作系统是什么？', type:'scale', weights:{ W:2 }, labels:['Excel 理性派','直觉冲动派'] },
 
   // D7 · 善与道德 (3 questions)
-  { d:6, text:'一个人是"好人"，最关键的是：', intent:'康德看行动原则，亚里士多德看德性习惯。', type:'choice', weights:{ M:2 }, choices:['动机纯正，不计后果','结果真的帮到了人','长期养成的品格与习惯','自然流露的善意，不刻意'] },
+  { d:6, text:'你的闺蜜/哥们背着伴侣和别人暧昧，你会：', intent:'忠于朋友还是忠于原则？这是最日常的道德两难。', type:'choice', weights:{ M:2 }, choices:['直接告诉 ta 伴侣，这是原则问题','私下劝朋友收手，不主动告发','不插手，这是别人的感情','看情况，得看他们的关系有多深'] },
   { d:6, text:'做一件事，你更看重：', intent:'义务论还是结果论？', type:'scale', weights:{ M:2 }, labels:['看最终的结果','看它是否应该做'] },
   { d:6, text:'父母问你和恋人的事，但你知道实情会让他们担心，你会：', intent:'电车难题是思想实验，但在家庭里时时发生。善意的谎话是善还是不善？', type:'choice', weights:{ M:2, W:1 }, choices:['坚持说真话，即使他们难过','说一部分，保留会让他们伤心的细节','找一个更温柔的方式引导他们慢慢接受','凭当下感觉，看他们承受得住多少'] },
 
@@ -2084,37 +2084,37 @@ function renderResult(){
     </div>`:''}
 
     <div class="result-section" id="rs4">
-      <h2 class="section-title">内在张力</h2>
-      <div class="section-body"><p>${a.tension}</p></div>
-    </div>
-
-    ${a.reversal?`<div class="result-section" id="rs4b">
-      <h2 class="section-title">反向冥想</h2>
-      <div class="reversal-box"><p>${a.reversal}</p></div>
-    </div>`:''}
-
-    <div class="result-section" id="rs5">
-      <h2 class="section-title">箴言精选（${a.quotes.length} 句）</h2>
-      <div class="quotes-list">${quotesHTML}</div>
-    </div>
-
-    ${booksHTML?`<div class="result-section" id="rs5b">
-      <h2 class="section-title">推荐阅读</h2>
-      <div class="books-grid">${booksHTML}</div>
-    </div>`:''}
-
-    <div class="result-section" id="rs6">
-      <h2 class="section-title">你的下一步实践</h2>
-      <div class="practices-list">${a.practices.map((p,i)=>`<div class="practice-card"><div class="practice-num">${i+1}</div><div class="practice-text">${p}</div></div>`).join('')}</div>
-    </div>
-
-    <div class="result-section" id="rs7">
       <h2 class="section-title">你的阴影原型</h2>
       <p class="section-body" style="margin-bottom:1rem;">这是你内在"未活出"的两个可能性。他们是你的补角，也是你可以向之学习的镜子。</p>
       <div class="shadow-grid">
         <div class="shadow-card" onclick="showArchetypeModal('${shadow1.code}')"><div class="shadow-label">SHADOW 1</div><div class="shadow-name">${shadow1.poeticName}</div><div class="shadow-tag">${shadow1.identityTag}</div></div>
         <div class="shadow-card" onclick="showArchetypeModal('${shadow2.code}')"><div class="shadow-label">SHADOW 2</div><div class="shadow-name">${shadow2.poeticName}</div><div class="shadow-tag">${shadow2.identityTag}</div></div>
       </div>
+    </div>
+
+    <div class="result-section" id="rs5">
+      <h2 class="section-title">内在张力</h2>
+      <div class="section-body"><p>${a.tension}</p></div>
+    </div>
+
+    ${a.reversal?`<div class="result-section" id="rs5b">
+      <h2 class="section-title">反向冥想</h2>
+      <div class="reversal-box"><p>${a.reversal}</p></div>
+    </div>`:''}
+
+    <div class="result-section" id="rs6">
+      <h2 class="section-title">箴言精选（${a.quotes.length} 句）</h2>
+      <div class="quotes-list">${quotesHTML}</div>
+    </div>
+
+    ${booksHTML?`<div class="result-section" id="rs6b">
+      <h2 class="section-title">推荐阅读</h2>
+      <div class="books-grid">${booksHTML}</div>
+    </div>`:''}
+
+    <div class="result-section" id="rs7">
+      <h2 class="section-title">你的下一步实践</h2>
+      <div class="practices-list">${a.practices.map((p,i)=>`<div class="practice-card"><div class="practice-num">${i+1}</div><div class="practice-text">${p}</div></div>`).join('')}</div>
     </div>
 
     <div class="result-section" id="rs8">
@@ -2301,12 +2301,26 @@ function drawShareCard(){
   grad.addColorStop(0,'#1a1a2e'); grad.addColorStop(0.5,'#0f1624'); grad.addColorStop(1,'#05060c');
   ctx.fillStyle = grad; ctx.fillRect(0,0,fmt.w,fmt.h);
 
-  // border
-  ctx.strokeStyle = 'rgba(201,168,76,0.35)'; ctx.lineWidth = 2;
-  ctx.strokeRect(40,40,fmt.w-80,fmt.h-80);
+  // border — legendary gets triple golden glow
+  if(a.tier==='legendary'){
+    ctx.shadowColor = 'rgba(184,146,255,0.6)'; ctx.shadowBlur = 30;
+    ctx.strokeStyle = '#b892ff'; ctx.lineWidth = 3;
+    ctx.strokeRect(35,35,fmt.w-70,fmt.h-70);
+    ctx.shadowBlur = 0;
+    // legendary banner
+    ctx.fillStyle = 'rgba(184,146,255,0.15)';
+    ctx.fillRect(0,0,fmt.w,60);
+    ctx.fillStyle = '#b892ff';
+    ctx.font = 'bold 18px "Playfair Display"';
+    ctx.textAlign = 'center';
+    ctx.fillText('✦  LEGENDARY  ✦', fmt.w/2, 40);
+  } else {
+    ctx.strokeStyle = 'rgba(201,168,76,0.35)'; ctx.lineWidth = 2;
+    ctx.strokeRect(40,40,fmt.w-80,fmt.h-80);
+  }
 
   // decorative gold lines
-  ctx.strokeStyle = 'rgba(201,168,76,0.6)'; ctx.lineWidth = 1;
+  ctx.strokeStyle = a.tier==='legendary'?'rgba(184,146,255,0.6)':'rgba(201,168,76,0.6)'; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(fmt.w/2-120,120); ctx.lineTo(fmt.w/2+120,120); ctx.stroke();
 
   // top eyebrow
