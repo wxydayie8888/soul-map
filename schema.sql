@@ -40,3 +40,27 @@ INSERT INTO archetype_counts (display_code, count) VALUES
   ('FREI', 0), ('FRSI', 0), ('FREW', 0), ('FRSW', 0),
   ('OVEI', 0), ('OVSI', 0), ('OVEW', 0), ('OVSW', 0),
   ('FVEI', 0), ('FVSI', 0), ('FVEW', 0), ('FVSW', 0);
+
+-- V5.0: leads table for early lead capture + progress tracking
+CREATE TABLE IF NOT EXISTS leads (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  session_id TEXT UNIQUE NOT NULL,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  referred_by TEXT,
+  status TEXT NOT NULL DEFAULT 'started',
+  progress INTEGER NOT NULL DEFAULT 0,
+  partial_scores TEXT,
+  archetype_code TEXT,
+  display_code TEXT,
+  poetic_name TEXT,
+  ip_hint TEXT,
+  user_agent TEXT,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+  completed_at INTEGER,
+  reminded_at INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_leads_email ON leads(email);
+CREATE INDEX IF NOT EXISTS idx_leads_status ON leads(status, updated_at);
+CREATE INDEX IF NOT EXISTS idx_leads_session ON leads(session_id);

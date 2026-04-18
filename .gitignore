@@ -1,1 +1,36 @@
+# Cloudflare Workers local state
 .wrangler/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Env / secrets — NEVER commit these
+.env
+.env.*
+.dev.vars
+*.key
+*.pem
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Claude Code / local agent state
+.claude/
+CLAUDE.local.md
+
+# Build artifacts
+dist/
+build/
+.cache/
+
+# Local D1 / backup exports
+backup-*.sql
+*.sqlite
+*.sqlite3

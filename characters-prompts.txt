@@ -1,0 +1,128 @@
+================================================================
+灵魂地图 · 16 角色卡通图 Prompt（Nano Banana 2 / Gemini 3 Pro Image）
+================================================================
+
+生成流程（重要！按顺序做）：
+
+  Phase A · 先出种子图：用 #1 FVSW 跑 3-4 次，挑最好的 1 张
+  Phase B · 锁参考图：在 Google AI Studio 用 multi-image 模式上传 Seed
+  Phase C · 同族 4 张连跑：道家组 → 墨家组 → 儒家组 → 法家组
+  Phase D · 对齐校准：16 张拼成 4x4 检查一致性
+  Phase E · 后期加字：导出无字版，用 Figma/PS 加 "FVSW · 道家顶流"
+
+文件命名建议：char-fvsw.png, char-frsi.png ... char-orei.png
+
+================================================================
+STYLE BIBLE（每一张都粘贴这段在最前面，不要改）
+================================================================
+
+Soft anime-inspired character illustration, Studio Ghibli meets flat vector aesthetic, matte painterly finish, clean cel-shading with minimal outlines, muted poetic palette, soft rim lighting from upper-left, East Asian ink-wash subtle texture overlay on clothing, three-quarter front-facing pose, full body with generous headroom, head-to-body ratio 1:5 (slightly tall-chibi, NOT super-deformed chibi), gender-neutral androgynous features, large expressive half-closed eyes, simple clean background of cream rice paper #FAF5EC with faint gold flecks, 1:1 square composition. Single symbolic prop per character. No text, no letters, no logos anywhere in the image.
+
+
+================================================================
+道家组 · 玉青 #8ad4c8（F+V 自主×德性）
+================================================================
+
+---------- #1 · FVSW 道家顶流「无为自在」（★先出这张作 Seed）----------
+
+Character: a serene androgynous figure in flowing pale celadon robes with ink-wash sleeves. Barefoot, standing on a shallow stream with ripples. Accompanying: a small white crane at their feet. Holding: nothing—palms open, relaxed. Expression: peaceful half-smile, eyes closed. Environmental hint: drifting cherry blossom petals, faint mist. Dominant accent color: jade-mint #8ad4c8.
+
+
+---------- #2 · FVSI 实验开拓者「向内炼真」 ----------
+
+Character: a curious young alchemist in a sage-green short robe with rolled sleeves, pale linen pants. Holding: a glowing crystal vial with golden liquid, gazing into it. Expression: intense fascination, one eyebrow raised. Environmental hint: floating geometric formulas and mint-colored glyphs behind them. Dominant accent color: jade-mint #8ad4c8 with warm gold highlights.
+
+
+---------- #3 · FVEW 人间回声「同频共振」 ----------
+
+Character: a warm figure in a teal loose tunic with a red scarf, arms open as if embracing sound. Holding: a ripple of golden sound-waves emanating from their chest. Expression: compassionate smile with gently closed eyes. Environmental hint: five tiny silhouettes of other people faintly visible in the background, connected by thin gold threads. Dominant accent color: jade-mint #8ad4c8, red scarf accent.
+
+
+---------- #4 · FVEI 辩证发烧友「反复求真」 ----------
+
+Character: a thoughtful scholar in a mint-green cardigan over white shirt, small round glasses. Holding: two books in both hands, weighing them against each other like scales. Expression: focused contemplation, head slightly tilted. Environmental hint: question marks and yin-yang symbol softly glowing behind. Dominant accent color: jade-mint #8ad4c8.
+
+
+================================================================
+墨家组 · 紫光 #b892ff（F+R 自主×理性）
+================================================================
+
+---------- #5 · FRSW 他者收藏家「观而不染」 ----------
+
+Character: a quiet observer in a lavender long coat with silver buttons, wearing a fedora-like soft hat. Holding: a small glass dome containing a miniature figure. Expression: detached curiosity, slight smirk. Environmental hint: shelves of glass jars with floating tiny souls in the soft background. Dominant accent color: soft purple #b892ff with silver accents.
+
+
+---------- #6 · FRSI 荒野独行侠「独辟蹊径」 ----------
+
+Character: a lone traveler in a deep purple canvas jacket, hiking boots, shoulder bag. Walking silhouette from three-quarter view, one foot raised. Holding: a walking staff, a compass hanging from belt. Expression: determined, looking toward horizon. Environmental hint: distant mountains in purple ink-wash. Dominant accent color: deep purple #b892ff, silver compass.
+
+
+---------- #7 · FREW 人情策展人「经纬有度」 ----------
+
+Character: a sociable curator in a lilac blazer with a gold name-pin, styled hair. Holding: a deck of personality cards fanned out. Expression: charming knowing smile, direct eye contact. Environmental hint: faint party-lights and silhouettes of guests. Dominant accent color: light purple #b892ff, gold accents.
+
+
+---------- #8 · FREI 自我炼丹师「铸心成金」 ----------
+
+Character: an inventive figure in a silver-purple workshop apron over dark shirt, goggles pushed up on forehead. Holding: a small glowing heart-shaped crystal in tongs over a tiny forge. Expression: focused tinkering, mouth slightly open. Environmental hint: sparks and tiny gears floating. Dominant accent color: silver-purple #b892ff, amber forge glow.
+
+
+================================================================
+儒家组 · 暖橘 #e8a87c（O+V 秩序×德性）
+================================================================
+
+---------- #9 · OVSW 对话建筑师「桥人间路」 ----------
+
+Character: a diplomatic architect in a cream linen robe with a warm-orange sash, rolled scroll under arm. Holding: a small bridge-shaped model in one hand. Expression: calm assured smile, warm eye contact. Environmental hint: faint silhouette of an arched bridge behind. Dominant accent color: warm orange #e8a87c, cream.
+
+
+---------- #10 · OVSI 暖手实干派「温以致用」 ----------
+
+Character: a practical helper in an apricot apron over a white cotton shirt, sleeves rolled. Holding: a steaming cup of tea in both hands, offering it forward. Expression: warm maternal smile, gentle eyes. Environmental hint: soft kitchen morning light and drying herbs hanging. Dominant accent color: warm apricot #e8a87c.
+
+
+---------- #11 · OVEW 乡土活化石「守土有根」 ----------
+
+Character: a grounded elder-youth in earth-tone hanfu-inspired robes (ochre and cream), hair in a loose topknot with wooden hairpin. Holding: a small clay bowl of grain, other hand on a stone. Expression: quiet pride, slight upward chin. Environmental hint: ancestral wooden beams and rice stalks behind. Dominant accent color: warm ochre #e8a87c.
+
+
+---------- #12 · OVEI 天道翻译官「听见天光」 ----------
+
+Character: a reverent figure in cream flowing Daoist robes, standing on a mountain cliff edge. Holding: an ancient bamboo scroll in both hands, gazing upward. Expression: listening stillness, eyes half-closed facing the sky. Environmental hint: faint constellations and dawn clouds behind. Dominant accent color: pale gold #e8a87c and lavender dawn hues.
+
+
+================================================================
+法家组 · 暗金 #c9a84c（O+R 秩序×理性）
+================================================================
+
+---------- #13 · ORSW 风暴掌舵者「承重致远」 ----------
+
+Character: a commanding figure in a dark navy double-breasted coat with gold trim, wind-swept hair. Holding: a brass compass in one hand, ship's wheel handle with the other. Expression: determined resolve, looking slightly upward. Environmental hint: faint storm clouds parting with a single light beam. Dominant accent color: antique gold #c9a84c on deep navy.
+
+
+---------- #14 · ORSI 黑夜立法者「立法以行」 ----------
+
+Character: a solemn arbiter in dark forest-green judicial robes with gold embroidery, hair pulled back. Holding: a scale balance in one hand, a gavel in the other. Expression: impartial calm, direct frontal gaze. Environmental hint: background of faint classical columns and midnight sky. Dominant accent color: gold #c9a84c on dark green-black.
+
+
+---------- #15 · OREW 红线织网人「有缘无缘」 ----------
+
+Character: a thoughtful weaver in a burgundy cardigan over black turtleneck, threads wrapped around fingers. Holding: strands of glowing red thread stretching off into the distance. Expression: gentle melancholy smile, head tilted. Environmental hint: floating red threads forming a loose constellation behind. Dominant accent color: deep red-gold #c9a84c with crimson thread.
+
+
+---------- #16 · OREI 孤勇守灯人「择善固执」 ----------
+
+Character: a solitary guardian in deep navy scholar's robes with a gold lamp-shaped emblem on the chest. Holding: a bronze oil lamp raised at chest level, glowing warm amber. Expression: resolute, lips firmly set, looking straight ahead. Environmental hint: cold dark-blue midnight shadow behind, lamp creates a halo of warmth. Dominant accent color: antique gold #c9a84c lamplight on deep navy.
+
+
+================================================================
+使用建议
+================================================================
+
+1. 每张出 3-4 次挑最好的，别指望一次出片
+2. 英文字 / 中文字让 Nano Banana 画出来容易糊，Prompt 里已经写了 "No text"，后期 Figma 加
+3. Reference image 功能用好：同族 4 张用同一张参考图，一致性 ×10
+4. 不满意的部分用 Nano Banana 的 "edit this image" 局部重画（换衣服颜色 / 换道具）
+5. 导出分辨率选 1024×1024 或更高，后期缩放到 512 用在 web
+
+================================================================

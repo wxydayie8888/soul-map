@@ -23,6 +23,16 @@ export default {
     if (path === '/api/submit' && request.method === 'POST') {
       return handleSubmit(request, env);
     }
+    // V5.0 lead capture + progress
+    if (path === '/api/lead' && request.method === 'POST') {
+      return handleLead(request, env);
+    }
+    if (path === '/api/lead/progress' && request.method === 'POST') {
+      return handleLeadProgress(request, env);
+    }
+    if (path === '/api/lookup' && request.method === 'GET') {
+      return handleLookup(request, env);
+    }
     if (path === '/api/counts' && request.method === 'GET') {
       return handleCounts(env);
     }
@@ -55,7 +65,8 @@ async function handleSubmit(request, env) {
       name, age, gender, email,
       archetype_code, display_code, poetic_name,
       rarity_tier, rarity_pct, scores, intensities,
-      i_score, hesitations, resonances, referred_by
+      i_score, hesitations, resonances, referred_by,
+      session_id
     } = body;
 
     // Validate required fields
@@ -111,6 +122,18 @@ async function handleSubmit(request, env) {
           VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
         `).bind(referred_by, inviter.name, inviter.poetic_name, refCode, name, poetic_name).run();
       }
+    }
+
+    // V5.0: If session_id provided, mark lead as completed
+    if (session_id) {
+      const tNow = Math.floor(Date.now() / 1000);
+      await env.DB.prepare(`
+        UPDATE leads
+        SET status = 'completed', progress = 40,
+            archetype_code = ?, display_code = ?, poetic_name = ?,
+            completed_at = ?, updated_at = ?
+        WHERE session_id = ?
+      `).bind(archetype_code, display_code, poetic_name || null, tNow, tNow, session_id).run();
     }
 
     // Increment archetype counter
@@ -337,4 +360,155 @@ function jsonResponse(data, status = 200) {
       ...CORS_HEADERS
     }
   });
+}
+
+// ============================================================
+// V5.0 Lead Capture + Progress Tracking
+// ============================================================
+
+const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+
+function now() { return Math.floor(Date.now() / 1000); }
+
+function ipHint(request) {
+  const ip = request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for') || '';
+  const ua = request.headers.get('user-agent') || '';
+  // Coarse: first 2 octets + UA length, no raw IP kept
+  const ipPrefix = ip.split('.').slice(0, 2).join('.') || ip.slice(0, 8);
+  return `${ipPrefix}|${ua.length}`;
+}
+
+/**
+ * POST /api/lead
+ * Capture name+email at start of quiz (before Q1).
+ * Upserts by session_id. Returns is_returning flag + last_result if email seen before.
+ * Body: { session_id, name, email, referred_by? }
+ */
+async function handleLead(request, env) {
+  try {
+    const body = await request.json();
+    const { session_id, name, email, referred_by } = body;
+
+    if (!session_id || !name || !email) {
+      return jsonResponse({ error: 'Missing session_id, name, or email' }, 400);
+    }
+    if (!EMAIL_RE.test(email)) {
+      return jsonResponse({ error: 'Invalid email format' }, 400);
+    }
+    if (name.length < 1 || name.length > 24) {
+      return jsonResponse({ error: 'Name must be 1-24 chars' }, 400);
+    }
+
+    const t = now();
+    const hint = ipHint(request);
+    const ua = request.headers.get('user-agent') || null;
+
+    // Check returning user by email (most recent completed submission)
+    const lastSubmission = await env.DB.prepare(
+      `SELECT display_code, poetic_name, archetype_code, created_at
+       FROM submissions WHERE email = ? ORDER BY id DESC LIMIT 1`
+    ).bind(email).first();
+
+    // Upsert lead by session_id
+    await env.DB.prepare(`
+      INSERT INTO leads (session_id, name, email, referred_by, status, progress,
+                         ip_hint, user_agent, created_at, updated_at)
+      VALUES (?, ?, ?, ?, 'started', 0, ?, ?, ?, ?)
+      ON CONFLICT(session_id) DO UPDATE SET
+        name = excluded.name,
+        email = excluded.email,
+        referred_by = COALESCE(leads.referred_by, excluded.referred_by),
+        updated_at = excluded.updated_at
+    `).bind(session_id, name, email, referred_by || null, hint, ua, t, t).run();
+
+    return jsonResponse({
+      success: true,
+      session_id,
+      is_returning: !!lastSubmission,
+      last_result: lastSubmission ? {
+        display_code: lastSubmission.display_code,
+        poetic_name: lastSubmission.poetic_name,
+        created_at: lastSubmission.created_at
+      } : null
+    });
+  } catch (e) {
+    return jsonResponse({ error: 'Server error: ' + e.message }, 500);
+  }
+}
+
+/**
+ * POST /api/lead/progress
+ * Write partial progress every 10 questions + on completion.
+ * Body: { session_id, progress, partial_scores?, status? }
+ */
+async function handleLeadProgress(request, env) {
+  try {
+    const body = await request.json();
+    const { session_id, progress, partial_scores, status } = body;
+
+    if (!session_id || typeof progress !== 'number') {
+      return jsonResponse({ error: 'Missing session_id or progress' }, 400);
+    }
+
+    const t = now();
+    const s = status || (progress >= 40 ? 'completed' : `q${Math.floor(progress / 10) * 10}`);
+    const partialJson = partial_scores ? JSON.stringify(partial_scores) : null;
+
+    // Compute reminded_at: first crossing of Q20 median → now + 24h (placeholder; cron not wired)
+    const existing = await env.DB.prepare(
+      'SELECT progress, reminded_at FROM leads WHERE session_id = ?'
+    ).bind(session_id).first();
+
+    if (!existing) {
+      return jsonResponse({ error: 'Unknown session_id' }, 404);
+    }
+
+    let remindedAt = existing.reminded_at;
+    if (!remindedAt && existing.progress < 20 && progress >= 20 && progress < 40) {
+      remindedAt = t + 86400; // +24h
+    }
+
+    await env.DB.prepare(`
+      UPDATE leads
+      SET progress = ?, partial_scores = COALESCE(?, partial_scores),
+          status = ?, updated_at = ?,
+          reminded_at = ?,
+          completed_at = CASE WHEN ? >= 40 THEN ? ELSE completed_at END
+      WHERE session_id = ?
+    `).bind(progress, partialJson, s, t, remindedAt, progress, t, session_id).run();
+
+    return jsonResponse({ success: true, status: s });
+  } catch (e) {
+    return jsonResponse({ error: 'Server error: ' + e.message }, 500);
+  }
+}
+
+/**
+ * GET /api/lookup?email=xxx
+ * Returning-user check for hero gate. Returns the most recent completed submission summary.
+ */
+async function handleLookup(request, env) {
+  try {
+    const url = new URL(request.url);
+    const email = url.searchParams.get('email');
+    if (!email || !EMAIL_RE.test(email)) {
+      return jsonResponse({ error: 'Invalid email' }, 400);
+    }
+
+    const last = await env.DB.prepare(
+      `SELECT display_code, poetic_name, archetype_code, created_at
+       FROM submissions WHERE email = ? ORDER BY id DESC LIMIT 1`
+    ).bind(email).first();
+
+    return jsonResponse({
+      found: !!last,
+      last_result: last ? {
+        display_code: last.display_code,
+        poetic_name: last.poetic_name,
+        created_at: last.created_at
+      } : null
+    });
+  } catch (e) {
+    return jsonResponse({ error: e.message }, 500);
+  }
 }
