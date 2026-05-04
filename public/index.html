@@ -1979,12 +1979,71 @@ async function doLookup(){
       const lr = d.last_result;
       const banner = $('returningBanner');
       if(banner){
+        // Compute days since last test for routing hint
+        let daysSince = null;
+        if (lr.created_at){
+          const t = new Date(lr.created_at).getTime();
+          if (!isNaN(t)) daysSince = Math.floor((Date.now() - t) / 86400000);
+        }
         const dateStr = lr.created_at ? new Date(lr.created_at).toLocaleDateString('zh-CN') : '';
-        banner.style.cssText = 'display:block;max-width:420px;margin:0.8rem auto 0;padding:0.8rem 1rem;border:1px solid rgba(184,146,255,0.35);border-radius:10px;background:rgba(184,146,255,0.08);font-size:0.82rem;color:rgba(245,240,232,0.82);text-align:center;';
-        banner.innerHTML = `✨ ${dateStr?`${dateStr}，`:''}你上次是 <strong style="color:var(--gold);">${lr.display_code||lr.archetype_code} · ${lr.poetic_name||''}</strong> — 要重新测一次吗？`;
+        const hint = daysSince === null
+          ? ''
+          : daysSince <= 7  ? '（你刚做过没几天 · 可以继续上次的意义之旅）'
+          : daysSince <= 60 ? `（${daysSince} 天前的事了 · 你的种子长得怎样？）`
+          : `（${daysSince} 天过去了 · 你的灵魂可能已经移动）`;
+
+        // Stash into state for the "continue journey" path
+        const archetypeCodeForState = lr.archetype_code || lr.display_code;
+        banner.style.cssText = 'display:block;max-width:520px;margin:1rem auto 0;padding:1rem 1.2rem;border:1px solid rgba(184,146,255,0.4);border-radius:10px;background:rgba(184,146,255,0.08);color:rgba(245,240,232,0.88);';
+        banner.innerHTML = `
+          <div style="text-align:center;font-size:0.85rem;line-height:1.7;">
+            ✨ ${dateStr ? `${dateStr}，` : ''}你上次是
+            <strong style="color:var(--gold);letter-spacing:0.12em;">${escHtml(lr.display_code || lr.archetype_code)} · ${escHtml(lr.poetic_name || '')}</strong>
+          </div>
+          <div style="text-align:center;font-size:0.74rem;color:rgba(245,240,232,0.55);margin-top:0.4rem;">${escHtml(hint)}</div>
+          <div style="display:flex;gap:0.6rem;justify-content:center;margin-top:0.9rem;flex-wrap:wrap;">
+            <button type="button" onclick="continueJourneyAsReturning('${escHtml(archetypeCodeForState)}')" style="padding:0.55rem 1.1rem;border-radius:6px;border:1px solid var(--legendary);background:rgba(184,146,255,0.18);color:var(--legendary);font-family:'Noto Serif SC',serif;font-size:0.8rem;cursor:pointer;letter-spacing:0.1em;font-weight:600;">继续意义之旅 →</button>
+            <button type="button" onclick="$('returningBanner').style.display='none';" style="padding:0.55rem 1.1rem;border-radius:6px;border:1px solid rgba(245,240,232,0.2);background:transparent;color:rgba(245,240,232,0.6);font-family:'Noto Serif SC',serif;font-size:0.8rem;cursor:pointer;letter-spacing:0.1em;">重新测一次</button>
+          </div>
+        `;
       }
     }
   } catch(e){}
+}
+
+// V6: returning user clicks "continue meaning journey" — load their archetype
+// into state without re-running the test, then drop them into Act II.
+async function continueJourneyAsReturning(archetypeCode){
+  state.archetypeCode = archetypeCode;
+  state.playerName = ($('nameInput').value || '').trim() || '旅人';
+  state.email = ($('emailInput').value || '').trim();
+  if (state.email) signupData.email = state.email;
+  state.sessionId = safeStorage.get('soulmap_session') || uuid();
+  safeStorage.set('soulmap_session', state.sessionId);
+
+  // Ensure a leads row exists for this session so /api/journey + /api/commit
+  // have something to write to. Fire-and-forget; don't block the UI.
+  if (state.email && state.playerName){
+    try {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 4000);
+      await fetch('/api/lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_id: state.sessionId,
+          name: state.playerName,
+          email: state.email
+        }),
+        signal: ctrl.signal
+      });
+      clearTimeout(t);
+    } catch(_){ /* offline: still proceed, downstream APIs will quietly no-op */ }
+  }
+
+  const banner = $('returningBanner');
+  if (banner) banner.style.display = 'none';
+  startCompass();
 }
 
 async function startQuizAfterGate(){
@@ -2556,7 +2615,16 @@ function getCode(){
 }
 
 function getArchetype(code){
-  return ARCHETYPES.find(a=>a.code===(code||getCode())) || ARCHETYPES[0];
+  // Explicit code arg wins
+  if (code) return ARCHETYPES.find(a => a.code === code) || ARCHETYPES[0];
+  // V6: returning users have archetypeCode set without scores being calculated
+  if (state.archetypeCode){
+    const byCode = ARCHETYPES.find(a => a.code === state.archetypeCode);
+    if (byCode) return byCode;
+    const byDisplay = ARCHETYPES.find(a => (a.displayCode || a.code) === state.archetypeCode);
+    if (byDisplay) return byDisplay;
+  }
+  return ARCHETYPES.find(a => a.code === getCode()) || ARCHETYPES[0];
 }
 
 // ============================================================
