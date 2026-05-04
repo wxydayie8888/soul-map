@@ -539,6 +539,51 @@ input[type="text"], input[type="email"], input[type="number"], textarea, select 
 .sound-toggle:hover { border-color: var(--gold); color: var(--gold); }
 .sound-toggle.on { border-color: var(--gold); color: var(--gold); background: rgba(201,168,76,0.1); }
 @media (pointer: coarse) { .sound-toggle { bottom: max(1rem, env(safe-area-inset-bottom)); right: 1rem; } }
+
+/* ===== ACT II: MEANING JOURNEY (compass / signature / possible-self / commitment) ===== */
+.journey-cta { background: linear-gradient(135deg, rgba(184,146,255,0.18), rgba(201,168,76,0.18)) !important; border: 2px solid rgba(184,146,255,0.5) !important; color: var(--legendary) !important; font-weight: 700 !important; letter-spacing: 0.18em !important; padding: 1.05rem 1.4rem !important; position: relative; overflow: hidden; }
+.journey-cta::before { content: ''; position: absolute; top:0; left:-100%; width:100%; height:100%; background: linear-gradient(90deg, transparent, rgba(184,146,255,0.25), transparent); transition: left 1.2s; }
+.journey-cta:hover::before { left: 100%; }
+.journey-cta .small { display:block; font-size:0.7rem; margin-top:0.25rem; letter-spacing:0.16em; opacity:0.78; font-weight:400; }
+
+.journey-screen { padding: 4rem 1.6rem 5rem; max-width: 760px; margin: 0 auto; }
+.journey-step-tag { font-family:'Playfair Display',serif; font-size:0.78rem; letter-spacing:0.32em; color:rgba(184,146,255,0.7); text-transform:uppercase; margin-bottom:0.6rem; }
+.journey-h1 { font-family:'Noto Serif SC',serif; font-size:2rem; color:var(--ink); margin:0 0 0.6rem; letter-spacing:0.06em; line-height:1.4; }
+.journey-h2 { font-family:'Noto Serif SC',serif; font-size:1.1rem; color:rgba(245,240,232,0.78); margin:0 0 1.6rem; line-height:1.8; font-weight:400; }
+.journey-section { margin: 2.4rem 0 1.6rem; }
+.journey-section-title { font-family:'Noto Serif SC',serif; font-size:1.05rem; color:var(--gold); letter-spacing:0.12em; margin-bottom:0.8rem; }
+.journey-section-hint { font-size:0.84rem; color:rgba(245,240,232,0.55); margin-bottom:1rem; line-height:1.7; }
+
+/* Value chip picker */
+.value-chips { display:flex; flex-wrap:wrap; gap:0.6rem; margin-bottom:0.8rem; }
+.value-chip { padding:0.55rem 1.1rem; border:1px solid rgba(245,240,232,0.18); border-radius:999px; font-family:'Noto Serif SC',serif; font-size:0.95rem; color:rgba(245,240,232,0.8); background:rgba(245,240,232,0.03); cursor:pointer; transition:all 0.25s; user-select:none; }
+.value-chip:hover { border-color: rgba(201,168,76,0.55); color:var(--gold); }
+.value-chip.selected { background: linear-gradient(135deg, rgba(201,168,76,0.22), rgba(201,168,76,0.08)); border-color: var(--gold); color:var(--gold); box-shadow: 0 0 18px rgba(201,168,76,0.18); }
+.value-chip.custom { border-style:dashed; opacity:0.7; }
+.value-input { width:100%; padding:0.7rem 1rem; background:rgba(245,240,232,0.04); border:1px solid rgba(245,240,232,0.15); border-radius:8px; color:var(--ink); font-family:'Noto Serif SC',serif; font-size:0.95rem; margin-top:0.4rem; }
+.value-input:focus { outline:none; border-color: var(--gold); }
+.value-counter { font-size:0.78rem; color:rgba(245,240,232,0.45); letter-spacing:0.08em; margin-top:0.6rem; }
+.value-counter.ok { color: var(--gold); }
+
+/* Domain Likert rows */
+.domain-row { padding:1.1rem 0; border-bottom:1px solid rgba(245,240,232,0.06); }
+.domain-row:last-child { border-bottom:0; }
+.domain-name { display:flex; align-items:baseline; gap:0.8rem; margin-bottom:0.65rem; }
+.domain-name-cn { font-family:'Noto Serif SC',serif; font-size:1.1rem; color:var(--ink); letter-spacing:0.15em; }
+.domain-name-en { font-size:0.7rem; color:rgba(245,240,232,0.4); letter-spacing:0.18em; }
+.domain-hint { font-size:0.82rem; color:rgba(245,240,232,0.55); margin-bottom:0.7rem; line-height:1.7; }
+.likert-row { display:flex; gap:0.4rem; align-items:center; }
+.likert-btn { flex:1; padding:0.7rem 0; border:1px solid rgba(245,240,232,0.15); border-radius:6px; background:rgba(245,240,232,0.02); color:rgba(245,240,232,0.75); font-family:'Playfair Display',serif; font-size:1.05rem; cursor:pointer; transition:all 0.2s; }
+.likert-btn:hover { border-color: rgba(201,168,76,0.5); }
+.likert-btn.selected { background: var(--gold); color:#0d1117; border-color:var(--gold); font-weight:700; }
+.likert-labels { display:flex; justify-content:space-between; margin-top:0.4rem; font-size:0.7rem; color:rgba(245,240,232,0.4); letter-spacing:0.1em; }
+
+.journey-footer { margin-top:3rem; display:flex; gap:1rem; justify-content:space-between; align-items:center; flex-wrap:wrap; }
+.journey-back { background:transparent; border:1px solid rgba(245,240,232,0.18); color:rgba(245,240,232,0.55); padding:0.7rem 1.3rem; border-radius:6px; font-family:'Noto Serif SC',serif; font-size:0.85rem; cursor:pointer; letter-spacing:0.1em; }
+.journey-back:hover { border-color:rgba(201,168,76,0.5); color:var(--gold); }
+.journey-next { background:linear-gradient(135deg, var(--gold), rgba(201,168,76,0.85)); color:#0d1117; border:0; padding:0.85rem 1.8rem; border-radius:6px; font-family:'Noto Serif SC',serif; font-size:0.95rem; font-weight:700; cursor:pointer; letter-spacing:0.16em; transition:all 0.25s; }
+.journey-next:disabled { opacity:0.35; cursor:not-allowed; filter:grayscale(0.5); }
+.journey-next:not(:disabled):hover { box-shadow: 0 0 26px rgba(201,168,76,0.45); transform:translateY(-1px); }
 </style>
 </head>
 <body>
@@ -683,6 +728,72 @@ input[type="text"], input[type="email"], input[type="number"], textarea, select 
 <!-- RESULT -->
 <section class="screen" id="result">
   <div class="result-inner" id="resultInner"></div>
+</section>
+
+<!-- ================================================================
+     ACT II · MEANING JOURNEY · STEP 1: COMPASS (价值观靶心)
+     Bull's-Eye adapted to 修身 / 齐家 / 处世 / 闲居 four domains
+================================================================ -->
+<section class="screen" id="compass">
+  <div class="journey-screen">
+    <div class="journey-step-tag">ACT II · 第 1 步 / 共 3 步</div>
+    <h1 class="journey-h1">价值观靶心</h1>
+    <p class="journey-h2">原型告诉了你的"光从哪里来"。这一步，你来定义：你最想活出来的，到底是哪几种品质？以及在四个生活领域里，你现在离它们有多近。</p>
+
+    <div class="journey-section">
+      <div class="journey-section-title">你的价值（选 3-5 条）</div>
+      <div class="journey-section-hint" id="compassValuesHint">基于你的原型预选了一些候选，你可以保留、替换、或自添。</div>
+      <div class="value-chips" id="valueChips"></div>
+      <input class="value-input" id="customValueInput" placeholder="还想加一个？写在这里按回车" maxlength="14" />
+      <div class="value-counter" id="valueCounter">已选 0 / 至少 3 条</div>
+    </div>
+
+    <div class="journey-section">
+      <div class="journey-section-title">四块土地</div>
+      <div class="journey-section-hint">这一周里，你过的生活，离上面这些价值有多近？（1 = 很远，5 = 已经在过）</div>
+
+      <div class="domain-row">
+        <div class="domain-name"><span class="domain-name-cn">修身</span><span class="domain-name-en">SELF-CULTIVATION</span></div>
+        <div class="domain-hint">独处、读书、身体、内在功夫——你和你自己的事</div>
+        <div class="likert-row" data-domain="self">
+          <button class="likert-btn" data-v="1">1</button><button class="likert-btn" data-v="2">2</button><button class="likert-btn" data-v="3">3</button><button class="likert-btn" data-v="4">4</button><button class="likert-btn" data-v="5">5</button>
+        </div>
+        <div class="likert-labels"><span>很远</span><span>已经在过</span></div>
+      </div>
+
+      <div class="domain-row">
+        <div class="domain-name"><span class="domain-name-cn">齐家</span><span class="domain-name-en">INTIMATE CIRCLE</span></div>
+        <div class="domain-hint">家人、伴侣、最近的朋友——你愿意为他们慢下来的人</div>
+        <div class="likert-row" data-domain="family">
+          <button class="likert-btn" data-v="1">1</button><button class="likert-btn" data-v="2">2</button><button class="likert-btn" data-v="3">3</button><button class="likert-btn" data-v="4">4</button><button class="likert-btn" data-v="5">5</button>
+        </div>
+        <div class="likert-labels"><span>很远</span><span>已经在过</span></div>
+      </div>
+
+      <div class="domain-row">
+        <div class="domain-name"><span class="domain-name-cn">处世</span><span class="domain-name-en">WORK & SOCIETY</span></div>
+        <div class="domain-hint">工作、学业、和陌生人/机构打的交道——你站到外面的部分</div>
+        <div class="likert-row" data-domain="society">
+          <button class="likert-btn" data-v="1">1</button><button class="likert-btn" data-v="2">2</button><button class="likert-btn" data-v="3">3</button><button class="likert-btn" data-v="4">4</button><button class="likert-btn" data-v="5">5</button>
+        </div>
+        <div class="likert-labels"><span>很远</span><span>已经在过</span></div>
+      </div>
+
+      <div class="domain-row">
+        <div class="domain-name"><span class="domain-name-cn">闲居</span><span class="domain-name-en">SOLITUDE & PLAY</span></div>
+        <div class="domain-hint">兴趣、创作、独处、玩——你不被任何人要求的部分</div>
+        <div class="likert-row" data-domain="leisure">
+          <button class="likert-btn" data-v="1">1</button><button class="likert-btn" data-v="2">2</button><button class="likert-btn" data-v="3">3</button><button class="likert-btn" data-v="4">4</button><button class="likert-btn" data-v="5">5</button>
+        </div>
+        <div class="likert-labels"><span>很远</span><span>已经在过</span></div>
+      </div>
+    </div>
+
+    <div class="journey-footer">
+      <button class="journey-back" onclick="exitCompass()">← 回到原型</button>
+      <button class="journey-next" id="compassNextBtn" onclick="submitCompass()" disabled>下一步：你的三盏灯 →</button>
+    </div>
+  </div>
 </section>
 
 <!-- INTERLUDE -->
@@ -2609,6 +2720,7 @@ function renderResult(){
     </div>
 
     <div class="action-row">
+      <button class="action-btn journey-cta" onclick="startCompass()">继续 → 开启意义之旅 ✦<span class="small">原型只是起点 · 用 10 分钟，把你想活成的样子说清楚</span></button>
       <div style="width:100%;padding:1.2rem;border:2px solid rgba(184,146,255,0.4);background:rgba(184,146,255,0.06);margin-bottom:1rem;text-align:center;">
         <div style="font-family:'Noto Serif SC',serif;font-size:1.1rem;color:var(--legendary);margin-bottom:0.6rem;">🤝 灵魂契约</div>
         <div style="font-size:0.88rem;color:rgba(245,240,232,0.7);line-height:1.7;margin-bottom:1rem;">发给一位朋友测试，解锁你们的灵魂契合度分析</div>
@@ -3490,6 +3602,168 @@ document.addEventListener('keydown', e=>{
 // init
 $('nameInput').focus();
 $('nameInput').addEventListener('keydown', e=>{ if(e.key==='Enter') enterPrologue(); });
+
+// ============================================================
+// ACT II · MEANING JOURNEY · STEP 1: COMPASS (价值观靶心)
+// Bull's-Eye adapted to 修身/齐家/处世/闲居 four domains
+// + per-archetype candidate values keyed by displayCode
+// ============================================================
+
+// 16 原型对应的候选价值观 (8 each, archetype-philosophy-aligned)
+const ARCHETYPE_VALUES = {
+  OREI: ['责任','原则','坚守','自律','问心无愧','笃行','忠诚','纯粹'],
+  ORSI: ['公正','清晰','远见','独立思考','秩序','理性','严谨','慎独'],
+  OREW: ['仁爱','连接','共情','温柔','被需要','和谐','滋养','托付'],
+  ORSW: ['担当','果敢','引领','远见','坚韧','信任','初心','扛得起'],
+  FREI: ['独立','自由','深度','自洽','纯粹','专注','向内','安静'],
+  FRSI: ['体验','自由','好奇','行动','临在','不被定义','辽阔','流动'],
+  FREW: ['烟火气','温情','知足','随和','悦人悦己','当下','轻松','生活力'],
+  FRSW: ['多元','包容','灵感','好奇','开放','共鸣','欣赏','跨界'],
+  OVEI: ['启明','灵性','真诚','超越','敬畏','洞察','传递','纯粹'],
+  OVSI: ['温柔','踏实','利他','耐心','可靠','不张扬','悲悯','做实事'],
+  OVEW: ['根植','传承','土地','缓慢','共同体','记忆','本真','不外求'],
+  OVSW: ['对话','调和','桥接','聆听','不评判','平和','共识','容异'],
+  FVEI: ['思辨','矛盾','追问','深度','不站队','复杂','诚实','追真'],
+  FVSI: ['探索','勇气','突破','原创','不设限','未知','试错','创造'],
+  FVEW: ['共鸣','归属','共创','平等','参与','被看见','点亮','共振'],
+  FVSW: ['顺势','放下','安住','纯朴','自然','知足','流动','留白']
+};
+
+// Compass state (separate from main `state` to keep concerns isolated)
+const compassState = { values: [], domains: { self:0, family:0, society:0, leisure:0 } };
+
+function startCompass(){
+  // Reset for a fresh compass session
+  compassState.values = [];
+  compassState.domains = { self:0, family:0, society:0, leisure:0 };
+  renderValueChips();
+  renderLikertButtons();
+  updateCompassNextBtn();
+  showScreen('compass');
+}
+
+function renderValueChips(){
+  const a = getArchetype();
+  const code = a.displayCode || a.code;
+  const candidates = ARCHETYPE_VALUES[code] || ARCHETYPE_VALUES.OREI;
+  $('compassValuesHint').textContent = `基于你的"${a.poeticName}"原型预选了 8 个候选，你可以保留、替换、或自添。`;
+  $('valueChips').innerHTML = candidates.map(v =>
+    `<span class="value-chip" data-v="${v}" onclick="toggleValue('${v}')">${v}</span>`
+  ).join('');
+  $('customValueInput').value = '';
+  updateValueCounter();
+}
+
+function toggleValue(v){
+  const i = compassState.values.indexOf(v);
+  if (i >= 0){
+    compassState.values.splice(i, 1);
+  } else {
+    if (compassState.values.length >= 5){
+      // Max reached: silently drop oldest
+      const dropped = compassState.values.shift();
+      const droppedEl = document.querySelector(`#valueChips .value-chip[data-v="${CSS.escape(dropped)}"]`);
+      if (droppedEl) droppedEl.classList.remove('selected');
+    }
+    compassState.values.push(v);
+  }
+  document.querySelectorAll('#valueChips .value-chip').forEach(el => {
+    el.classList.toggle('selected', compassState.values.includes(el.dataset.v));
+  });
+  updateValueCounter();
+  updateCompassNextBtn();
+}
+
+function updateValueCounter(){
+  const c = $('valueCounter');
+  const n = compassState.values.length;
+  if (n < 3){
+    c.textContent = `已选 ${n} / 至少 3 条`;
+    c.classList.remove('ok');
+  } else {
+    c.textContent = n >= 5 ? `已选 5 条（再选会替换最早的一条）` : `已选 ${n} 条 · 还可加 ${5 - n} 条`;
+    c.classList.add('ok');
+  }
+}
+
+function renderLikertButtons(){
+  document.querySelectorAll('#compass .likert-row').forEach(row => {
+    const domain = row.dataset.domain;
+    row.querySelectorAll('.likert-btn').forEach(btn => {
+      btn.classList.remove('selected');
+      btn.onclick = () => setDomainScore(domain, parseInt(btn.dataset.v), row);
+    });
+  });
+}
+
+function setDomainScore(domain, score, row){
+  compassState.domains[domain] = score;
+  row.querySelectorAll('.likert-btn').forEach(btn => {
+    btn.classList.toggle('selected', parseInt(btn.dataset.v) === score);
+  });
+  updateCompassNextBtn();
+}
+
+function updateCompassNextBtn(){
+  const ok = compassState.values.length >= 3 && Object.values(compassState.domains).every(v => v >= 1);
+  $('compassNextBtn').disabled = !ok;
+}
+
+function exitCompass(){ showScreen('result'); }
+
+async function submitCompass(){
+  const btn = $('compassNextBtn');
+  btn.disabled = true;
+  const orig = btn.textContent;
+  btn.textContent = '保存中...';
+  try {
+    if (state.sessionId){
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 5000);
+      await fetch('/api/journey', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_id: state.sessionId,
+          values_json: JSON.stringify({ core: compassState.values, domains: compassState.domains })
+        }),
+        signal: ctrl.signal
+      });
+      clearTimeout(t);
+    }
+  } catch(e){
+    console.warn('[compass] save failed, proceeding anyway', e);
+  }
+  btn.disabled = false;
+  btn.textContent = orig;
+  // Step 3 ('signature') is being built next — for now show a stub.
+  alert('✦ 已保存。\n\n你选了：' + compassState.values.join('、') + '\n\n下一步「你的三盏灯」正在赶来，等下次部署上线后会自动衔接。');
+}
+
+// Custom-value input handler (Enter to add)
+(function(){
+  const ci = document.getElementById('customValueInput');
+  if (!ci) return;
+  ci.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    const v = ci.value.trim();
+    if (!v) return;
+    if (compassState.values.includes(v)){ ci.value = ''; return; }
+    if (compassState.values.length >= 5){
+      const dropped = compassState.values.shift();
+      const droppedEl = document.querySelector(`#valueChips .value-chip[data-v="${CSS.escape(dropped)}"]`);
+      if (droppedEl) droppedEl.classList.remove('selected');
+    }
+    compassState.values.push(v);
+    $('valueChips').insertAdjacentHTML('beforeend',
+      `<span class="value-chip custom selected" data-v="${v}" onclick="toggleValue('${v}')">${v}</span>`
+    );
+    ci.value = '';
+    updateValueCounter();
+    updateCompassNextBtn();
+  });
+})();
 </script>
 <script src="https://unpkg.com/three@0.160.0/build/three.min.js" defer onload="initThreeField()"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" defer></script>

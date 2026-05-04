@@ -48,6 +48,10 @@ export default {
     if (path === '/api/send-report' && request.method === 'POST') {
       return handleSendReport(request, env);
     }
+    // V6.0 Act II/III: meaning journey artifacts
+    if (path === '/api/journey' && request.method === 'POST') {
+      return handleJourney(request, env);
+    }
 
     // Let Cloudflare Pages handle static assets (index.html, etc.)
     return env.ASSETS.fetch(request);
@@ -507,6 +511,56 @@ async function handleLookup(request, env) {
         poetic_name: last.poetic_name,
         created_at: last.created_at
       } : null
+    });
+  } catch (e) {
+    return jsonResponse({ error: e.message }, 500);
+  }
+}
+
+/**
+ * POST /api/journey
+ * V6.0 — Persist Act II artifacts (values, strengths, BPS) onto the lead row.
+ * Body: { session_id, values_json?, strengths_json?, bps_text? }
+ * Any subset of the three artifact fields can be sent; only non-empty ones update.
+ * Idempotent — re-submission overwrites prior value.
+ */
+async function handleJourney(request, env) {
+  try {
+    const body = await request.json();
+    const { session_id, values_json, strengths_json, bps_text } = body;
+
+    if (!session_id || typeof session_id !== 'string') {
+      return jsonResponse({ error: 'session_id required' }, 400);
+    }
+
+    // Validate JSON-ish fields are reasonable size
+    if (values_json && values_json.length > 4000) return jsonResponse({ error: 'values_json too large' }, 400);
+    if (strengths_json && strengths_json.length > 2000) return jsonResponse({ error: 'strengths_json too large' }, 400);
+    if (bps_text && bps_text.length > 8000) return jsonResponse({ error: 'bps_text too large' }, 400);
+
+    // Build dynamic UPDATE — only the non-null fields
+    const sets = [];
+    const binds = [];
+    if (values_json !== undefined && values_json !== null) { sets.push('values_json = ?'); binds.push(values_json); }
+    if (strengths_json !== undefined && strengths_json !== null) { sets.push('strengths_json = ?'); binds.push(strengths_json); }
+    if (bps_text !== undefined && bps_text !== null) { sets.push('bps_text = ?'); binds.push(bps_text); }
+
+    if (sets.length === 0) {
+      return jsonResponse({ error: 'no fields to update' }, 400);
+    }
+
+    sets.push('updated_at = ?');
+    binds.push(now());
+    binds.push(session_id);
+
+    const result = await env.DB.prepare(
+      `UPDATE leads SET ${sets.join(', ')} WHERE session_id = ?`
+    ).bind(...binds).run();
+
+    return jsonResponse({
+      ok: true,
+      changed: result.meta?.changes ?? 0,
+      fields: sets.length - 1  // exclude updated_at from count
     });
   } catch (e) {
     return jsonResponse({ error: e.message }, 500);
