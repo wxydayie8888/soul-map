@@ -584,6 +584,51 @@ input[type="text"], input[type="email"], input[type="number"], textarea, select 
 .journey-next { background:linear-gradient(135deg, var(--gold), rgba(201,168,76,0.85)); color:#0d1117; border:0; padding:0.85rem 1.8rem; border-radius:6px; font-family:'Noto Serif SC',serif; font-size:0.95rem; font-weight:700; cursor:pointer; letter-spacing:0.16em; transition:all 0.25s; }
 .journey-next:disabled { opacity:0.35; cursor:not-allowed; filter:grayscale(0.5); }
 .journey-next:not(:disabled):hover { box-shadow: 0 0 26px rgba(201,168,76,0.45); transform:translateY(-1px); }
+
+/* Signature: 三盏灯 — strength card grid */
+.strength-grid { display:grid; grid-template-columns: 1fr 1fr; gap:0.9rem; margin-top:1rem; }
+@media (max-width: 540px) { .strength-grid { grid-template-columns: 1fr; } }
+.strength-card { padding:1.1rem 1.2rem; border:1px solid rgba(245,240,232,0.15); border-radius:6px; background: rgba(245,240,232,0.025); cursor:pointer; transition:all 0.28s; position:relative; user-select:none; }
+.strength-card:hover { border-color: rgba(201,168,76,0.55); background: rgba(201,168,76,0.05); transform: translateY(-1px); }
+.strength-card.selected { border-color: var(--gold); background: linear-gradient(135deg, rgba(201,168,76,0.16), rgba(184,146,255,0.06)); box-shadow: 0 0 24px rgba(201,168,76,0.18); }
+.strength-card.selected::before { content:'✦'; position:absolute; top:0.5rem; right:0.7rem; color:var(--gold); font-size:1rem; }
+.strength-name { font-family:'Noto Serif SC',serif; font-size:1.25rem; color:var(--ink); letter-spacing:0.18em; margin-bottom:0.35rem; }
+.strength-card.selected .strength-name { color: var(--gold); }
+.strength-desc { font-size:0.78rem; color:rgba(245,240,232,0.5); line-height:1.6; }
+.strength-counter { font-size:0.82rem; color:rgba(245,240,232,0.45); letter-spacing:0.08em; margin-top:1rem; text-align:center; }
+.strength-counter.ok { color:var(--gold); }
+
+/* Possible Self — writing prompts */
+.bps-intro { font-family:'Noto Serif SC',serif; font-style:italic; font-size:1.05rem; color:rgba(245,240,232,0.78); padding:1.4rem 1.6rem; background: linear-gradient(135deg, rgba(184,146,255,0.06), rgba(201,168,76,0.04)); border-left:2px solid var(--legendary); border-radius:0 6px 6px 0; margin: 1.5rem 0 2.2rem; line-height:1.85; }
+.bps-prompt-block { margin-bottom:1.8rem; }
+.bps-prompt-tag { font-family:'Playfair Display',serif; font-size:0.7rem; letter-spacing:0.28em; color:rgba(201,168,76,0.65); text-transform:uppercase; margin-bottom:0.5rem; }
+.bps-prompt-q { font-family:'Noto Serif SC',serif; font-size:1.02rem; color:var(--gold); margin-bottom:0.7rem; line-height:1.75; }
+.bps-textarea { width:100%; min-height:110px; padding:0.9rem 1.1rem; background: rgba(245,240,232,0.04); border:1px solid rgba(245,240,232,0.15); border-radius:6px; color:var(--ink); font-family:'Noto Serif SC',serif; font-size:0.96rem; line-height:1.85; resize:vertical; box-sizing:border-box; }
+.bps-textarea:focus { outline:none; border-color: var(--gold); background: rgba(245,240,232,0.06); }
+.bps-textarea::placeholder { color:rgba(245,240,232,0.3); font-style:italic; }
+.bps-counter { font-size:0.74rem; color:rgba(245,240,232,0.4); letter-spacing:0.05em; margin-top:0.4rem; text-align:right; }
+
+/* Manifesto page — 一页式宣言 */
+.manifesto { padding: 4rem 1.6rem 5rem; max-width: 760px; margin: 0 auto; }
+.manifesto-header { text-align:center; margin-bottom: 3rem; }
+.manifesto-tag { font-family:'Playfair Display',serif; font-size:0.7rem; letter-spacing:0.4em; color:var(--legendary); text-transform:uppercase; margin-bottom:0.6rem; }
+.manifesto-title { font-family:'Noto Serif SC',serif; font-size:1.9rem; color:var(--gold); letter-spacing:0.08em; margin:0 0 0.5rem; }
+.manifesto-sub { font-size:0.92rem; color:rgba(245,240,232,0.6); letter-spacing:0.12em; }
+.manifesto-block { padding:1.8rem 0; border-bottom:1px solid rgba(245,240,232,0.08); }
+.manifesto-block:last-of-type { border-bottom:0; }
+.manifesto-block-title { font-family:'Playfair Display',serif; font-size:0.78rem; letter-spacing:0.28em; color:rgba(184,146,255,0.7); text-transform:uppercase; margin-bottom:1rem; }
+.manifesto-lights { display:flex; gap:1.5rem; flex-wrap:wrap; justify-content:center; }
+.manifesto-light { text-align:center; padding: 1rem 1.4rem; background: linear-gradient(135deg, rgba(201,168,76,0.14), rgba(184,146,255,0.06)); border:1px solid rgba(201,168,76,0.35); border-radius:50px; font-family:'Noto Serif SC',serif; font-size:1.15rem; color:var(--gold); letter-spacing:0.18em; min-width:80px; }
+.manifesto-lands { display:grid; grid-template-columns: 1fr 1fr; gap:0.9rem; }
+@media (max-width: 540px) { .manifesto-lands { grid-template-columns: 1fr; } }
+.manifesto-land { padding:0.9rem 1.1rem; border:1px solid rgba(245,240,232,0.12); border-radius:6px; display:flex; justify-content:space-between; align-items:center; }
+.manifesto-land-name { font-family:'Noto Serif SC',serif; font-size:1rem; color:var(--ink); letter-spacing:0.15em; }
+.manifesto-land-score { display:flex; gap:0.2rem; }
+.manifesto-dot { width:10px; height:10px; border-radius:50%; background: rgba(245,240,232,0.14); }
+.manifesto-dot.fill { background: var(--gold); box-shadow: 0 0 6px rgba(201,168,76,0.6); }
+.manifesto-bps { font-family:'Noto Serif SC',serif; font-size:0.96rem; color:rgba(245,240,232,0.85); line-height:2; white-space:pre-wrap; padding:1.2rem 1.4rem; background:rgba(245,240,232,0.025); border-left:2px solid var(--gold); border-radius:0 6px 6px 0; }
+.manifesto-bps-section { margin-top:1.2rem; }
+.manifesto-bps-tag { font-size:0.78rem; color:rgba(201,168,76,0.7); letter-spacing:0.18em; margin-bottom:0.4rem; }
 </style>
 </head>
 <body>
@@ -792,6 +837,108 @@ input[type="text"], input[type="email"], input[type="number"], textarea, select 
     <div class="journey-footer">
       <button class="journey-back" onclick="exitCompass()">← 回到原型</button>
       <button class="journey-next" id="compassNextBtn" onclick="submitCompass()" disabled>下一步：你的三盏灯 →</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================
+     ACT II · MEANING JOURNEY · STEP 2: SIGNATURE (你的三盏灯)
+     VIA-narrowed signature strengths, archetype-aligned, 6 candidates → pick 3
+================================================================ -->
+<section class="screen" id="signature">
+  <div class="journey-screen">
+    <div class="journey-step-tag">ACT II · 第 2 步 / 共 3 步</div>
+    <h1 class="journey-h1">你的三盏灯</h1>
+    <p class="journey-h2">心理学研究里有一组叫做「signature strengths」的能力 —— 不是你"应该有的"，是你"用起来最像自己"的那几种。这里是基于你原型最可能的 6 盏，挑出你心头一亮的 3 盏。</p>
+
+    <div class="journey-section">
+      <div class="strength-grid" id="strengthGrid"></div>
+      <div class="strength-counter" id="strengthCounter">已选 0 / 需要 3 盏</div>
+    </div>
+
+    <div class="journey-footer">
+      <button class="journey-back" onclick="showScreen('compass')">← 上一步</button>
+      <button class="journey-next" id="signatureNextBtn" onclick="submitSignature()" disabled>下一步：一年后的你 →</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================
+     ACT II · MEANING JOURNEY · STEP 3: POSSIBLE SELF (一年后的你)
+     Best Possible Self — RCT-validated, 5-min guided write
+     Three prompts (work / relationships / inner), voiced through the archetype
+================================================================ -->
+<section class="screen" id="possible-self">
+  <div class="journey-screen">
+    <div class="journey-step-tag">ACT II · 第 3 步 / 共 3 步</div>
+    <h1 class="journey-h1">一年后的你</h1>
+    <p class="journey-h2">这是研究里被验证过最有效的练习之一：花 5 分钟，想象一年后那个你最想活成的样子。不是要"达成什么"，而是去看见——那个版本的你，是怎么走路的。</p>
+
+    <div class="bps-intro" id="bpsIntro"></div>
+
+    <div class="bps-prompt-block">
+      <div class="bps-prompt-tag">关于工作 / 创造</div>
+      <div class="bps-prompt-q" id="bpsQWork"></div>
+      <textarea class="bps-textarea" id="bpsWork" placeholder="不用写得完整，几句也好。重要的是写下你脑中浮现的那个画面。"></textarea>
+      <div class="bps-counter" id="bpsWorkCounter">0 字</div>
+    </div>
+
+    <div class="bps-prompt-block">
+      <div class="bps-prompt-tag">关于关系</div>
+      <div class="bps-prompt-q" id="bpsQRel"></div>
+      <textarea class="bps-textarea" id="bpsRel" placeholder="想到谁就写谁。一两句也行。"></textarea>
+      <div class="bps-counter" id="bpsRelCounter">0 字</div>
+    </div>
+
+    <div class="bps-prompt-block">
+      <div class="bps-prompt-tag">关于内在</div>
+      <div class="bps-prompt-q" id="bpsQInner"></div>
+      <textarea class="bps-textarea" id="bpsInner" placeholder="夜深独处时，那个版本的你，跟自己怎么说话？"></textarea>
+      <div class="bps-counter" id="bpsInnerCounter">0 字</div>
+    </div>
+
+    <div class="journey-footer">
+      <button class="journey-back" onclick="showScreen('signature')">← 上一步</button>
+      <button class="journey-next" id="bpsNextBtn" onclick="submitBPS()" disabled>看我的宣言 →</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================
+     ACT II · TERMINAL: BULLSEYE-RESULT (一页式宣言)
+     Combines values + lights + lands + future self into a personal manifesto
+================================================================ -->
+<section class="screen" id="bullseye-result">
+  <div class="manifesto">
+    <div class="manifesto-header">
+      <div class="manifesto-tag">YOUR MEANING MAP · 你的意义地图</div>
+      <h1 class="manifesto-title" id="manifestoTitle">—</h1>
+      <div class="manifesto-sub" id="manifestoSub">—</div>
+    </div>
+
+    <div class="manifesto-block">
+      <div class="manifesto-block-title">你的三盏灯 · YOUR LIGHTS</div>
+      <div class="manifesto-lights" id="manifestoLights"></div>
+    </div>
+
+    <div class="manifesto-block">
+      <div class="manifesto-block-title">你最看重的 · YOUR VALUES</div>
+      <div class="value-chips" id="manifestoValues"></div>
+    </div>
+
+    <div class="manifesto-block">
+      <div class="manifesto-block-title">四块土地 · YOUR LANDS</div>
+      <div class="manifesto-lands" id="manifestoLands"></div>
+    </div>
+
+    <div class="manifesto-block">
+      <div class="manifesto-block-title">一年后的你 · YOUR ONE-YEAR-LATER SELF</div>
+      <div id="manifestoBPSContainer"></div>
+    </div>
+
+    <div class="journey-footer">
+      <button class="journey-back" onclick="showScreen('result')">← 回到原型页</button>
+      <button class="journey-next" onclick="alert('✦ 已记录\n\n下一步「这周的种子」（Act III · 承诺）正在赶来。\n上线后你会看到：选一颗本周做的功课，由你的对手每周来一封信陪你走完 12 周。')">这周的种子（Act III）→</button>
     </div>
   </div>
 </section>
@@ -3609,6 +3756,9 @@ $('nameInput').addEventListener('keydown', e=>{ if(e.key==='Enter') enterPrologu
 // + per-archetype candidate values keyed by displayCode
 // ============================================================
 
+// Tiny HTML-escape util (used wherever user-typed text touches innerHTML)
+function escHtml(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
 // 16 原型对应的候选价值观 (8 each, archetype-philosophy-aligned)
 const ARCHETYPE_VALUES = {
   OREI: ['责任','原则','坚守','自律','问心无愧','笃行','忠诚','纯粹'],
@@ -3736,8 +3886,7 @@ async function submitCompass(){
   }
   btn.disabled = false;
   btn.textContent = orig;
-  // Step 3 ('signature') is being built next — for now show a stub.
-  alert('✦ 已保存。\n\n你选了：' + compassState.values.join('、') + '\n\n下一步「你的三盏灯」正在赶来，等下次部署上线后会自动衔接。');
+  startSignature();
 }
 
 // Custom-value input handler (Enter to add)
@@ -3756,14 +3905,431 @@ async function submitCompass(){
       if (droppedEl) droppedEl.classList.remove('selected');
     }
     compassState.values.push(v);
+    const ev = escHtml(v);
+    // Note: data-v is escaped; onclick uses JSON.stringify to handle quotes safely
     $('valueChips').insertAdjacentHTML('beforeend',
-      `<span class="value-chip custom selected" data-v="${v}" onclick="toggleValue('${v}')">${v}</span>`
+      `<span class="value-chip custom selected" data-v="${ev}" onclick="toggleValue(${JSON.stringify(v)})">${ev}</span>`
     );
     ci.value = '';
     updateValueCounter();
     updateCompassNextBtn();
   });
 })();
+
+// ============================================================
+// ACT II · MEANING JOURNEY · STEP 2: SIGNATURE (你的三盏灯)
+// VIA strengths narrowed to 6 candidates per archetype, translated
+// to Chinese philosophical vocabulary. User picks exactly 3.
+// ============================================================
+
+// Each entry: 6 strengths as { name (Chinese poetic), via (English VIA label), desc }
+const ARCHETYPE_STRENGTHS = {
+  OREI: [
+    {n:'笃行', via:'perseverance', d:'认准的事，做下去，不易因风言而动摇'},
+    {n:'守正', via:'honesty',     d:'宁可吃亏，也不在原则上含糊'},
+    {n:'慎独', via:'prudence',    d:'没人看的时候，依然像有人看的时候那样做'},
+    {n:'明辨', via:'judgment',    d:'听完两边的话再下判断，能区分声音大和声音对'},
+    {n:'克己', via:'self-regulation', d:'对自己有要求，不靠环境逼也能拉住自己'},
+    {n:'孤勇', via:'bravery',     d:'明知不被理解，仍然站到该站的位置上'}
+  ],
+  ORSI: [
+    {n:'明辨', via:'judgment',         d:'喜欢把混乱拆成清晰的几条，每条都能站得住'},
+    {n:'好古敏求', via:'love-of-learning', d:'对知识的源头有耐心，喜欢一手材料'},
+    {n:'远见', via:'perspective',      d:'会想三步五步之后的事，做规划时把时间拉长'},
+    {n:'慎独', via:'prudence',         d:'决策前会算清成本，不冲动'},
+    {n:'制器', via:'creativity',       d:'喜欢从零设计一套规则、模板、系统'},
+    {n:'持平', via:'fairness',         d:'对程序正义有偏好，不喜欢看人下菜'}
+  ],
+  OREW: [
+    {n:'仁爱', via:'kindness',          d:'对他人的处境有自然的同情，愿意伸手'},
+    {n:'察言', via:'social-intelligence', d:'能听出别人没说出口的那一层'},
+    {n:'情深', via:'love',              d:'珍惜的关系会用很久的时间去经营'},
+    {n:'协同', via:'teamwork',          d:'相信"一起"比"一个人"做得更远'},
+    {n:'持平', via:'fairness',          d:'调和冲突时不偏袒，让每个人都被听到'},
+    {n:'宽宥', via:'forgiveness',       d:'记得别人的好，也愿意为别人的错留余地'}
+  ],
+  ORSW: [
+    {n:'率众', via:'leadership',    d:'在关键时刻能站出来，让一群人有方向'},
+    {n:'扛得住', via:'perseverance', d:'压力来的时候不退，能把事情扛过去'},
+    {n:'临危不惧', via:'bravery',   d:'局势越乱越冷静，越紧急越能定'},
+    {n:'审时', via:'judgment',      d:'判断时机的能力强，知道何时进、何时退'},
+    {n:'远谋', via:'perspective',   d:'会从全局出发，权衡短期与长期'},
+    {n:'信道', via:'hope',          d:'即使现在难，也相信走对方向就能到'}
+  ],
+  FREI: [
+    {n:'洞观', via:'perspective',         d:'会跳出身在局中的视角，看清更大的图景'},
+    {n:'问学', via:'love-of-learning',    d:'对知识本身有热爱，不为了功利而读'},
+    {n:'自创', via:'creativity',          d:'喜欢从自己的方式去做，不愿意照搬'},
+    {n:'内省', via:'spirituality',        d:'有定期向内观察自己的习惯'},
+    {n:'好奇', via:'curiosity',           d:'对陌生的领域、想法、人，先想了解再判断'},
+    {n:'明辨', via:'judgment',            d:'不容易被群体情绪带跑，会自己想'}
+  ],
+  FRSI: [
+    {n:'临境', via:'bravery',          d:'敢去陌生的地方、做没做过的事'},
+    {n:'赤诚', via:'zest',             d:'活着的时候很活着，不温吞'},
+    {n:'好奇', via:'curiosity',        d:'对世界的兴趣盖过了对舒适的依恋'},
+    {n:'变通', via:'creativity',       d:'计划被打破时反而能想出新的玩法'},
+    {n:'旷达', via:'perspective',      d:'对得失看得开，不在小事上较劲'},
+    {n:'求新', via:'love-of-learning', d:'喜欢学新东西，比起精通更爱开拓'}
+  ],
+  FREW: [
+    {n:'会心一笑', via:'humor',                d:'能用幽默化解紧张，让别人也松一口气'},
+    {n:'察言', via:'social-intelligence',      d:'能感知氛围，知道什么时候说什么话合适'},
+    {n:'体贴', via:'kindness',                 d:'在关心别人的小事上想得周到'},
+    {n:'生趣', via:'zest',                     d:'能从日常里发掘乐趣，不需要大事来撑'},
+    {n:'知足', via:'gratitude',                d:'容易满足，对已经有的东西有感谢'},
+    {n:'识美', via:'appreciation-of-beauty',   d:'对美的事物有敏感，能从平凡中看到漂亮'}
+  ],
+  FRSW: [
+    {n:'博览', via:'love-of-learning',         d:'兴趣广，不被一个学科或领域限制'},
+    {n:'好奇', via:'curiosity',                d:'对所有陌生的人和事都先想知道'},
+    {n:'识美', via:'appreciation-of-beauty',   d:'欣赏多样的美，包括跟自己审美不同的'},
+    {n:'拼贴', via:'creativity',               d:'能把不相关的元素放到一起，看出新的可能'},
+    {n:'会通', via:'perspective',              d:'看得到不同立场之间的桥梁'},
+    {n:'惜缘', via:'gratitude',                d:'记得每个相遇的人，知道每个人都带来了什么'}
+  ],
+  OVEI: [
+    {n:'闻道', via:'spirituality',         d:'对超越性的事物有感受力，不只活在功利层面'},
+    {n:'洞观', via:'perspective',          d:'看事情能看到别人看不到的那一层'},
+    {n:'求道', via:'love-of-learning',     d:'读书是为了通透，不是为了显得厉害'},
+    {n:'传灯', via:'bravery',              d:'愿意把自己看到的东西说出来，即使不被理解'},
+    {n:'启示', via:'creativity',           d:'你的想法往往让别人觉得"原来还可以这样想"'},
+    {n:'信道', via:'hope',                 d:'相信意义存在，相信走对方向就有出路'}
+  ],
+  OVSI: [
+    {n:'体贴', via:'kindness',     d:'在别人需要的时候，做对的小事'},
+    {n:'谦下', via:'humility',     d:'有能力但不张扬，能把光让给别人'},
+    {n:'慎言', via:'prudence',     d:'话不多，但每句都掂过分量'},
+    {n:'情深', via:'love',         d:'爱得深，但不轰烈，更像是日常的陪伴'},
+    {n:'恒久', via:'perseverance', d:'对在乎的人和事，能用很长的时间去守'},
+    {n:'宽宥', via:'forgiveness',  d:'对别人的犯错，能给一个慢慢回来的余地'}
+  ],
+  OVEW: [
+    {n:'情深', via:'love',           d:'对家、对故土、对老朋友的感情很深'},
+    {n:'知本', via:'gratitude',      d:'记得自己从哪里来，对来处心存感激'},
+    {n:'仁爱', via:'kindness',       d:'对身边的人有持续的善意，不挑选'},
+    {n:'敬天', via:'spirituality',   d:'对大于人的东西（自然、传统、命运）有敬畏'},
+    {n:'守土', via:'perseverance',   d:'对自己的位置有责任感，不轻易动'},
+    {n:'协同', via:'teamwork',       d:'看重共同体，相信人不是孤立的'}
+  ],
+  OVSW: [
+    {n:'察言', via:'social-intelligence', d:'读得懂人心的细微变化'},
+    {n:'持平', via:'fairness',            d:'调和冲突时让各方都觉得被听到'},
+    {n:'会通', via:'perspective',         d:'能在不同立场间找到桥'},
+    {n:'宽宥', via:'forgiveness',         d:'不容易记仇，相信人会变'},
+    {n:'谦下', via:'humility',            d:'在调和别人的时候，不把自己放在裁判位'},
+    {n:'体贴', via:'kindness',            d:'对每个个体都想得到那一份照顾'}
+  ],
+  FVEI: [
+    {n:'明辨', via:'judgment',         d:'喜欢思考真假对错，对模糊的论述会追问'},
+    {n:'问学', via:'love-of-learning', d:'读书不为应付，只为想清楚'},
+    {n:'思辨', via:'creativity',       d:'能把一个问题翻来覆去，看到多个面'},
+    {n:'旷达', via:'perspective',      d:'对意见的对立看得开，知道都是面相'},
+    {n:'诚明', via:'honesty',          d:'宁可承认不知道，也不假装明白'},
+    {n:'好奇', via:'curiosity',        d:'对陌生的观点和领域有持续的兴趣'}
+  ],
+  FVSI: [
+    {n:'临境', via:'bravery',          d:'敢做没人做过的事，敢承担试错的代价'},
+    {n:'制器', via:'creativity',       d:'喜欢从零造一个东西出来'},
+    {n:'好奇', via:'curiosity',        d:'对未知和不确定的兴趣，盖过了对安稳的依恋'},
+    {n:'赤诚', via:'zest',             d:'对自己想做的事有强烈的能量'},
+    {n:'笃行', via:'perseverance',     d:'认准的事，能一个人做很久'},
+    {n:'求新', via:'love-of-learning', d:'喜欢学习边缘领域，对新知识有天然兴趣'}
+  ],
+  FVEW: [
+    {n:'察言', via:'social-intelligence', d:'感知群体情绪能力强，知道什么时候说什么'},
+    {n:'仁爱', via:'kindness',            d:'对陌生人也容易有自然的善意'},
+    {n:'生趣', via:'zest',                d:'你在的地方，气氛会变得活'},
+    {n:'情深', via:'love',                d:'对友谊、对群体的感情深厚'},
+    {n:'惜缘', via:'gratitude',           d:'记得每段相遇里别人的好'},
+    {n:'协同', via:'teamwork',            d:'相信一群人能一起做一些事'}
+  ],
+  FVSW: [
+    {n:'无为', via:'spirituality',           d:'不强求，能让事情按它自己的节奏来'},
+    {n:'旷达', via:'perspective',            d:'对得失成败看得开，能从更大的尺度看'},
+    {n:'知足', via:'gratitude',              d:'对已有的东西容易满足，不被欲望追着跑'},
+    {n:'谦下', via:'humility',               d:'有能力但不张扬，能让位'},
+    {n:'识美', via:'appreciation-of-beauty', d:'对美有敏感，能在简单里看到深'},
+    {n:'放下', via:'forgiveness',            d:'对自己和别人的过往，能慢慢松开'}
+  ]
+};
+
+const signatureState = { picks: [] };
+
+function startSignature(){
+  signatureState.picks = [];
+  renderStrengthGrid();
+  updateSignatureCounter();
+  updateSignatureNextBtn();
+  showScreen('signature');
+}
+
+function renderStrengthGrid(){
+  const a = getArchetype();
+  const code = a.displayCode || a.code;
+  const list = ARCHETYPE_STRENGTHS[code] || ARCHETYPE_STRENGTHS.OREI;
+  $('strengthGrid').innerHTML = list.map(s => `
+    <div class="strength-card" data-v="${s.n}" data-via="${s.via}" onclick="toggleStrength('${s.n}')">
+      <div class="strength-name">${s.n}</div>
+      <div class="strength-desc">${s.d}</div>
+    </div>
+  `).join('');
+}
+
+function toggleStrength(name){
+  const i = signatureState.picks.indexOf(name);
+  if (i >= 0){
+    signatureState.picks.splice(i, 1);
+  } else {
+    if (signatureState.picks.length >= 3){
+      signatureState.picks.shift();  // drop oldest
+    }
+    signatureState.picks.push(name);
+  }
+  document.querySelectorAll('#signature .strength-card').forEach(el => {
+    el.classList.toggle('selected', signatureState.picks.includes(el.dataset.v));
+  });
+  updateSignatureCounter();
+  updateSignatureNextBtn();
+}
+
+function updateSignatureCounter(){
+  const c = $('strengthCounter');
+  const n = signatureState.picks.length;
+  if (n < 3){
+    c.textContent = `已选 ${n} / 需要 3 盏`;
+    c.classList.remove('ok');
+  } else {
+    c.textContent = `✦ 你的三盏灯：${signatureState.picks.join(' · ')}`;
+    c.classList.add('ok');
+  }
+}
+
+function updateSignatureNextBtn(){
+  $('signatureNextBtn').disabled = signatureState.picks.length !== 3;
+}
+
+async function submitSignature(){
+  const btn = $('signatureNextBtn');
+  btn.disabled = true;
+  const orig = btn.textContent;
+  btn.textContent = '保存中...';
+  try {
+    if (state.sessionId){
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 5000);
+      // Find via labels for the picks
+      const a = getArchetype();
+      const code = a.displayCode || a.code;
+      const list = ARCHETYPE_STRENGTHS[code] || [];
+      const picks_with_via = signatureState.picks.map(name => {
+        const found = list.find(s => s.n === name);
+        return { n: name, via: found ? found.via : null };
+      });
+      await fetch('/api/journey', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_id: state.sessionId,
+          strengths_json: JSON.stringify(picks_with_via)
+        }),
+        signal: ctrl.signal
+      });
+      clearTimeout(t);
+    }
+  } catch(e){
+    console.warn('[signature] save failed, proceeding anyway', e);
+  }
+  btn.disabled = false;
+  btn.textContent = orig;
+  startPossibleSelf();
+}
+
+// ============================================================
+// ACT II · MEANING JOURNEY · STEP 3: POSSIBLE SELF (一年后的你)
+// Best Possible Self exercise — RCT-validated. 3 prompts voiced
+// through each archetype's metaphor system.
+// ============================================================
+
+const ARCHETYPE_BPS = {
+  OREI: { intro:'想象一年后，那盏你坚守的灯还在亮，而你比现在更轻盈。',
+    work:'你守住了哪些原则？而又有哪一条，你终于松了手？',
+    rel:'在亲近的人面前，你是怎么做到既稳，又不那么累的？',
+    inner:'夜深独处时，你跟自己说的话，跟一年前有什么不同？' },
+  ORSI: { intro:'想象一年后，你为之立法的那个领域已经有了清晰的秩序。',
+    work:'你写下的哪几条规则真的成立了？哪几条你修订了？',
+    rel:'在朋友/家人面前，你不再用条款说话的时刻，是哪一个？',
+    inner:'你不再需要把世界都解释清楚的那一刻，发生在何处？' },
+  OREW: { intro:'想象一年后，你织的那张网更厚，但你不再独自支撑。',
+    work:'你不再事事接住每个人，而是让他们也学会接住别人——这件事是怎么发生的？',
+    rel:'你为自己留出的那个空间，是谁在守护它？',
+    inner:'你终于允许自己说"我也累了"的那次，发生在哪里？' },
+  ORSW: { intro:'想象一年后，你的船仍在水上，但你不再是唯一的舵手。',
+    work:'你培养出的下一个掌舵者，做了哪件让你放心的事？',
+    rel:'你卸下责任的那次，谁接住了你？',
+    inner:'你听到自己内心的声音盖过了风浪声——那是什么时候？' },
+  FREI: { intro:'想象一年后，你的内丹已经成熟，也愿意分一点给世界。',
+    work:'你做了一件别人不知道，但你自己很满意的事——那是什么？',
+    rel:'你允许了一个人靠近，不为索取，只为陪伴——这件事是怎么发生的？',
+    inner:'你和孤独的关系，跟一年前比有什么变化？' },
+  FRSI: { intro:'想象一年后，你的脚步走得更远，但你也更知道哪里值得停。',
+    work:'你做的最有勇气的一件事是什么？为什么是它？',
+    rel:'在路上遇到的人里，谁最让你愿意慢下来？',
+    inner:'你停止追逐"下一站"，开始安住在某处——那处是哪里？' },
+  FREW: { intro:'想象一年后，你的烟火更稳，也更亮。',
+    work:'你为别人布置的某个小细节，让对方笑了——那是什么？',
+    rel:'你最爱的那一桌人，多了谁？',
+    inner:'你不再讨好任何人的那次，发生在什么时候？' },
+  FRSW: { intro:'想象一年后，你收藏的这些灵魂连成了一张网，他们因为你而互相认识。',
+    work:'你促成的最让自己惊喜的一次连接，是哪两个人？',
+    rel:'你停下来好好爱了一个人——是谁？',
+    inner:'你和"独处"的关系发生了什么变化？' },
+  OVEI: { intro:'想象一年后，你接收到的那束光，已经被你译成别人能听懂的语言。',
+    work:'你说出的某段话让一个陌生人哭了——那段话是什么？',
+    rel:'你不再独自承担"看见"的重量——谁开始陪你？',
+    inner:'你和自己的"过分敏感"和解了——那是怎么发生的？' },
+  OVSI: { intro:'想象一年后，你帮了很多人，也开始好好被人帮。',
+    work:'你做的最有用的一件事，没有人看见，但你知道——那是什么？',
+    rel:'你终于让某个人帮了你——那个人是谁？',
+    inner:'你允许自己"不实用"的那次，做了什么？' },
+  OVEW: { intro:'想象一年后，你扎在的那块土地多了一层新的根。',
+    work:'你做的让传统活过来的那件事，是什么？',
+    rel:'家里某个老人/孩子，因为你的某句话而改变——那句话是什么？',
+    inner:'你和"故土"的关系，怎样比一年前更深？' },
+  OVSW: { intro:'想象一年后，你搭的桥更多，而你自己也终于走过了一座。',
+    work:'你调和的最让你欣慰的一次冲突，是哪一次？',
+    rel:'你不再当中间人，而是站在某一边——那是为了谁？',
+    inner:'你允许自己有立场，不再永远"持平"——那一刻是什么时候？' },
+  FVEI: { intro:'想象一年后，你思辨过的那些矛盾，在你身上和解了几对。',
+    work:'你对一个困扰已久的问题，终于不再焦虑了——是哪个问题？',
+    rel:'你不再用辩论的方式爱人——你怎样换了一种方式？',
+    inner:'你和某个一直无法整合的自己（A 面 vs B 面），终于不打架了——发生了什么？' },
+  FVSI: { intro:'想象一年后，你做了一件没人做过的事，结果还活着，而且活得更亮。',
+    work:'你最骄傲的一次"不按常规"的做法，是什么？',
+    rel:'你和某个一直不被理解的关系，找到了你们自己的形态——这个关系是怎样的？',
+    inner:'你停止证明自己的那次，是因为什么？' },
+  FVEW: { intro:'想象一年后，你点亮的那个群体在没有你的时候依然亮着。',
+    work:'你做的让一群人因此连起来的事——是什么？',
+    rel:'你接受自己有时需要独处——那次是怎么发生的？',
+    inner:'你允许自己被人爱，而不只是爱人——那是什么时候？' },
+  FVSW: { intro:'想象一年后，你比现在更松，世界也没有因此散掉。',
+    work:'你最得意的一次"什么也没做"——为什么它有意义？',
+    rel:'你为某个人停下来——那个人是谁？',
+    inner:'你和某种你以为自己已经放下、但其实没有的执念——你怎样真的松了？' }
+};
+
+const bpsState = { work:'', rel:'', inner:'' };
+
+function startPossibleSelf(){
+  bpsState.work = ''; bpsState.rel = ''; bpsState.inner = '';
+  const a = getArchetype();
+  const code = a.displayCode || a.code;
+  const p = ARCHETYPE_BPS[code] || ARCHETYPE_BPS.OREI;
+  $('bpsIntro').textContent = p.intro;
+  $('bpsQWork').textContent = p.work;
+  $('bpsQRel').textContent = p.rel;
+  $('bpsQInner').textContent = p.inner;
+  ['Work','Rel','Inner'].forEach(k => {
+    const ta = $('bps' + k);
+    ta.value = '';
+    $('bps' + k + 'Counter').textContent = '0 字';
+    ta.oninput = () => {
+      const v = ta.value;
+      bpsState[k.toLowerCase()] = v;
+      $('bps' + k + 'Counter').textContent = `${v.length} 字`;
+      updateBPSNextBtn();
+    };
+  });
+  updateBPSNextBtn();
+  showScreen('possible-self');
+}
+
+function updateBPSNextBtn(){
+  // Require at least 10 chars in each — shows real engagement, allows brevity
+  const ok = bpsState.work.trim().length >= 10
+          && bpsState.rel.trim().length >= 10
+          && bpsState.inner.trim().length >= 10;
+  $('bpsNextBtn').disabled = !ok;
+}
+
+async function submitBPS(){
+  const btn = $('bpsNextBtn');
+  btn.disabled = true;
+  const orig = btn.textContent;
+  btn.textContent = '保存中...';
+  const combined = `【关于工作】\n${bpsState.work.trim()}\n\n【关于关系】\n${bpsState.rel.trim()}\n\n【关于内在】\n${bpsState.inner.trim()}`;
+  try {
+    if (state.sessionId){
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 5000);
+      await fetch('/api/journey', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_id: state.sessionId,
+          bps_text: combined
+        }),
+        signal: ctrl.signal
+      });
+      clearTimeout(t);
+    }
+  } catch(e){
+    console.warn('[bps] save failed, proceeding anyway', e);
+  }
+  btn.disabled = false;
+  btn.textContent = orig;
+  renderManifesto();
+}
+
+// ============================================================
+// ACT II · TERMINAL: MANIFESTO (一页式宣言)
+// Combines everything from Acts I+II into a single page
+// ============================================================
+
+function renderManifesto(){
+  const a = getArchetype();
+  $('manifestoTitle').textContent = `${a.displayCode || a.code} · ${a.poeticName}`;
+  $('manifestoSub').textContent = a.identityTag + ' · ' + (state.playerName || '旅人');
+
+  // Lights
+  $('manifestoLights').innerHTML = signatureState.picks.length
+    ? signatureState.picks.map(n => `<div class="manifesto-light">${n}</div>`).join('')
+    : '<div style="color:rgba(245,240,232,0.4);font-style:italic;">（未选）</div>';
+
+  // Values (compassState.values may include user-typed customs — escape)
+  $('manifestoValues').innerHTML = compassState.values.length
+    ? compassState.values.map(v => `<span class="value-chip selected" style="cursor:default;">${escHtml(v)}</span>`).join('')
+    : '<div style="color:rgba(245,240,232,0.4);font-style:italic;">（未选）</div>';
+
+  // Lands (4 domains, dot visualization)
+  const domNames = { self:'修身', family:'齐家', society:'处世', leisure:'闲居' };
+  $('manifestoLands').innerHTML = Object.entries(compassState.domains).map(([k, v]) => {
+    const dots = [1,2,3,4,5].map(i => `<div class="manifesto-dot ${i <= v ? 'fill' : ''}"></div>`).join('');
+    return `<div class="manifesto-land"><div class="manifesto-land-name">${domNames[k]}</div><div class="manifesto-land-score">${dots}</div></div>`;
+  }).join('');
+
+  // BPS (escape user-typed text before rendering)
+  if (bpsState.work || bpsState.rel || bpsState.inner) {
+    $('manifestoBPSContainer').innerHTML = `
+      <div class="manifesto-bps-section">
+        <div class="manifesto-bps-tag">关于工作 / 创造</div>
+        <div class="manifesto-bps">${escHtml(bpsState.work) || '（未写）'}</div>
+      </div>
+      <div class="manifesto-bps-section">
+        <div class="manifesto-bps-tag">关于关系</div>
+        <div class="manifesto-bps">${escHtml(bpsState.rel) || '（未写）'}</div>
+      </div>
+      <div class="manifesto-bps-section">
+        <div class="manifesto-bps-tag">关于内在</div>
+        <div class="manifesto-bps">${escHtml(bpsState.inner) || '（未写）'}</div>
+      </div>
+    `;
+  } else {
+    $('manifestoBPSContainer').innerHTML = '<div style="color:rgba(245,240,232,0.4);font-style:italic;">（未写）</div>';
+  }
+
+  showScreen('bullseye-result');
+}
 </script>
 <script src="https://unpkg.com/three@0.160.0/build/three.min.js" defer onload="initThreeField()"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" defer></script>
