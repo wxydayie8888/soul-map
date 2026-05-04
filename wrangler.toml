@@ -11,3 +11,8 @@ directory = "./public"
 binding = "DB"
 database_name = "soul-map-db"
 database_id = "e8a623d5-82c4-4f77-aec6-2cda9ab81c28"
+
+# V6.0: Weekly cron — Mondays 01:00 UTC = 09:00 Beijing
+# Triggers scheduled() handler in src/worker.js to send Act III opponent letters.
+[triggers]
+crons = ["0 1 * * 1"]

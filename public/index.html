@@ -629,6 +629,26 @@ input[type="text"], input[type="email"], input[type="number"], textarea, select 
 .manifesto-bps { font-family:'Noto Serif SC',serif; font-size:0.96rem; color:rgba(245,240,232,0.85); line-height:2; white-space:pre-wrap; padding:1.2rem 1.4rem; background:rgba(245,240,232,0.025); border-left:2px solid var(--gold); border-radius:0 6px 6px 0; }
 .manifesto-bps-section { margin-top:1.2rem; }
 .manifesto-bps-tag { font-size:0.78rem; color:rgba(201,168,76,0.7); letter-spacing:0.18em; margin-bottom:0.4rem; }
+
+/* Commitment — 这周的种子 */
+.seed-card { padding:1.2rem 1.4rem; border:1px solid rgba(245,240,232,0.15); border-radius:6px; background:rgba(245,240,232,0.025); cursor:pointer; transition:all 0.28s; margin-bottom:0.8rem; user-select:none; }
+.seed-card:hover { border-color: rgba(201,168,76,0.55); background: rgba(201,168,76,0.05); }
+.seed-card.selected { border-color:var(--gold); background: linear-gradient(135deg, rgba(201,168,76,0.14), rgba(184,146,255,0.06)); box-shadow: 0 0 22px rgba(201,168,76,0.18); position:relative; }
+.seed-card.selected::before { content:'✦'; position:absolute; top:0.7rem; right:0.9rem; color:var(--gold); }
+.seed-text { font-family:'Noto Serif SC',serif; font-size:1rem; color:var(--ink); line-height:1.8; }
+.seed-card.selected .seed-text { color:var(--gold); }
+.seed-custom-input { width:100%; padding:0.9rem 1.1rem; background:rgba(245,240,232,0.04); border:1px dashed rgba(245,240,232,0.2); border-radius:6px; color:var(--ink); font-family:'Noto Serif SC',serif; font-size:0.96rem; box-sizing:border-box; margin-top:0.8rem; }
+.seed-custom-input:focus { outline:none; border-color: var(--gold); border-style:solid; }
+
+.smart-grid { display:grid; grid-template-columns: 1fr; gap:1rem; margin-top:1.2rem; }
+.smart-field label { display:block; font-size:0.84rem; color:rgba(245,240,232,0.7); letter-spacing:0.1em; margin-bottom:0.4rem; }
+.smart-field input { width:100%; padding:0.75rem 1rem; background:rgba(245,240,232,0.04); border:1px solid rgba(245,240,232,0.15); border-radius:6px; color:var(--ink); font-family:'Noto Serif SC',serif; font-size:0.95rem; box-sizing:border-box; }
+.smart-field input:focus { outline:none; border-color:var(--gold); }
+
+.commit-success { padding:2rem 1.6rem; text-align:center; background: linear-gradient(135deg, rgba(184,146,255,0.1), rgba(201,168,76,0.06)); border:1px solid rgba(184,146,255,0.3); border-radius:6px; margin:2rem 0; }
+.commit-success-tag { font-family:'Playfair Display',serif; font-size:0.72rem; letter-spacing:0.32em; color:var(--legendary); margin-bottom:0.6rem; }
+.commit-success-q { font-family:'Noto Serif SC',serif; font-size:1.1rem; color:var(--gold); line-height:1.85; margin-bottom:0.8rem; font-style:italic; }
+.commit-success-meta { font-size:0.8rem; color:rgba(245,240,232,0.55); letter-spacing:0.1em; margin-top:1rem; }
 </style>
 </head>
 <body>
@@ -938,7 +958,77 @@ input[type="text"], input[type="email"], input[type="number"], textarea, select 
 
     <div class="journey-footer">
       <button class="journey-back" onclick="showScreen('result')">← 回到原型页</button>
-      <button class="journey-next" onclick="alert('✦ 已记录\n\n下一步「这周的种子」（Act III · 承诺）正在赶来。\n上线后你会看到：选一颗本周做的功课，由你的对手每周来一封信陪你走完 12 周。')">这周的种子（Act III）→</button>
+      <button class="journey-next" onclick="startCommitment()">这周的种子（Act III）→</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================
+     ACT III · COMMITMENT (这周的种子)
+     User picks ONE practice from their archetype as this week's seed,
+     then SMART-ifies it. Cron sends a weekly letter from the opponent.
+================================================================ -->
+<section class="screen" id="commitment">
+  <div class="journey-screen">
+    <div class="journey-step-tag">ACT III · 一周一颗种子</div>
+    <h1 class="journey-h1">这周的功课</h1>
+    <p class="journey-h2">原型自带 3 条 practice，是你这一型最容易走偏，也最容易长出来的地方。挑 1 条作为本周的功课——只 1 条。下周一早上，你的"对手"会写一封短信来问你。</p>
+
+    <div class="journey-section">
+      <div class="journey-section-title">选一颗种子</div>
+      <div class="journey-section-hint">从原型的 3 条 practice 里选 1 条；觉得都不合适，可以自添。</div>
+      <div id="seedCards"></div>
+      <input class="seed-custom-input" id="customSeedInput" placeholder="想自己写一条？写在这里" maxlength="80" />
+    </div>
+
+    <div class="journey-section">
+      <div class="journey-section-title">SMART 一下</div>
+      <div class="journey-section-hint">不是 deadline 不是 KPI——只是让"做"和"没做"之间有个分界。</div>
+      <div class="smart-grid">
+        <div class="smart-field">
+          <label>什么时候做？</label>
+          <input id="smartWhen" placeholder="例如：每天通勤路上 / 每周日早晨 / 一有空就" maxlength="60" />
+        </div>
+        <div class="smart-field">
+          <label>多久一次？</label>
+          <input id="smartFreq" placeholder="例如：3 次/周 / 每天一次 / 一周内做 1 次" maxlength="40" />
+        </div>
+        <div class="smart-field">
+          <label>怎么知道做到了？</label>
+          <input id="smartSignal" placeholder="例如：在备忘录写一句话 / 跟某人说 / 自己心里有数" maxlength="60" />
+        </div>
+      </div>
+    </div>
+
+    <div class="journey-footer">
+      <button class="journey-back" onclick="showScreen('bullseye-result')">← 上一步</button>
+      <button class="journey-next" id="commitBtn" onclick="submitCommitment()" disabled>种下 ✦</button>
+    </div>
+  </div>
+</section>
+
+<!-- Commitment success screen -->
+<section class="screen" id="commitment-done">
+  <div class="journey-screen">
+    <div class="journey-step-tag">ACT III · 种子已落地</div>
+    <h1 class="journey-h1">下周一见</h1>
+
+    <div class="commit-success">
+      <div class="commit-success-tag">YOUR SEED · 你这周的功课</div>
+      <div id="commitDoneSeed" style="font-family:'Noto Serif SC',serif;font-size:1.05rem;color:var(--ink);line-height:1.85;margin:0.8rem 0 1.2rem;"></div>
+      <div class="commit-success-meta" id="commitDoneSmart"></div>
+    </div>
+
+    <div style="padding:1.6rem;border:1px solid rgba(184,146,255,0.25);border-radius:6px;margin:1.5rem 0;">
+      <div style="font-size:0.78rem;letter-spacing:0.22em;color:rgba(184,146,255,0.7);margin-bottom:0.7rem;">下周一 09:00 北京时间</div>
+      <p style="font-family:'Noto Serif SC',serif;font-size:0.96rem;color:rgba(245,240,232,0.78);line-height:1.85;margin:0;">你的对手 <strong style="color:var(--gold);" id="commitDoneOpponent">—</strong> 会写一封 200 字以内的信到你的邮箱。问的不是"做到了吗"，问的是 <em id="commitDoneChallenge" style="color:var(--legendary);">—</em></p>
+    </div>
+
+    <p style="font-size:0.86rem;color:rgba(245,240,232,0.5);text-align:center;line-height:1.85;margin-top:2rem;">这条路是 12 周。每周一封信。期间你随时可以来换种子。</p>
+
+    <div class="journey-footer">
+      <button class="journey-back" onclick="showScreen('result')">← 回到原型页</button>
+      <button class="journey-next" onclick="showScreen('bullseye-result')">看我的宣言 →</button>
     </div>
   </div>
 </section>
@@ -4329,6 +4419,111 @@ function renderManifesto(){
   }
 
   showScreen('bullseye-result');
+}
+
+// ============================================================
+// ACT III · COMMITMENT (这周的种子)
+// User picks 1 of 3 archetype practices (or custom), SMART-ifies it,
+// then it goes into the commitments table and triggers a weekly cron letter.
+// ============================================================
+
+const commitState = { practice:'', when:'', freq:'', signal:'' };
+
+function startCommitment(){
+  commitState.practice = ''; commitState.when = ''; commitState.freq = ''; commitState.signal = '';
+  const a = getArchetype();
+  const seeds = a.practices || [];
+  $('seedCards').innerHTML = seeds.map((s, i) => `
+    <div class="seed-card" data-i="${i}" onclick="pickSeed(${JSON.stringify(s)})">
+      <div class="seed-text">${escHtml(s)}</div>
+    </div>
+  `).join('');
+  $('customSeedInput').value = '';
+  $('smartWhen').value = ''; $('smartFreq').value = ''; $('smartSignal').value = '';
+  // Wire input handlers
+  ['When','Freq','Signal'].forEach(k => {
+    const inp = $('smart' + k);
+    inp.oninput = () => { commitState[k.toLowerCase()] = inp.value.trim(); updateCommitBtn(); };
+  });
+  $('customSeedInput').oninput = () => {
+    const v = $('customSeedInput').value.trim();
+    if (v){
+      // Custom typed: deselect cards
+      document.querySelectorAll('#seedCards .seed-card').forEach(el => el.classList.remove('selected'));
+      commitState.practice = v;
+    } else if (commitState.practice && !seeds.includes(commitState.practice)){
+      // Cleared custom — clear practice
+      commitState.practice = '';
+    }
+    updateCommitBtn();
+  };
+  updateCommitBtn();
+  showScreen('commitment');
+}
+
+function pickSeed(text){
+  commitState.practice = text;
+  $('customSeedInput').value = '';
+  document.querySelectorAll('#seedCards .seed-card').forEach(el => {
+    const t = el.querySelector('.seed-text').textContent;
+    el.classList.toggle('selected', t === text);
+  });
+  updateCommitBtn();
+}
+
+function updateCommitBtn(){
+  const ok = commitState.practice && commitState.when && commitState.freq && commitState.signal;
+  $('commitBtn').disabled = !ok;
+}
+
+async function submitCommitment(){
+  const btn = $('commitBtn');
+  btn.disabled = true;
+  const orig = btn.textContent;
+  btn.textContent = '种下中...';
+
+  const a = getArchetype();
+  const code = a.displayCode || a.code;
+  const body = {
+    session_id: state.sessionId,
+    email: state.email || signupData.email || '',
+    archetype_code: code,
+    practice_text: commitState.practice,
+    smart_when: commitState.when,
+    smart_freq: commitState.freq,
+    smart_signal: commitState.signal
+  };
+
+  try {
+    if (state.sessionId && body.email){
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 6000);
+      const r = await fetch('/api/commit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        signal: ctrl.signal
+      });
+      clearTimeout(t);
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'commit failed');
+    }
+  } catch(e){
+    console.warn('[commit] save failed', e);
+    alert('保存失败：' + e.message + '\n\n你可以稍后重试，种子还在你心里。');
+    btn.disabled = false;
+    btn.textContent = orig;
+    return;
+  }
+
+  // Render success screen
+  $('commitDoneSeed').textContent = commitState.practice;
+  $('commitDoneSmart').textContent = `${commitState.when} · ${commitState.freq} · 信号：${commitState.signal}`;
+  $('commitDoneOpponent').textContent = a.opponent?.n || '—';
+  $('commitDoneChallenge').textContent = a.opponent?.challenge ? '"' + a.opponent.challenge + '"' : '—';
+  btn.disabled = false;
+  btn.textContent = orig;
+  showScreen('commitment-done');
 }
 </script>
 <script src="https://unpkg.com/three@0.160.0/build/three.min.js" defer onload="initThreeField()"></script>

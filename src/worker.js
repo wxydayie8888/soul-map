@@ -52,9 +52,28 @@ export default {
     if (path === '/api/journey' && request.method === 'POST') {
       return handleJourney(request, env);
     }
+    // V6.0 Act III: weekly commitments
+    if (path === '/api/commit' && request.method === 'POST') {
+      return handleCommit(request, env);
+    }
+    // Manual cron trigger for testing — protected by ADMIN_KEY
+    if (path === '/api/cron-test' && request.method === 'POST') {
+      return handleCronTest(request, env);
+    }
 
     // Let Cloudflare Pages handle static assets (index.html, etc.)
     return env.ASSETS.fetch(request);
+  },
+
+  // ----------------------------------------------------------------
+  // SCHEDULED — Cloudflare Cron Trigger handler.
+  // Runs Mondays 01:00 UTC = 09:00 Beijing (config in wrangler.toml).
+  // Sends one "opponent letter" per active commitment whose
+  // reminded_at has passed; advances reminded_at by 7 days.
+  // After 12 weeks, marks status='done'.
+  // ----------------------------------------------------------------
+  async scheduled(controller, env, ctx) {
+    ctx.waitUntil(processWeeklyCommitments(env));
   }
 };
 
@@ -298,54 +317,68 @@ async function handleSendReport(request, env) {
     const { email, name, displayCode, poeticName, pdfBase64 } = await request.json();
     if (!email || !pdfBase64) return jsonResponse({ error: 'Missing email or PDF' }, 400);
 
-    // Rate limit: 1 email per address per 24h
+    // Rate limit: 1 PDF email per address per 24h (does NOT block weekly cron letters)
     const recent = await env.DB.prepare(
       "SELECT COUNT(*) as cnt FROM email_sends WHERE email = ? AND sent_at >= datetime('now', '-24 hours')"
     ).bind(email).first();
     if (recent?.cnt > 0) return jsonResponse({ error: 'Already sent within 24h', sent: true });
 
-    // Check for RESEND_API_KEY
-    if (!env.RESEND_API_KEY) return jsonResponse({ error: 'Email not configured' }, 500);
+    const html = `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;background:#0d1117;color:#f5f0e8;padding:2rem;">
+      <h1 style="color:#c9a84c;text-align:center;font-size:1.5rem;">灵魂地图 · 你的完整报告</h1>
+      <div style="text-align:center;margin:1.5rem 0;">
+        <div style="font-size:2.5rem;color:#b892ff;font-weight:bold;letter-spacing:0.2em;">${displayCode}</div>
+        <div style="font-size:1.5rem;color:#c9a84c;margin-top:0.5rem;">${poeticName}</div>
+      </div>
+      <p style="text-align:center;color:rgba(245,240,232,0.7);">Hi ${name}，你的完整灵魂地图报告已附在本邮件中。</p>
+      <p style="text-align:center;color:rgba(245,240,232,0.5);font-size:0.85rem;">这不是你的人生标签，只是一次哲学对话。</p>
+      <hr style="border-color:rgba(201,168,76,0.2);margin:1.5rem 0;">
+      <p style="text-align:center;color:rgba(201,168,76,0.6);font-size:0.8rem;">灵魂地图 · Philosophical Soul Cartography</p>
+    </div>`;
 
-    // Send via Resend API
-    const resp = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${env.RESEND_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        from: 'Soul Map <onboarding@resend.dev>',
-        to: [email],
-        subject: `你的灵魂地图：${displayCode} · ${poeticName}`,
-        html: `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;background:#0d1117;color:#f5f0e8;padding:2rem;">
-          <h1 style="color:#c9a84c;text-align:center;font-size:1.5rem;">灵魂地图 · 你的完整报告</h1>
-          <div style="text-align:center;margin:1.5rem 0;">
-            <div style="font-size:2.5rem;color:#b892ff;font-weight:bold;letter-spacing:0.2em;">${displayCode}</div>
-            <div style="font-size:1.5rem;color:#c9a84c;margin-top:0.5rem;">${poeticName}</div>
-          </div>
-          <p style="text-align:center;color:rgba(245,240,232,0.7);">Hi ${name}，你的完整灵魂地图报告已附在本邮件中。</p>
-          <p style="text-align:center;color:rgba(245,240,232,0.5);font-size:0.85rem;">这不是你的人生标签，只是一次哲学对话。</p>
-          <hr style="border-color:rgba(201,168,76,0.2);margin:1.5rem 0;">
-          <p style="text-align:center;color:rgba(201,168,76,0.6);font-size:0.8rem;">灵魂地图 · Philosophical Soul Cartography</p>
-        </div>`,
-        attachments: [{
-          filename: `灵魂地图-${poeticName}-${name}.pdf`,
-          content: pdfBase64
-        }]
-      })
+    const result = await sendEmail(env, {
+      to: email,
+      subject: `你的灵魂地图：${displayCode} · ${poeticName}`,
+      html,
+      attachments: [{ filename: `灵魂地图-${poeticName}-${name}.pdf`, content: pdfBase64 }]
     });
 
-    if (resp.ok) {
-      // Record send
+    if (result.ok){
       await env.DB.prepare('INSERT INTO email_sends (email) VALUES (?)').bind(email).run();
       return jsonResponse({ success: true });
-    } else {
-      const err = await resp.text();
-      return jsonResponse({ error: 'Resend API error: ' + err }, 500);
     }
+    return jsonResponse({ error: result.error }, 500);
   } catch (e) {
     return jsonResponse({ error: e.message }, 500);
+  }
+}
+
+/**
+ * sendEmail() — single Resend wrapper. Used by handleSendReport (PDF report)
+ * and processWeeklyCommitments (cron letters). No DB side-effects here;
+ * callers do their own rate-limit / logging.
+ *
+ * Returns { ok: bool, error?: string }.
+ */
+async function sendEmail(env, { to, subject, html, attachments, from }) {
+  if (!env.RESEND_API_KEY) return { ok: false, error: 'RESEND_API_KEY not set' };
+  try {
+    const body = {
+      from: from || 'Soul Map <onboarding@resend.dev>',
+      to: Array.isArray(to) ? to : [to],
+      subject,
+      html
+    };
+    if (attachments && attachments.length) body.attachments = attachments;
+    const resp = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (resp.ok) return { ok: true };
+    const errText = await resp.text();
+    return { ok: false, error: `Resend ${resp.status}: ${errText}` };
+  } catch (e) {
+    return { ok: false, error: e.message };
   }
 }
 
@@ -565,4 +598,243 @@ async function handleJourney(request, env) {
   } catch (e) {
     return jsonResponse({ error: e.message }, 500);
   }
+}
+
+// ============================================================
+// V6.0 ACT III · COMMITMENT + WEEKLY OPPONENT LETTER (cron-driven)
+// ============================================================
+
+// Per-archetype opponent character + Socratic challenge (mirrored from
+// public/index.html ARCHETYPES[].opponent — must stay in sync).
+const ARCHETYPE_OPPONENTS = {
+  OREI: { name: '庄子',   challenge: '你守的灯，会不会是别人的牢？' },
+  ORSI: { name: '王阳明', challenge: '心外无理，规则写在纸上有何用？' },
+  OREW: { name: '荣格',   challenge: '你为谁活？你的名字在哪？' },
+  ORSW: { name: '庄子',   challenge: '风暴与船都是你自造的，为何不下船？' },
+  FREI: { name: '费孝通', challenge: '没有他人，"自己"从何而来？' },
+  FRSI: { name: '孔子',   challenge: '没有安土重迁，如何有家？' },
+  FREW: { name: '庄子',   challenge: '热闹背后，是否是一种空？' },
+  FRSW: { name: '王阳明', challenge: '听过一万种声音，你自己的声音呢？' },
+  OVEI: { name: '马克思', challenge: '"神秘"是否只是逃避？' },
+  OVSI: { name: '韩非',   challenge: '仁爱治得了具体的伤，治得了制度的病吗？' },
+  OVEW: { name: '庄子',   challenge: '根是稳定，也可能是牢笼。' },
+  OVSW: { name: '韩非',   challenge: '和稀泥是不是另一种欺骗？' },
+  FVEI: { name: '老子',   challenge: '思考越多，离道越远。' },
+  FVSI: { name: '老子',   challenge: '为无为之道——不动而动。' },
+  FVEW: { name: '萨特',   challenge: '自我是否被群体吞没？' },
+  FVSW: { name: '加缪',   challenge: '松弛是否是另一种逃避？' }
+};
+
+// Total weeks of the meaning-arc. After WEEKS_TOTAL letters, status='done'.
+const WEEKS_TOTAL = 12;
+
+// Beijing 09:00 = UTC 01:00.
+function nextMondayBeijing9am() {
+  const d = new Date();
+  // Floor to today 01:00 UTC
+  d.setUTCHours(1, 0, 0, 0);
+  const day = d.getUTCDay(); // 0=Sun...6=Sat
+  let daysUntil;
+  if (day === 1) {
+    // Today is Monday: if 01:00 UTC is still in the future today, fire today; else next week
+    daysUntil = (Date.now() < d.getTime()) ? 0 : 7;
+  } else {
+    daysUntil = (8 - day) % 7;
+  }
+  d.setUTCDate(d.getUTCDate() + daysUntil);
+  return Math.floor(d.getTime() / 1000);
+}
+
+/**
+ * POST /api/commit
+ * Body: { session_id, email, archetype_code, practice_text,
+ *         smart_when, smart_freq, smart_signal }
+ * Inserts a new commitments row with reminded_at = next Monday 09:00 Beijing.
+ * If user has an existing 'active' commitment, marks it 'replaced' first.
+ */
+async function handleCommit(request, env) {
+  try {
+    const body = await request.json();
+    const {
+      session_id, email, archetype_code,
+      practice_text, smart_when, smart_freq, smart_signal
+    } = body;
+
+    if (!session_id || !email || !EMAIL_RE.test(email)) {
+      return jsonResponse({ error: 'session_id and valid email required' }, 400);
+    }
+    if (!archetype_code || !ARCHETYPE_OPPONENTS[archetype_code]) {
+      return jsonResponse({ error: 'unknown archetype_code' }, 400);
+    }
+    if (!practice_text || practice_text.length > 200) {
+      return jsonResponse({ error: 'practice_text required, max 200 chars' }, 400);
+    }
+    if (!smart_when || !smart_freq || !smart_signal) {
+      return jsonResponse({ error: 'smart_when / smart_freq / smart_signal all required' }, 400);
+    }
+
+    const ts = now();
+    const reminded = nextMondayBeijing9am();
+
+    // Mark any existing active commitments as replaced
+    await env.DB.prepare(
+      "UPDATE commitments SET status = 'replaced' WHERE email = ? AND status = 'active'"
+    ).bind(email).run();
+
+    // Insert new active commitment. week_start = the upcoming Monday in seconds
+    await env.DB.prepare(
+      `INSERT INTO commitments
+       (session_id, email, archetype_code, week_start, practice_text,
+        smart_when, smart_freq, smart_signal, status, created_at, reminded_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?)`
+    ).bind(
+      session_id, email, archetype_code, reminded,
+      practice_text.slice(0, 200),
+      smart_when.slice(0, 60),
+      smart_freq.slice(0, 40),
+      smart_signal.slice(0, 60),
+      ts, reminded
+    ).run();
+
+    return jsonResponse({
+      ok: true,
+      reminded_at: reminded,
+      reminded_at_iso: new Date(reminded * 1000).toISOString()
+    });
+  } catch (e) {
+    return jsonResponse({ error: e.message }, 500);
+  }
+}
+
+/**
+ * POST /api/cron-test  { email?: optional }  Header: x-admin-key: <ADMIN_KEY>
+ * For dev testing — invokes processWeeklyCommitments() with a forced now-time.
+ * If `email` provided, scoped to one email's active commitments.
+ */
+async function handleCronTest(request, env) {
+  const adminKey = request.headers.get('x-admin-key');
+  if (!env.ADMIN_KEY || adminKey !== env.ADMIN_KEY) {
+    return jsonResponse({ error: 'forbidden' }, 403);
+  }
+  let scope = null;
+  try { scope = await request.json(); } catch(_){}
+  const result = await processWeeklyCommitments(env, { force: true, email: scope?.email });
+  return jsonResponse(result);
+}
+
+/**
+ * The actual cron worker. Runs once per scheduled invocation.
+ * @param {object} env
+ * @param {object} opts  { force?: bool, email?: string }
+ *   force: ignore reminded_at threshold (for testing)
+ *   email: scope to one address (for testing)
+ */
+async function processWeeklyCommitments(env, opts = {}) {
+  const t0 = now();
+  const sql = opts.email
+    ? "SELECT * FROM commitments WHERE status = 'active' AND email = ?" + (opts.force ? '' : ' AND reminded_at <= ?')
+    : "SELECT * FROM commitments WHERE status = 'active'" + (opts.force ? '' : ' AND reminded_at <= ?');
+  const stmt = env.DB.prepare(sql);
+  const bind = [];
+  if (opts.email) bind.push(opts.email);
+  if (!opts.force) bind.push(t0);
+
+  const rows = (await stmt.bind(...bind).all()).results || [];
+  let sent = 0, errors = [], skipped = 0;
+
+  for (const row of rows) {
+    try {
+      // Compute current week (1-indexed) since created_at
+      const elapsedDays = Math.floor((t0 - row.created_at) / 86400);
+      const weekIndex = Math.floor(elapsedDays / 7) + 1;  // week 1 on first send
+
+      const opponent = ARCHETYPE_OPPONENTS[row.archetype_code];
+      if (!opponent) { skipped++; continue; }
+
+      // Look up player name from leads table for personal greeting
+      const lead = await env.DB.prepare(
+        'SELECT name FROM leads WHERE email = ? ORDER BY id DESC LIMIT 1'
+      ).bind(row.email).first();
+      const playerName = (lead && lead.name) || '旅人';
+
+      const { subject, html } = composeOpponentLetter({
+        playerName,
+        opponentName: opponent.name,
+        opponentChallenge: opponent.challenge,
+        practiceText: row.practice_text,
+        smartWhen: row.smart_when,
+        smartFreq: row.smart_freq,
+        smartSignal: row.smart_signal,
+        weekNumber: weekIndex,
+        weeksTotal: WEEKS_TOTAL
+      });
+
+      const r = await sendEmail(env, { to: row.email, subject, html });
+      if (!r.ok) { errors.push({ id: row.id, email: row.email, err: r.error }); continue; }
+      sent++;
+
+      // Update reminded_at: next Monday OR mark done if reached final week
+      const nextStatus = weekIndex >= WEEKS_TOTAL ? 'done' : 'active';
+      const nextRemind = weekIndex >= WEEKS_TOTAL ? null : nextMondayBeijing9am();
+      await env.DB.prepare(
+        'UPDATE commitments SET reminded_at = ?, status = ? WHERE id = ?'
+      ).bind(nextRemind, nextStatus, row.id).run();
+    } catch (e) {
+      errors.push({ id: row.id, err: e.message });
+    }
+  }
+
+  return { ok: true, scanned: rows.length, sent, errors, skipped, at: new Date(t0 * 1000).toISOString() };
+}
+
+/**
+ * Compose the weekly opponent letter. Plain styled HTML, no logo, no buttons.
+ * Reads like a friend's letter, not a product email — by design.
+ */
+function composeOpponentLetter({ playerName, opponentName, opponentChallenge, practiceText, smartWhen, smartFreq, smartSignal, weekNumber, weeksTotal }) {
+  const isFinalWeek = weekNumber >= weeksTotal;
+  const subject = isFinalWeek
+    ? `${opponentName}最后一封信 · 第 ${weekNumber} 周`
+    : `${opponentName}来信 · 第 ${weekNumber} 周`;
+
+  const closing = isFinalWeek
+    ? `这是这一季的最后一封。\n下一颗种子要不要再种，由你。`
+    : `下周一这个时候我再来。`;
+
+  // Use straight Chinese text. Plain serif-ish styling. NO emojis. NO call-to-action buttons.
+  const html = `<div style="font-family:'Songti SC','Noto Serif SC','Georgia',serif;max-width:560px;margin:0 auto;background:#fafaf6;color:#1a1a1a;padding:2.4rem 1.8rem;line-height:1.95;font-size:16px;">
+
+<p style="color:#888;font-size:13px;letter-spacing:0.1em;margin:0 0 1.5rem;">第 ${weekNumber} / ${weeksTotal} 周</p>
+
+<p style="margin:0 0 1.5rem;">${escapeHtmlSrv(playerName)}，</p>
+
+<p style="margin:0 0 1.5rem;">我是 <strong>${opponentName}</strong>。</p>
+
+<p style="margin:0 0 1.2rem;">你这周想做的事：</p>
+<p style="margin:0 0 0.6rem;padding:0 0 0 1rem;border-left:2px solid #c9a84c;color:#444;font-style:italic;">${escapeHtmlSrv(practiceText)}</p>
+<p style="margin:0 0 1.8rem;color:#888;font-size:14px;padding-left:1rem;">${escapeHtmlSrv(smartWhen)}　·　${escapeHtmlSrv(smartFreq)}　·　${escapeHtmlSrv(smartSignal)}</p>
+
+<p style="margin:0 0 1.2rem;">我没什么能帮你。但我想问你一句：</p>
+
+<p style="margin:0 0 2rem;font-size:18px;color:#1a1a1a;border-top:1px solid #e0d8c0;border-bottom:1px solid #e0d8c0;padding:1.2rem 0;text-align:center;font-style:italic;">${escapeHtmlSrv(opponentChallenge)}</p>
+
+<p style="margin:0 0 1.5rem;color:#444;">不需要现在回答。等你做了这件事，回头想想这个问题——可能比那件事本身更重要。</p>
+
+<p style="margin:0 0 1.5rem;color:#444;white-space:pre-wrap;">${escapeHtmlSrv(closing)}</p>
+
+<p style="margin:2rem 0 0;color:#666;">— ${opponentName}</p>
+
+<hr style="border:0;border-top:1px solid #e0d8c0;margin:2.5rem 0 1rem;">
+
+<p style="color:#aaa;font-size:11px;text-align:center;letter-spacing:0.15em;margin:0;">SOUL MAP · 灵魂地图 · 一周一颗种子</p>
+<p style="color:#aaa;font-size:11px;text-align:center;margin:0.5rem 0 0;">不想继续收信？回信告诉我们就好。</p>
+
+</div>`;
+
+  return { subject, html };
+}
+
+// Tiny HTML-escape (server-side variant, separate name to avoid colliding with frontend escHtml)
+function escapeHtmlSrv(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
