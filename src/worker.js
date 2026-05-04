@@ -712,8 +712,12 @@ async function handleCommit(request, env) {
  * If `email` provided, scoped to one email's active commitments.
  */
 async function handleCronTest(request, env) {
-  const adminKey = request.headers.get('x-admin-key');
-  if (!env.ADMIN_KEY || adminKey !== env.ADMIN_KEY) {
+  // Accept either ADMIN_KEY or a dedicated CRON_TEST_KEY (so testing the cron
+  // doesn't require the same key used for the admin dashboard).
+  const k = request.headers.get('x-admin-key');
+  const validAdmin = env.ADMIN_KEY && k === env.ADMIN_KEY;
+  const validCron  = env.CRON_TEST_KEY && k === env.CRON_TEST_KEY;
+  if (!validAdmin && !validCron) {
     return jsonResponse({ error: 'forbidden' }, 403);
   }
   let scope = null;
