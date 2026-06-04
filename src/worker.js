@@ -424,7 +424,14 @@ function ipHint(request) {
 async function handleLead(request, env) {
   try {
     const body = await request.json();
-    const { session_id, name, email, referred_by } = body;
+    const {
+      session_id, name, email, referred_by,
+      // Optional — when called from the post-result "upgrade" flow (anonymous
+      // user finished quiz then opted in for email), the frontend forwards
+      // already-computed archetype info so we can mark the lead 'completed'
+      // immediately and downstream Act II / cron work without a second hop.
+      archetype_code, display_code, poetic_name
+    } = body;
 
     if (!session_id || !name || !email) {
       return jsonResponse({ error: 'Missing session_id, name, or email' }, 400);
@@ -439,6 +446,7 @@ async function handleLead(request, env) {
     const t = now();
     const hint = ipHint(request);
     const ua = request.headers.get('user-agent') || null;
+    const hasArchetype = !!(archetype_code && display_code);
 
     // Check returning user by email (most recent completed submission)
     const lastSubmission = await env.DB.prepare(
@@ -446,17 +454,42 @@ async function handleLead(request, env) {
        FROM submissions WHERE email = ? ORDER BY id DESC LIMIT 1`
     ).bind(email).first();
 
-    // Upsert lead by session_id
-    await env.DB.prepare(`
-      INSERT INTO leads (session_id, name, email, referred_by, status, progress,
-                         ip_hint, user_agent, created_at, updated_at)
-      VALUES (?, ?, ?, ?, 'started', 0, ?, ?, ?, ?)
-      ON CONFLICT(session_id) DO UPDATE SET
-        name = excluded.name,
-        email = excluded.email,
-        referred_by = COALESCE(leads.referred_by, excluded.referred_by),
-        updated_at = excluded.updated_at
-    `).bind(session_id, name, email, referred_by || null, hint, ua, t, t).run();
+    // Upsert lead by session_id. When archetype info is provided (post-quiz
+    // upgrade), seed/overwrite it so /api/journey + cron see a real lead.
+    if (hasArchetype) {
+      await env.DB.prepare(`
+        INSERT INTO leads (session_id, name, email, referred_by, status, progress,
+                           archetype_code, display_code, poetic_name,
+                           completed_at, ip_hint, user_agent, created_at, updated_at)
+        VALUES (?, ?, ?, ?, 'completed', 40, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(session_id) DO UPDATE SET
+          name = excluded.name,
+          email = excluded.email,
+          referred_by = COALESCE(leads.referred_by, excluded.referred_by),
+          status = 'completed',
+          progress = 40,
+          archetype_code = excluded.archetype_code,
+          display_code = excluded.display_code,
+          poetic_name = excluded.poetic_name,
+          completed_at = COALESCE(leads.completed_at, excluded.completed_at),
+          updated_at = excluded.updated_at
+      `).bind(
+        session_id, name, email, referred_by || null,
+        archetype_code, display_code, poetic_name || null,
+        t, hint, ua, t, t
+      ).run();
+    } else {
+      await env.DB.prepare(`
+        INSERT INTO leads (session_id, name, email, referred_by, status, progress,
+                           ip_hint, user_agent, created_at, updated_at)
+        VALUES (?, ?, ?, ?, 'started', 0, ?, ?, ?, ?)
+        ON CONFLICT(session_id) DO UPDATE SET
+          name = excluded.name,
+          email = excluded.email,
+          referred_by = COALESCE(leads.referred_by, excluded.referred_by),
+          updated_at = excluded.updated_at
+      `).bind(session_id, name, email, referred_by || null, hint, ua, t, t).run();
+    }
 
     return jsonResponse({
       success: true,

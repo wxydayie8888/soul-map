@@ -673,50 +673,18 @@ input[type="text"], input[type="email"], input[type="number"], textarea, select 
   </div>
   <div class="hero-sub">PHILOSOPHICAL SOUL CARTOGRAPHY</div>
   <h1 class="hero-title">灵 魂 地 图</h1>
-  <p class="hero-desc">在被算法定义之前，先认识自己。<br>40 道题，画出你灵魂的经纬度。</p>
+  <p class="hero-desc">在被算法定义之前，先认识自己。</p>
 
   <!-- Resume banner (injected at runtime if progress in localStorage) -->
   <div id="resumeBanner" style="display:none;"></div>
   <!-- Returning-user banner (injected when /api/lookup hits) -->
   <div id="returningBanner" style="display:none;"></div>
 
-  <!-- Value exchange -->
-  <div class="value-exchange" style="max-width:420px;margin:1.5rem auto 1.2rem;padding:1rem 1.2rem;border:1px solid rgba(201,168,76,0.2);border-radius:12px;background:rgba(201,168,76,0.04);text-align:left;">
-    <div style="font-family:'Noto Serif SC',serif;font-size:0.82rem;color:var(--gold);letter-spacing:0.08em;margin-bottom:0.7rem;">完成 40 题后，你将收到：</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem 0.9rem;font-size:0.78rem;color:rgba(245,240,232,0.72);line-height:1.7;">
-      <div>✓ 专属哲学原型</div>
-      <div>✓ 灵魂 CP / 克星</div>
-      <div>✓ PDF 报告（邮箱）</div>
-      <div>✓ 16 原型收藏墙</div>
-      <div>✓ 7 天回测对比</div>
-      <div>✓ 稀有度排行</div>
-    </div>
-  </div>
+  <button class="cta-btn" onclick="startAnonymousQuiz()" style="margin-top:2.5rem;">开启旅程 <svg width="20" height="12" viewBox="0 0 20 12" fill="none"><path d="M1 6h18M13 1l6 5-6 5" stroke="currentColor" stroke-width="1.5"/></svg></button>
 
-  <!-- Lead-capture form -->
-  <form id="gateForm" class="gate-form" onsubmit="event.preventDefault();startQuizAfterGate();" style="max-width:420px;margin:0 auto;">
-    <div class="gate-row">
-      <input type="text" class="name-input" id="nameInput" placeholder="你的昵称 · 必填（2-12 字）" minlength="1" maxlength="24" required autocomplete="nickname" oninput="validateGate()">
-      <div class="gate-err" id="nameErr"></div>
-    </div>
-    <div class="gate-row">
-      <input type="email" class="name-input" id="emailInput" placeholder="邮箱 · 必填（用于 PDF 报告）" required autocomplete="email" oninput="validateGate();scheduleLookup()">
-      <div class="gate-err" id="emailErr"></div>
-    </div>
-    <label class="gate-consent" style="display:flex;align-items:flex-start;gap:0.5rem;font-size:0.76rem;color:rgba(245,240,232,0.55);cursor:pointer;margin:0.8rem 0 1rem;">
-      <input type="checkbox" id="gateConsent" style="margin-top:3px;accent-color:var(--gold);" oninput="validateGate()">
-      <span>我同意收集昵称+邮箱用于生成报告、偶尔重测提醒。<a href="#" onclick="event.preventDefault();alert('隐私政策：仅收集昵称和邮箱，用于生成你的个人报告、发送 PDF 及偶尔的重测提醒。不分享给第三方。可在任何邮件底部退订，或发邮件到 wangxingyu.will@gmail.com 删除你的数据。')" style="color:var(--gold);text-decoration:underline;">隐私政策</a></span>
-    </label>
-    <button type="submit" class="cta-btn" id="gateCta" disabled>开启旅程 <svg width="20" height="12" viewBox="0 0 20 12" fill="none"><path d="M1 6h18M13 1l6 5-6 5" stroke="currentColor" stroke-width="1.5"/></svg></button>
-    <div style="text-align:center;margin-top:0.8rem;">
-      <a href="#" onclick="event.preventDefault();startAnonymousQuiz();" style="font-size:0.78rem;color:rgba(245,240,232,0.4);text-decoration:underline dotted;">先匿名试玩（简化版，无 PDF / 无 CP / 无收藏墙）</a>
-    </div>
-  </form>
-
-  <div class="hero-meta" style="margin-top:1.5rem;">
-    <div class="hero-meta-item"><div class="hero-meta-num">40</div><div class="hero-meta-label">Questions</div></div>
-    <div class="hero-meta-item"><div class="hero-meta-num">16</div><div class="hero-meta-label">Archetypes</div></div>
-    <div class="hero-meta-item"><div class="hero-meta-num">4+1</div><div class="hero-meta-label">Axes</div></div>
+  <!-- Returning user discreet link: opens email modal to look up prior result -->
+  <div style="margin-top:1.4rem;">
+    <a href="#" onclick="event.preventDefault();openReturningLookup();" style="font-size:0.76rem;color:rgba(245,240,232,0.32);text-decoration:underline dotted;letter-spacing:0.06em;">之前测过？继续上次的旅程</a>
   </div>
 </section>
 
@@ -1047,6 +1015,42 @@ input[type="text"], input[type="email"], input[type="number"], textarea, select 
 </div>
 
 <!-- MODAL -->
+<!-- RETURNING-USER LOOKUP MODAL (opened from hero "之前测过？" link) -->
+<div class="modal-backdrop" id="returningLookupModal">
+  <div class="modal" style="max-width:440px;">
+    <button class="modal-close" onclick="closeReturningLookup()">×</button>
+    <h3 class="modal-title">继续上次的旅程</h3>
+    <p style="font-size:0.86rem;color:rgba(245,240,232,0.6);margin-bottom:1.4rem;line-height:1.7;">输入你之前留过的邮箱，我们帮你找回上次的原型并继续意义之旅。</p>
+    <input type="email" id="returningLookupEmailInput" class="name-input" placeholder="你之前留的邮箱" autocomplete="email" style="width:100%;margin-bottom:0.5rem;">
+    <div id="returningLookupErr" style="min-height:1.2rem;font-size:0.78rem;color:#ff8a80;margin-bottom:0.6rem;"></div>
+    <div style="display:flex;gap:0.6rem;justify-content:flex-end;">
+      <button class="nav-btn" onclick="closeReturningLookup()" style="padding:0.6rem 1rem;">取消</button>
+      <button class="cta-btn" onclick="submitReturningLookup()" style="padding:0.6rem 1.4rem;">查找 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- POST-RESULT EMAIL UPGRADE MODAL (anonymous users opt in here to unlock
+     PDF email + Act II meaning journey + weekly cron + collection wall) -->
+<div class="modal-backdrop" id="upgradeEmailModal">
+  <div class="modal" style="max-width:480px;">
+    <button class="modal-close" onclick="closeUpgradeEmailModal()">×</button>
+    <h3 class="modal-title">把这份报告寄给自己</h3>
+    <p style="font-size:0.86rem;color:rgba(245,240,232,0.65);margin-bottom:1.4rem;line-height:1.7;" id="upgradeEmailReason">留一个邮箱，我们会：把完整 PDF 报告寄给你 · 解锁意义之旅（价值观靶心 + 周练习）· 把你的原型加进收藏墙。</p>
+    <input type="text" id="upgradeNameInput" class="name-input" placeholder="你的名字（选填，默认"旅人"）" maxlength="24" style="width:100%;margin-bottom:0.6rem;">
+    <input type="email" id="upgradeEmailInput" class="name-input" placeholder="邮箱 · 必填" autocomplete="email" style="width:100%;margin-bottom:0.5rem;">
+    <div id="upgradeEmailErr" style="min-height:1.2rem;font-size:0.78rem;color:#ff8a80;margin-bottom:0.6rem;"></div>
+    <label style="display:flex;align-items:flex-start;gap:0.5rem;font-size:0.76rem;color:rgba(245,240,232,0.55);cursor:pointer;margin-bottom:1rem;line-height:1.5;">
+      <input type="checkbox" id="upgradeConsent" checked style="margin-top:3px;accent-color:var(--gold);">
+      <span>我同意收集邮箱用于生成报告与偶尔的旅程提醒。<a href="#" onclick="event.preventDefault();alert('隐私政策：仅用于生成你的个人报告、发送 PDF 与意义之旅的周提醒。不分享给第三方。可在邮件底部退订或发邮件到 wangxingyu.will@gmail.com 删除你的数据。');" style="color:var(--gold);text-decoration:underline;">隐私政策</a></span>
+    </label>
+    <div style="display:flex;gap:0.6rem;justify-content:flex-end;">
+      <button class="nav-btn" onclick="closeUpgradeEmailModal()" style="padding:0.6rem 1rem;">不用了</button>
+      <button class="cta-btn" id="upgradeEmailSubmit" onclick="submitUpgradeEmail()" style="padding:0.6rem 1.4rem;">寄给我 →</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-backdrop" id="modal">
   <div class="modal">
     <button class="modal-close" onclick="closeModal()">×</button>
@@ -2015,8 +2019,8 @@ async function doLookup(){
 // into state without re-running the test, then drop them into Act II.
 async function continueJourneyAsReturning(archetypeCode){
   state.archetypeCode = archetypeCode;
-  state.playerName = ($('nameInput').value || '').trim() || '旅人';
-  state.email = ($('emailInput').value || '').trim();
+  state.playerName = ($('nameInput')?.value || returningLookupEmail.name || '').trim() || '旅人';
+  state.email = ($('emailInput')?.value || returningLookupEmail.email || '').trim();
   if (state.email) signupData.email = state.email;
   state.sessionId = safeStorage.get('soulmap_session') || uuid();
   safeStorage.set('soulmap_session', state.sessionId);
@@ -2051,8 +2055,8 @@ async function startQuizAfterGate(){
   const cta = $('gateCta');
   try {
     if(cta){ cta.disabled = true; cta.textContent = '准备中…'; }
-    state.playerName = $('nameInput').value.trim();
-    state.email = $('emailInput').value.trim();
+    state.playerName = ($('nameInput')?.value || '').trim();
+    state.email = ($('emailInput')?.value || '').trim();
     state.anonymous = false;
     state.sessionId = safeStorage.get('soulmap_session') || uuid();
     signupData.email = state.email; // keep in sync for submitToAPI / email report
@@ -2090,10 +2094,200 @@ async function startQuizAfterGate(){
 
 function startAnonymousQuiz(){
   state.anonymous = true;
-  state.playerName = ($('nameInput').value||'').trim() || '匿名旅人';
+  state.playerName = ($('nameInput')?.value || '').trim() || '旅人';
   state.email = '';
-  state.sessionId = null;
+  // Generate sessionId immediately so /api/submit can persist the result anonymously,
+  // and so user can later "upgrade" by attaching email on the result page.
+  state.sessionId = safeStorage.get('soulmap_session') || uuid();
+  safeStorage.set('soulmap_session', state.sessionId);
   showScreen('prologue');
+}
+
+// State + helper for "之前测过？" lookup-by-email modal (replaces the
+// always-visible email field on the hero — user opts in only if they want to
+// resume a prior result).
+const returningLookupEmail = { name:'', email:'' };
+function openReturningLookup(){
+  const modal = $('returningLookupModal');
+  if(!modal) return;
+  modal.classList.add('show');
+  setTimeout(()=> $('returningLookupEmailInput')?.focus(), 50);
+}
+function closeReturningLookup(){
+  const modal = $('returningLookupModal');
+  if(modal) modal.classList.remove('show');
+}
+async function submitReturningLookup(){
+  const emailEl = $('returningLookupEmailInput');
+  const errEl = $('returningLookupErr');
+  if(!emailEl) return;
+  const email = (emailEl.value||'').trim();
+  const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  if(!ok){ if(errEl) errEl.textContent = '请输入有效的邮箱'; return; }
+  if(errEl) errEl.textContent = '';
+  returningLookupEmail.email = email;
+  try {
+    const r = await fetch('/api/lookup?email=' + encodeURIComponent(email));
+    const d = await r.json();
+    if(d && d.found && d.last_result){
+      // Stash name from server if available
+      if(d.last_result.name) returningLookupEmail.name = d.last_result.name;
+      closeReturningLookup();
+      // Reuse existing returning-banner injection by populating it directly
+      const banner = $('returningBanner');
+      if(banner){
+        const lr = d.last_result;
+        const archetypeCodeForState = lr.archetype_code || lr.display_code;
+        const dateStr = lr.created_at ? new Date(lr.created_at*1000).toLocaleDateString('zh-CN') : '';
+        banner.style.cssText = 'display:block;max-width:480px;margin:1rem auto 0;padding:1rem 1.2rem;border:1px solid rgba(184,146,255,0.35);border-radius:12px;background:rgba(184,146,255,0.06);';
+        banner.innerHTML = `
+          <div style="text-align:center;font-size:0.86rem;color:rgba(245,240,232,0.85);line-height:1.6;">
+            ✨ ${dateStr ? `${dateStr}，` : ''}你上次是
+            <strong style="color:var(--gold);letter-spacing:0.12em;">${(lr.display_code||lr.archetype_code||'').replace(/[<>]/g,'')} · ${(lr.poetic_name||'').replace(/[<>]/g,'')}</strong>
+          </div>
+          <div style="display:flex;gap:0.6rem;justify-content:center;margin-top:0.9rem;flex-wrap:wrap;">
+            <button type="button" onclick="continueJourneyAsReturning('${(archetypeCodeForState||'').replace(/[<>'\\\\]/g,'')}')" style="padding:0.55rem 1.1rem;border-radius:6px;border:1px solid var(--legendary);background:rgba(184,146,255,0.18);color:var(--legendary);font-family:'Noto Serif SC',serif;font-size:0.8rem;cursor:pointer;letter-spacing:0.1em;font-weight:600;">继续意义之旅 →</button>
+            <button type="button" onclick="$('returningBanner').style.display='none';" style="padding:0.55rem 1.1rem;border-radius:6px;border:1px solid rgba(245,240,232,0.2);background:transparent;color:rgba(245,240,232,0.6);font-family:'Noto Serif SC',serif;font-size:0.8rem;cursor:pointer;letter-spacing:0.1em;">重新测一次</button>
+          </div>
+        `;
+      }
+    } else {
+      if(errEl) errEl.textContent = '没找到这个邮箱的测试记录';
+    }
+  } catch(e){
+    if(errEl) errEl.textContent = '查询失败，请稍后重试';
+  }
+}
+
+// ----------------------------------------------------------------------
+// Post-result email-upgrade modal
+// ----------------------------------------------------------------------
+// Anonymous users finish the quiz without email. To unlock Act II (compass /
+// signature / commitment / weekly cron) and PDF-to-email, they opt in here.
+// One-shot: writes a leads row tied to the existing session_id so all the
+// downstream APIs (/api/journey, /api/commit, /api/send-report) just work.
+
+let _pendingAfterUpgrade = null; // function to call after successful upgrade
+
+function openUpgradeEmailModal(reason, afterFn){
+  const modal = $('upgradeEmailModal');
+  if(!modal) return;
+  const reasonEl = $('upgradeEmailReason');
+  if (reasonEl && reason) reasonEl.textContent = reason;
+  _pendingAfterUpgrade = typeof afterFn === 'function' ? afterFn : null;
+  // Prefill name if we already have one
+  const nameEl = $('upgradeNameInput');
+  if (nameEl && state.playerName && state.playerName !== '旅人' && state.playerName !== '匿名旅人') {
+    nameEl.value = state.playerName;
+  }
+  modal.classList.add('show');
+  setTimeout(()=> $('upgradeEmailInput')?.focus(), 50);
+}
+function closeUpgradeEmailModal(){
+  const modal = $('upgradeEmailModal');
+  if(modal) modal.classList.remove('show');
+  _pendingAfterUpgrade = null;
+}
+async function submitUpgradeEmail(){
+  const nameEl = $('upgradeNameInput');
+  const emailEl = $('upgradeEmailInput');
+  const consentEl = $('upgradeConsent');
+  const errEl = $('upgradeEmailErr');
+  const submitBtn = $('upgradeEmailSubmit');
+  if(!emailEl) return;
+  const name = (nameEl?.value || '').trim() || '旅人';
+  const email = (emailEl.value || '').trim();
+  const consent = consentEl ? consentEl.checked : true;
+  const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  if(!validEmail){ if(errEl) errEl.textContent = '请输入有效的邮箱'; return; }
+  if(!consent){ if(errEl) errEl.textContent = '请勾选同意收集邮箱'; return; }
+  if(errEl) errEl.textContent = '';
+
+  // Ensure we have a session_id (anonymous users get one in startAnonymousQuiz,
+  // but defend against the case where state was lost)
+  if(!state.sessionId){
+    state.sessionId = safeStorage.get('soulmap_session') || uuid();
+    safeStorage.set('soulmap_session', state.sessionId);
+  }
+
+  if(submitBtn){ submitBtn.disabled = true; submitBtn.textContent = '稍等…'; }
+  try {
+    // If the user has already finished the quiz (state.scores filled or
+    // state.archetypeCode set), forward their archetype so the freshly-created
+    // lead row is born 'completed' and Act II / cron work without extra hops.
+    let archetypePayload = {};
+    try {
+      const _hasScores = state.scores && (state.scores.S || state.scores.M || state.scores.W || state.scores.A);
+      if (_hasScores || state.archetypeCode) {
+        const _a = (typeof getArchetype === 'function') ? getArchetype() : null;
+        if (_a) {
+          archetypePayload = {
+            archetype_code: _a.code,
+            display_code: _a.displayCode || _a.code,
+            poetic_name: _a.poeticName || undefined
+          };
+        }
+      }
+    } catch(_){}
+    const ctrl = new AbortController();
+    const t = setTimeout(()=>ctrl.abort(), 6000);
+    const r = await fetch('/api/lead', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        session_id: state.sessionId,
+        name: name,
+        email: email,
+        referred_by: referredBy,
+        ...archetypePayload
+      }),
+      signal: ctrl.signal
+    });
+    clearTimeout(t);
+    const d = await r.json();
+    if(!r.ok || (d && d.error)){
+      throw new Error((d && d.error) || ('HTTP ' + r.status));
+    }
+    // Upgrade local state — user is no longer anonymous
+    state.anonymous = false;
+    state.playerName = name;
+    state.email = email;
+    signupData.email = email;
+    saveStateLocal();
+
+    // If the quiz is already submitted, try to send the PDF report too
+    try {
+      if (typeof sendReportEmail === 'function' && state.archetypeCode) {
+        sendReportEmail();
+      }
+    } catch(_){}
+
+    closeUpgradeEmailModal();
+    if (_pendingAfterUpgrade) {
+      const fn = _pendingAfterUpgrade;
+      _pendingAfterUpgrade = null;
+      try { fn(); } catch(_){}
+    } else {
+      toast('✨ 邮箱已绑定，意义之旅已解锁');
+    }
+  } catch(err){
+    if(errEl) errEl.textContent = '保存失败：' + (err.message || '网络异常') + '。可稍后再试。';
+  } finally {
+    if(submitBtn){ submitBtn.disabled = false; submitBtn.textContent = '寄给我 →'; }
+  }
+}
+
+// Gate the "继续 → 开启意义之旅" CTA on having an email. Anonymous users get
+// the upgrade modal; opted-in users proceed straight to compass.
+function continueToJourney(){
+  if (state.anonymous || !state.email) {
+    openUpgradeEmailModal(
+      '意义之旅需要一个邮箱：用来寄你的完整 PDF 报告，以及每周一封"来自对手"的反思信。',
+      () => { startCompass(); }
+    );
+    return;
+  }
+  startCompass();
 }
 
 // local persistence for resume
@@ -3025,7 +3219,7 @@ function renderResult(){
     </div>
 
     <div class="action-row">
-      <button class="action-btn journey-cta" onclick="startCompass()">继续 → 开启意义之旅 ✦<span class="small">原型只是起点 · 用 10 分钟，把你想活成的样子说清楚</span></button>
+      <button class="action-btn journey-cta" onclick="continueToJourney()">继续 → 开启意义之旅 ✦<span class="small">原型只是起点 · 用 10 分钟，把你想活成的样子说清楚</span></button>
       <div style="width:100%;padding:1.2rem;border:2px solid rgba(184,146,255,0.4);background:rgba(184,146,255,0.06);margin-bottom:1rem;text-align:center;">
         <div style="font-family:'Noto Serif SC',serif;font-size:1.1rem;color:var(--legendary);margin-bottom:0.6rem;">🤝 灵魂契约</div>
         <div style="font-size:0.88rem;color:rgba(245,240,232,0.7);line-height:1.7;margin-bottom:1rem;">发给一位朋友测试，解锁你们的灵魂契合度分析</div>
@@ -3155,7 +3349,7 @@ function initFloatingShareBar(){
 
 function restartGame(){
   state = { answers:new Array(QUESTIONS.length).fill(null), hesitations:new Array(QUESTIONS.length).fill(false), current:0, scores:{S:0,M:0,W:0,A:0}, rawScores:{S:0,M:0,W:0,A:0}, iScore:0, intensities:{S:'',M:'',W:'',A:''}, shadowCodes:[], playerName:'', revealStage:0, shareFormat:'square', wechatStyle:'wenyi' };
-  $('nameInput').value = '';
+  const ni = $('nameInput'); if (ni) ni.value = '';
   showScreen('intro');
 }
 
@@ -3904,9 +4098,26 @@ document.addEventListener('keydown', e=>{
   }
 });
 
-// init
-$('nameInput').focus();
-$('nameInput').addEventListener('keydown', e=>{ if(e.key==='Enter') enterPrologue(); });
+// init — hero is now form-less; nameInput only exists in optional modals
+const _niInit = $('nameInput');
+if (_niInit) {
+  _niInit.focus();
+  _niInit.addEventListener('keydown', e=>{ if(e.key==='Enter') enterPrologue(); });
+}
+// Enter key on hero advances the journey (visually the only thing to do)
+document.addEventListener('keydown', e=>{
+  if (e.key !== 'Enter') return;
+  if (!document.getElementById('intro')?.classList.contains('active')) return;
+  // If returning-lookup modal is open, submit it instead of starting the quiz
+  const m = $('returningLookupModal');
+  if (m && m.classList.contains('show')){
+    if (document.activeElement === $('returningLookupEmailInput')) {
+      submitReturningLookup();
+    }
+    return;
+  }
+  startAnonymousQuiz();
+});
 
 // ============================================================
 // ACT II · MEANING JOURNEY · STEP 1: COMPASS (价值观靶心)
