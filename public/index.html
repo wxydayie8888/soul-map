@@ -81,14 +81,14 @@ body {
 .mandala { width: 220px; height: 220px; margin: 0 auto 3rem; position: relative; animation: mandalaEnter 1.8s ease-out both; }
 .mandala-small { width: 96px; height: 96px; margin: 0 auto 1.6rem; }
 @keyframes mandalaEnter { from { opacity: 0; transform: scale(0.6); filter: blur(4px); } to { opacity: 1; transform: scale(1); filter: blur(0); } }
-.gate-form .gate-row { margin-bottom: 0.7rem; }
-.gate-err { min-height: 1em; font-size: 0.72rem; color: #ff8a8a; margin-top: 0.2rem; padding-left: 0.4rem; text-align:left; }
-#gateCta:disabled { opacity: 0.4; cursor: not-allowed; }
-#gateCta { width: 100%; }
-/* iOS: prevent autofill from overriding dark theme */
-#nameInput:-webkit-autofill, #emailInput:-webkit-autofill,
-#nameInput:-webkit-autofill:hover, #emailInput:-webkit-autofill:hover,
-#nameInput:-webkit-autofill:focus, #emailInput:-webkit-autofill:focus {
+/* iOS: prevent autofill from overriding dark theme on ALL email inputs */
+input.name-input:-webkit-autofill,
+input.name-input:-webkit-autofill:hover,
+input.name-input:-webkit-autofill:focus,
+#returningLookupEmailInput:-webkit-autofill,
+#upgradeEmailInput:-webkit-autofill,
+#upgradeNameInput:-webkit-autofill,
+#resultEmailQuickInput:-webkit-autofill {
   -webkit-text-fill-color: var(--parchment);
   -webkit-box-shadow: 0 0 0 30px #141821 inset;
   transition: background-color 5000s ease-in-out 0s;
@@ -430,14 +430,14 @@ input[type="text"], input[type="email"], input[type="number"], textarea, select 
   .quiz-header { padding: 0.75rem 1rem; gap: 0.75rem; }
   .quiz-body { padding: 1rem 1rem 1rem; }
   .nav-row { padding: 0.6rem 1rem calc(0.8rem + env(safe-area-inset-bottom)); }
-  /* hero gate: tighter spacing on mobile, value exchange single column on small phones */
-  #intro .mandala-small { width: 72px; height: 72px; margin-bottom: 0.8rem; }
-  #intro .hero-title { font-size: clamp(2rem, 9vw, 3rem) !important; }
-  #intro .hero-desc { font-size: 0.9rem; margin-bottom: 1.2rem; }
-  #intro .value-exchange { padding: 0.8rem 1rem !important; }
-  #intro .value-exchange > div:nth-child(2) { gap: 0.35rem 0.7rem !important; font-size: 0.72rem !important; }
-  #intro .hero-meta { margin-top: 1rem !important; gap: 1.5rem; }
-  #intro #gateCta { padding: 0.9rem 1.2rem; font-size: 0.92rem; }
+  /* hero: tighter spacing on mobile (form-less since strip; only mandala+title+desc+button+link) */
+  #intro { padding: 1.5rem 1rem; justify-content: center; }
+  #intro .mandala-small { width: 80px; height: 80px; margin-bottom: 1.2rem; }
+  #intro .hero-sub { font-size: 0.85rem; letter-spacing: 0.18em; margin-bottom: 1rem; }
+  #intro .hero-title { font-size: clamp(2.2rem, 11vw, 3rem) !important; letter-spacing: 0.12em; margin-bottom: 1rem; }
+  #intro .hero-desc { font-size: 0.94rem; line-height: 1.8; margin-bottom: 0; padding: 0 0.5rem; }
+  #intro .cta-btn { padding: 0.95rem 2rem; font-size: 0.95rem; min-height: 48px; margin-top: 2rem !important; }
+  #intro a[onclick*="openReturningLookup"] { font-size: 0.82rem !important; padding: 0.5rem; min-height: 36px; display: inline-block; }
   .nav-hint { display: none; }
   .result-inner { padding: 2rem 1rem 3rem; }
   /* mobile: larger touch targets */
@@ -447,13 +447,28 @@ input[type="text"], input[type="email"], input[type="number"], textarea, select 
   .choice-btn { padding: 0.9rem 1.2rem; min-height: 48px; font-size: 0.92rem; }
   .hesitate-btn { padding: 0.7rem 1.4rem; min-height: 44px; }
   /* mobile: modal as bottom drawer */
-  .modal-backdrop .modal { position: fixed; bottom: 0; left: 0; right: 0; max-width: 100%; max-height: 80vh; margin: 0; border-radius: 1rem 1rem 0 0; animation: slideUpDrawer 0.35s ease-out; }
+  .modal-backdrop .modal { position: fixed; bottom: 0; left: 0; right: 0; max-width: 100% !important; max-height: 88vh; margin: 0; border-radius: 1rem 1rem 0 0; animation: slideUpDrawer 0.35s ease-out; padding: 1.4rem 1.2rem calc(1.4rem + env(safe-area-inset-bottom)); }
   @keyframes slideUpDrawer { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  /* mobile: modal title + body smaller */
+  .modal-backdrop .modal-title { font-size: 1.2rem; }
+  .modal-backdrop input.name-input { min-height: 48px; font-size: 16px; /* 16px prevents iOS zoom on focus */ }
+  /* mobile: bigger touch target for close (was 30×30, below 44pt minimum) */
+  .modal-close { width: 44px !important; height: 44px !important; font-size: 1.1rem !important; top: 0.7rem; right: 0.7rem; }
+  /* mobile: in-modal action buttons full-width */
+  .modal-backdrop .modal .cta-btn { padding: 0.85rem 1.2rem; min-height: 48px; }
+  .modal-backdrop .modal .nav-btn { min-height: 44px; padding: 0.7rem 1rem; }
   /* mobile: result hero tighter */
   .result-code-mbti { font-size: 2.2rem !important; }
   .result-poetic-name { font-size: 1.8rem !important; }
   .result-mantra { font-size: 0.95rem !important; }
   .result-slogan { font-size: 0.92rem !important; padding: 0.8rem 1rem !important; }
+  /* mobile: post-result email card — stack input+button vertically, tighter padding */
+  #resultEmailCard { padding: 1rem 1.1rem !important; margin-left: 0.5rem !important; margin-right: 0.5rem !important; border-radius: 12px !important; }
+  #resultEmailCard > div:first-child > div:first-child { font-size: 0.96rem !important; }
+  #resultEmailCard > div:nth-child(2) { font-size: 0.84rem !important; }
+  #resultEmailCard > div:nth-child(3) { flex-direction: column !important; gap: 0.5rem !important; }
+  #resultEmailCard #resultEmailQuickInput { min-width: 0 !important; width: 100% !important; font-size: 16px !important; min-height: 48px; padding: 0.85rem 0.9rem !important; }
+  #resultEmailCard #resultEmailCard ~ button, #resultEmailCard > div:nth-child(3) > button { width: 100% !important; min-height: 48px !important; padding: 0.85rem !important; font-size: 0.95rem !important; }
   /* mobile: books/figures grids single column */
   .books-grid, .figures-grid { grid-template-columns: 1fr !important; }
   .intensity-grid { grid-template-columns: repeat(2, 1fr) !important; }
@@ -461,12 +476,14 @@ input[type="text"], input[type="email"], input[type="number"], textarea, select 
   #floatingShareBar .action-btn { width: auto; padding: 0.6rem 1rem; font-size: 0.8rem; }
 }
 @media (max-width: 480px) {
+  /* hero on small phones: tighter still, prevent letter-spacing animation overflow */
   .hero-title { letter-spacing: 0.08em; }
+  #intro .hero-title { font-size: clamp(1.9rem, 11vw, 2.6rem) !important; letter-spacing: 0.08em; }
   .hero-desc { font-size: 0.9rem; }
-  .hero-meta { gap: 1.2rem; }
   .mandala { width: 160px; height: 160px; margin-bottom: 2rem; }
-  /* small phones: value-exchange becomes 1 column */
-  #intro .value-exchange > div:nth-child(2) { grid-template-columns: 1fr !important; }
+  /* clamp the title entry animation's start spread on very narrow screens so the
+     spread letters don't push past the viewport edges during the first 1.6s */
+  @keyframes titleEnter { from { opacity: 0; letter-spacing: 0.18em; filter: blur(6px); } to { opacity: 1; letter-spacing: 0.08em; filter: blur(0); } }
   .prologue-title { font-size: 1.5rem !important; }
   .question-text { font-size: 1rem !important; }
   .question-intent { font-size: 0.78rem; padding: 0.4rem 0 0.4rem 0.8rem; }
@@ -485,6 +502,8 @@ input[type="text"], input[type="email"], input[type="number"], textarea, select 
   /* CP cards inside single column — bigger title */
   #rs-cp > div > div { padding: 1.1rem !important; }
   #rs-cp > div > div > div:nth-child(2) { font-size: 1.2rem !important; }
+  /* very small: cta-btn full width less padding */
+  #intro .cta-btn { padding: 0.9rem 1.6rem; font-size: 0.9rem; }
 }
 
 @media print {
@@ -1566,14 +1585,19 @@ let threeScene, threeCamera, threeRenderer, threeParticles, threeRAF;
 function initThreeField(){
   if(!useWebGL || typeof THREE === 'undefined') { threeBg.style.display='none'; return; }
   try {
+    // Device-aware tuning: coarse pointer (touch) OR narrow viewport gets fewer
+    // particles + lower pixel ratio. Cuts fillrate ~4x on mid-tier Android.
+    const isMobile = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 700;
+    const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (isReducedMotion) { threeBg.style.display = 'none'; return; }
     threeScene = new THREE.Scene();
     threeCamera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000);
     threeCamera.position.z = 300;
     threeRenderer = new THREE.WebGLRenderer({ canvas: threeBg, alpha: true, antialias: false });
     threeRenderer.setSize(window.innerWidth, window.innerHeight);
-    threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    // particles
-    const count = 800;
+    threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2));
+    // particles — half count on mobile
+    const count = isMobile ? 380 : 800;
     const geo = new THREE.BufferGeometry();
     const pos = new Float32Array(count*3);
     const colors = new Float32Array(count*3);
@@ -1594,19 +1618,23 @@ function initThreeField(){
     const mat = new THREE.PointsMaterial({ size: 2, vertexColors: true, transparent: true, opacity: 0.7, sizeAttenuation: true, blending: THREE.AdditiveBlending, depthWrite: false });
     threeParticles = new THREE.Points(geo, mat);
     threeScene.add(threeParticles);
-    // mouse interaction
+    // mouse interaction — skip on touch devices (no mouse, no point doing lerp work)
     let tmx=0, tmy=0;
-    window.addEventListener('mousemove', e=>{
-      tmx = (e.clientX/window.innerWidth - 0.5)*2;
-      tmy = (e.clientY/window.innerHeight - 0.5)*2;
-    });
+    if (!isMobile) {
+      window.addEventListener('mousemove', e=>{
+        tmx = (e.clientX/window.innerWidth - 0.5)*2;
+        tmy = (e.clientY/window.innerHeight - 0.5)*2;
+      });
+    }
     function animate(){
       threeRAF = requestAnimationFrame(animate);
       threeParticles.rotation.y += 0.0003;
       threeParticles.rotation.x += 0.0001;
-      threeCamera.position.x += (tmx*30 - threeCamera.position.x)*0.02;
-      threeCamera.position.y += (-tmy*30 - threeCamera.position.y)*0.02;
-      threeCamera.lookAt(0,0,0);
+      if (!isMobile) {
+        threeCamera.position.x += (tmx*30 - threeCamera.position.x)*0.02;
+        threeCamera.position.y += (-tmy*30 - threeCamera.position.y)*0.02;
+        threeCamera.lookAt(0,0,0);
+      }
       threeRenderer.render(threeScene, threeCamera);
     }
     animate();
