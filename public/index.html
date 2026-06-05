@@ -78,8 +78,9 @@ body {
 
 /* ===== INTRO ===== */
 #intro { text-align: center; background: radial-gradient(ellipse at center, #1a1a2e 0%, #0d1117 70%); }
-.mandala { width: 220px; height: 220px; margin: 0 auto 3rem; position: relative; }
-.mandala-small { width: 96px; height: 96px; margin: 0 auto 1.2rem; }
+.mandala { width: 220px; height: 220px; margin: 0 auto 3rem; position: relative; animation: mandalaEnter 1.8s ease-out both; }
+.mandala-small { width: 96px; height: 96px; margin: 0 auto 1.6rem; }
+@keyframes mandalaEnter { from { opacity: 0; transform: scale(0.6); filter: blur(4px); } to { opacity: 1; transform: scale(1); filter: blur(0); } }
 .gate-form .gate-row { margin-bottom: 0.7rem; }
 .gate-err { min-height: 1em; font-size: 0.72rem; color: #ff8a8a; margin-top: 0.2rem; padding-left: 0.4rem; text-align:left; }
 #gateCta:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -106,9 +107,11 @@ input[type="text"], input[type="email"], input[type="number"], textarea, select 
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.2); } }
 
-.hero-title { font-family: 'Noto Serif SC', serif; font-size: clamp(2.5rem, 6vw, 4.5rem); font-weight: 700; letter-spacing: 0.15em; color: var(--gold); text-shadow: 0 0 40px rgba(201,168,76,0.4); margin-bottom: 0.5rem; animation: fadeUp 1.2s 0.3s both; }
-.hero-sub { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.2rem; color: rgba(245,240,232,0.6); letter-spacing: 0.1em; margin-bottom: 2rem; animation: fadeUp 1.2s 0.6s both; }
-.hero-desc { max-width: 580px; font-size: 1rem; line-height: 1.9; color: rgba(245,240,232,0.75); margin-bottom: 2rem; animation: fadeUp 1.2s 0.9s both; }
+.hero-title { font-family: 'Noto Serif SC', serif; font-size: clamp(2.5rem, 6vw, 4.5rem); font-weight: 700; letter-spacing: 0.15em; color: var(--gold); text-shadow: 0 0 40px rgba(201,168,76,0.4); margin-bottom: 0.8rem; animation: titleEnter 1.6s 0.8s both; }
+.hero-sub { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.2rem; color: rgba(245,240,232,0.6); letter-spacing: 0.1em; margin-bottom: 1.4rem; animation: subEnter 1.2s 0.3s both; }
+.hero-desc { max-width: 580px; font-size: 1.02rem; line-height: 1.9; color: rgba(245,240,232,0.78); margin-bottom: 0; animation: fadeUp 1.2s 1.7s both; }
+@keyframes titleEnter { from { opacity: 0; letter-spacing: 0.5em; filter: blur(8px); } to { opacity: 1; letter-spacing: 0.15em; filter: blur(0); } }
+@keyframes subEnter { from { opacity: 0; letter-spacing: 0.3em; } to { opacity: 0.6; letter-spacing: 0.1em; } }
 .hero-meta { display: flex; gap: 2rem; justify-content: center; margin-bottom: 2.5rem; animation: fadeUp 1.2s 1.1s both; flex-wrap: wrap; }
 .hero-meta-item { text-align: center; }
 .hero-meta-num { font-family: 'Playfair Display', serif; font-size: 1.8rem; color: var(--gold); }
@@ -120,7 +123,11 @@ input[type="text"], input[type="email"], input[type="number"], textarea, select 
 
 @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 
-.cta-btn { display: inline-flex; align-items: center; gap: 0.75rem; padding: 1rem 2.5rem; background: transparent; border: 1.5px solid var(--gold); color: var(--gold); font-family: 'Noto Sans SC', sans-serif; font-size: 1rem; letter-spacing: 0.15em; cursor: pointer; transition: all 0.4s ease; animation: fadeUp 1.2s 1.5s both; position: relative; overflow: hidden; }
+.cta-btn { display: inline-flex; align-items: center; gap: 0.75rem; padding: 1rem 2.5rem; background: transparent; border: 1.5px solid var(--gold); color: var(--gold); font-family: 'Noto Sans SC', sans-serif; font-size: 1rem; letter-spacing: 0.15em; cursor: pointer; transition: all 0.4s ease; animation: fadeUp 1.2s 2.6s both; position: relative; overflow: hidden; }
+#intro .cta-btn { animation: fadeUp 1.2s 2.6s both, btnGlow 4s 4.5s ease-in-out infinite; }
+@keyframes btnGlow { 0%, 100% { box-shadow: 0 0 0 0 rgba(201,168,76,0); } 50% { box-shadow: 0 0 24px rgba(201,168,76,0.18); } }
+#intro a[onclick*="openReturningLookup"] { animation: fadeUp 1.2s 3.2s both; display: inline-block; transition: opacity 0.3s, color 0.3s; }
+#intro a[onclick*="openReturningLookup"]:hover { color: var(--gold) !important; opacity: 0.8; }
 .cta-btn::before { content: ''; position: absolute; inset: 0; background: var(--gold); transform: scaleX(0); transform-origin: left; transition: transform 0.4s ease; z-index: -1; }
 .cta-btn:hover { color: var(--deep); }
 .cta-btn:hover::before { transform: scaleX(1); }
@@ -3100,6 +3107,8 @@ function renderResult(){
       ${resonanceCount>0?`<div style="font-size:0.78rem;color:rgba(245,212,66,0.6);text-align:center;margin-top:0.5rem;">💫 你在 ${resonanceCount} 道题上感到了共鸣</div>`:''}
     </div>
 
+    ${renderResultEmailCard()}
+
     <div class="family-banner" style="display:flex;align-items:center;justify-content:center;gap:0.6rem;margin:1rem auto 0.6rem;padding:0.55rem 1rem;border-radius:999px;background:${fam.bg};border:1px solid ${fam.color}55;max-width:fit-content;">
       <span style="width:10px;height:10px;border-radius:50%;background:${fam.color};box-shadow:0 0 8px ${fam.color}88;"></span>
       <span style="font-family:'Noto Serif SC',serif;font-size:0.9rem;color:${fam.color};letter-spacing:0.1em;">${fam.name} · ${fam.sub||''}</span>
@@ -3293,6 +3302,64 @@ async function nativeShare(){
   } else {
     copyFriendInvite();
   }
+}
+
+// Inline post-result email opt-in card. Renders ONLY for anonymous users
+// who haven't dismissed it. One field, one button, one skip link. The actual
+// email upgrade reuses the existing upgradeEmailModal pathway so we don't
+// duplicate /api/lead + sendReportEmail logic — clicking "寄给我" prefills
+// the modal email field and submits, giving the user a single tap from
+// result to PDF-in-inbox + Act II unlock.
+function renderResultEmailCard(){
+  // Already opted in? Don't show.
+  if (state && !state.anonymous && state.email) return '';
+  // User explicitly dismissed this session? Don't show.
+  try { if (sessionStorage.getItem('soulmap_email_card_dismissed') === '1') return ''; } catch(_){}
+  return `
+  <div id="resultEmailCard" style="max-width:560px;margin:1.2rem auto 0.6rem;padding:1.2rem 1.4rem;border:1px solid rgba(201,168,76,0.32);border-radius:14px;background:linear-gradient(135deg,rgba(201,168,76,0.07) 0%,rgba(184,146,255,0.05) 100%);box-shadow:0 0 32px rgba(201,168,76,0.06);">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:0.4rem;margin-bottom:0.6rem;">
+      <div style="font-family:'Noto Serif SC',serif;font-size:1.02rem;color:var(--gold);letter-spacing:0.06em;">✉️ 把这份留下来吗？</div>
+      <a href="#" onclick="event.preventDefault();dismissResultEmailCard();" style="font-size:0.74rem;color:rgba(245,240,232,0.35);text-decoration:underline dotted;">不用了</a>
+    </div>
+    <div style="font-size:0.86rem;color:rgba(245,240,232,0.7);line-height:1.7;margin-bottom:0.9rem;">
+      留个邮箱，我们会：把<strong style="color:rgba(245,240,232,0.85);">完整 PDF 报告</strong>寄给你 · 解锁<strong style="color:rgba(245,240,232,0.85);">意义之旅</strong>（价值观靶心 + 三盏灯 + 周练习） · 每周一封<strong style="color:rgba(245,240,232,0.85);">来自"对手"的反思信</strong>。
+    </div>
+    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+      <input type="email" id="resultEmailQuickInput" placeholder="你的邮箱" autocomplete="email" style="flex:1;min-width:200px;padding:0.7rem 0.9rem;background:rgba(13,17,23,0.6);border:1px solid rgba(245,240,232,0.18);border-radius:8px;color:var(--parchment);font-family:inherit;font-size:0.92rem;outline:none;transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='rgba(245,240,232,0.18)'">
+      <button onclick="submitResultEmailCard()" style="padding:0.7rem 1.3rem;background:var(--gold);color:var(--deep);border:0;border-radius:8px;font-family:'Noto Serif SC',serif;font-size:0.9rem;font-weight:600;letter-spacing:0.08em;cursor:pointer;transition:opacity 0.2s;white-space:nowrap;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">✉️ 寄给我</button>
+    </div>
+    <div id="resultEmailQuickErr" style="min-height:1.1rem;font-size:0.74rem;color:#ff8a80;margin-top:0.4rem;"></div>
+  </div>`;
+}
+function dismissResultEmailCard(){
+  try { sessionStorage.setItem('soulmap_email_card_dismissed','1'); } catch(_){}
+  const c = document.getElementById('resultEmailCard');
+  if (c) c.style.display = 'none';
+}
+function submitResultEmailCard(){
+  const inp = document.getElementById('resultEmailQuickInput');
+  const err = document.getElementById('resultEmailQuickErr');
+  if (!inp) return;
+  const email = (inp.value || '').trim();
+  const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  if (!valid) { if (err) err.textContent = '请输入有效的邮箱'; return; }
+  if (err) err.textContent = '';
+  // Open the existing upgrade modal pre-filled with the email + auto-submit.
+  // We reuse the full modal so the user still sees the consent + privacy link
+  // (compliance) and so backend wiring lives in exactly one place.
+  openUpgradeEmailModal(
+    '只需要一步：确认勾选同意收集，就把报告寄出去。',
+    () => { /* no follow-up action — they came from the inline card, not the journey CTA */ }
+  );
+  setTimeout(() => {
+    const modalEmail = document.getElementById('upgradeEmailInput');
+    if (modalEmail) modalEmail.value = email;
+    // Don't auto-submit — let the user see the consent and confirm. The
+    // consent box is pre-checked so a single click on "寄给我" finishes.
+  }, 100);
+  // Hide the inline card so they don't have a redundant form behind the modal
+  const c = document.getElementById('resultEmailCard');
+  if (c) c.style.display = 'none';
 }
 
 // Emoji vote ("你觉得准吗")
