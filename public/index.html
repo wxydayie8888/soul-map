@@ -3349,14 +3349,12 @@ function submitResultEmailCard(){
   // (compliance) and so backend wiring lives in exactly one place.
   openUpgradeEmailModal(
     '只需要一步：确认勾选同意收集，就把报告寄出去。',
-    () => { /* no follow-up action — they came from the inline card, not the journey CTA */ }
+    () => { /* no follow-up action — they came from the inline card */ }
   );
-  setTimeout(() => {
-    const modalEmail = document.getElementById('upgradeEmailInput');
-    if (modalEmail) modalEmail.value = email;
-    // Don't auto-submit — let the user see the consent and confirm. The
-    // consent box is pre-checked so a single click on "寄给我" finishes.
-  }, 100);
+  // Set value synchronously — the modal's input already exists in the DOM
+  // (it's just toggled by .show class), so no setTimeout race needed.
+  const modalEmail = document.getElementById('upgradeEmailInput');
+  if (modalEmail) modalEmail.value = email;
   // Hide the inline card so they don't have a redundant form behind the modal
   const c = document.getElementById('resultEmailCard');
   if (c) c.style.display = 'none';
