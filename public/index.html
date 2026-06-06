@@ -1767,9 +1767,71 @@ function renderConstellationProgress(current, total){
 }
 
 // ============================================================
-// GENERATIVE ART SIGNATURE
+// ARCHETYPE PORTRAIT SLOT
 // ============================================================
-function drawGenArt(canvas, archetype, playerName){
+// Earlier this slot rendered a per-archetype "generative signature"
+// (curves for F-axis, polygons for O-axis, etc.) — but it read as
+// scribbled mess, not art. We've yanked that and are showing a
+// placeholder mandala (same mark as favicon / OG image / hero) until
+// the proper portrait illustrations land. The two callsites are
+// preserved so dropping in the new renderer is a one-function swap.
+//
+// Kept the (canvas, archetype, playerName) signature so existing
+// callers don't need to change.
+
+function drawGenArt(canvas, archetype, _playerName){
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width = 220;
+  const h = canvas.height = 220;
+  ctx.clearRect(0, 0, w, h);
+  const cx = w / 2, cy = h / 2;
+
+  // Subtle radial vignette so the mandala feels grounded, not floating
+  // on a flat fill (matches the hero #intro radial gradient mood).
+  const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, w * 0.7);
+  bg.addColorStop(0, 'rgba(26, 26, 46, 0)');
+  bg.addColorStop(1, 'rgba(13, 17, 23, 0)');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, w, h);
+
+  // Soft golden core glow
+  const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, 56);
+  glow.addColorStop(0, 'rgba(201, 168, 76, 0.55)');
+  glow.addColorStop(0.4, 'rgba(201, 168, 76, 0.22)');
+  glow.addColorStop(1, 'rgba(201, 168, 76, 0)');
+  ctx.fillStyle = glow;
+  ctx.beginPath(); ctx.arc(cx, cy, 56, 0, Math.PI * 2); ctx.fill();
+
+  // 4 concentric rings (matches the in-app .mandala — favicon, OG, hero)
+  ctx.lineWidth = 1.3;
+  ctx.strokeStyle = 'rgba(201, 168, 76, 0.55)';
+  ctx.beginPath(); ctx.arc(cx, cy, 88, 0, Math.PI * 2); ctx.stroke();
+
+  ctx.setLineDash([4, 7]);
+  ctx.strokeStyle = 'rgba(201, 168, 76, 0.45)';
+  ctx.beginPath(); ctx.arc(cx, cy, 66, 0, Math.PI * 2); ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.lineWidth = 1.7;
+  ctx.strokeStyle = 'rgba(201, 168, 76, 0.85)';
+  ctx.beginPath(); ctx.arc(cx, cy, 44, 0, Math.PI * 2); ctx.stroke();
+
+  ctx.lineWidth = 1.3;
+  ctx.strokeStyle = 'rgba(212, 118, 42, 0.65)';
+  ctx.beginPath(); ctx.arc(cx, cy, 26, 0, Math.PI * 2); ctx.stroke();
+
+  // Center pearl
+  ctx.fillStyle = '#c9a84c';
+  ctx.beginPath(); ctx.arc(cx, cy, 9, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(245, 240, 232, 0.82)';
+  ctx.beginPath(); ctx.arc(cx, cy, 4.5, 0, Math.PI * 2); ctx.fill();
+
+  // (no archetype-conditional drawing yet — coming with the portrait set)
+}
+
+// Old generative-signature function — kept commented as reference
+// until we wire up the per-archetype portrait set.
+function _drawGenArtLegacy(canvas, archetype, playerName){
   const ctx = canvas.getContext('2d');
   const w = canvas.width = 200;
   const h = canvas.height = 200;
