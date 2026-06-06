@@ -4945,5 +4945,19 @@ async function submitCommitment(){
 <script src="https://unpkg.com/three@0.160.0/build/three.min.js" defer onload="initThreeField()"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+
+<!-- Service Worker: warms cache on first visit so subsequent loads are
+     instant + offline-tolerant. Registered after window load so it never
+     competes with critical-path requests. -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch((e) => {
+      // Don't block the page on SW registration failure
+      console.warn('[sw] register failed', e);
+    });
+  });
+}
+</script>
 </body>
 </html>

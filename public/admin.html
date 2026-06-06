@@ -48,6 +48,33 @@ tr:hover td { background:rgba(201,168,76,0.04); }
 
   <div class="stats-grid" id="statsGrid"></div>
 
+  <div class="section-title">📊 漏斗 · 从匿名 → 邮箱 → 意义之旅 → 周练习</div>
+  <div id="funnelBox" style="margin-bottom:2rem;"></div>
+
+  <div class="section-title">🌱 Act II / III 内容</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin-bottom:2rem;">
+    <div style="padding:1rem;border:1px solid rgba(184,146,255,0.25);background:rgba(184,146,255,0.04);">
+      <div style="font-size:0.75rem;color:rgba(230,237,243,0.5);letter-spacing:0.15em;margin-bottom:0.5rem;">TOP VALUES · 价值观热度</div>
+      <div id="topValues" style="font-size:0.85rem;"></div>
+    </div>
+    <div style="padding:1rem;border:1px solid rgba(255,215,112,0.25);background:rgba(255,215,112,0.04);">
+      <div style="font-size:0.75rem;color:rgba(230,237,243,0.5);letter-spacing:0.15em;margin-bottom:0.5rem;">TOP STRENGTHS · 三盏灯热度</div>
+      <div id="topStrengths" style="font-size:0.85rem;"></div>
+    </div>
+    <div style="padding:1rem;border:1px solid rgba(138,212,200,0.25);background:rgba(138,212,200,0.04);">
+      <div style="font-size:0.75rem;color:rgba(230,237,243,0.5);letter-spacing:0.15em;margin-bottom:0.5rem;">COMMITMENTS · 周练习状态</div>
+      <div id="commitStats" style="font-size:0.85rem;"></div>
+    </div>
+  </div>
+
+  <div class="section-title">最近 20 条 commitments · cron 健康度</div>
+  <div style="overflow-x:auto;margin-bottom:2rem;">
+    <table id="commitTable">
+      <thead><tr><th>created</th><th>email</th><th>原型</th><th>practice</th><th>status</th><th>下次提醒</th></tr></thead>
+      <tbody id="commitBody"></tbody>
+    </table>
+  </div>
+
   <div class="section-title">16 原型分布</div>
   <div class="dist-grid" id="distGrid"></div>
 
@@ -108,6 +135,84 @@ function renderDashboard(data) {
       <div class="dist-count">${d.count}</div>
     </div>
   `).join('');
+
+  // ----- Funnel -----
+  const f = data.funnel || {};
+  const ac = data.actii || {};
+  const a3 = data.actiii || {};
+  // Compute conversion percentages from each step to the next
+  const totalEntries = (f.anonymous_submissions || 0) + (f.leads_started || 0) + (f.leads_q10 || 0) + (f.leads_q20 || 0) + (f.leads_q30 || 0) + (f.leads_completed || 0);
+  const stages = [
+    { label: '匿名完成测试', value: f.anonymous_submissions, color: 'rgba(245,240,232,0.5)' },
+    { label: '留邮箱(started)', value: f.leads_started, color: 'rgba(201,168,76,0.5)' },
+    { label: '答到 Q10', value: f.leads_q10, color: 'rgba(201,168,76,0.7)' },
+    { label: '答到 Q20', value: f.leads_q20, color: 'rgba(201,168,76,0.85)' },
+    { label: '答到 Q30', value: f.leads_q30, color: '#c9a84c' },
+    { label: '完成测试', value: f.leads_completed, color: '#ffd770' },
+    { label: '完成 Act II 价值观', value: ac.values, color: '#b892ff' },
+    { label: '选了三盏灯', value: ac.strengths, color: 'rgba(184,146,255,0.8)' },
+    { label: '写了可能自我', value: ac.bps, color: 'rgba(184,146,255,0.6)' },
+    { label: '做了周承诺 (Act III)', value: a3.total, color: '#8ad4c8' }
+  ];
+  const maxV = Math.max(...stages.map(s => s.value || 0), 1);
+  document.getElementById('funnelBox').innerHTML = stages.map((s, i) => {
+    const v = s.value || 0;
+    const w = Math.max(2, (v / maxV) * 100);
+    const prev = i > 0 ? (stages[i-1].value || 0) : v;
+    const drop = prev > 0 && i > 0 ? (1 - v / prev) * 100 : 0;
+    return `
+      <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.4rem;">
+        <div style="width:140px;font-size:0.78rem;color:rgba(230,237,243,0.7);">${s.label}</div>
+        <div style="flex:1;background:rgba(255,255,255,0.04);height:22px;position:relative;">
+          <div style="background:${s.color};height:100%;width:${w}%;display:flex;align-items:center;padding:0 0.5rem;color:#0d1117;font-size:0.74rem;font-weight:700;">${v}</div>
+        </div>
+        ${i > 0 ? `<div style="width:64px;text-align:right;font-size:0.7rem;color:rgba(255,138,128,${drop > 50 ? 0.85 : 0.4});">${drop.toFixed(0)}% drop</div>` : '<div style="width:64px;"></div>'}
+      </div>
+    `;
+  }).join('');
+
+  // ----- Top values / strengths -----
+  const tv = data.top_values || [];
+  document.getElementById('topValues').innerHTML = tv.length === 0
+    ? '<span style="color:rgba(230,237,243,0.3);">暂无数据</span>'
+    : tv.slice(0, 10).map((v, i) => `<div style="display:flex;justify-content:space-between;padding:0.2rem 0;">
+        <span><span style="color:rgba(230,237,243,0.4);width:1.5em;display:inline-block;">${i+1}.</span>${v.value}</span>
+        <span style="color:#b892ff;">${v.count}</span>
+      </div>`).join('');
+
+  const ts = data.top_strengths || [];
+  document.getElementById('topStrengths').innerHTML = ts.length === 0
+    ? '<span style="color:rgba(230,237,243,0.3);">暂无数据</span>'
+    : ts.slice(0, 10).map((s, i) => `<div style="display:flex;justify-content:space-between;padding:0.2rem 0;">
+        <span><span style="color:rgba(230,237,243,0.4);width:1.5em;display:inline-block;">${i+1}.</span>${s.strength}</span>
+        <span style="color:#ffd770;">${s.count}</span>
+      </div>`).join('');
+
+  // ----- Commitments status -----
+  document.getElementById('commitStats').innerHTML = `
+    <div style="display:flex;justify-content:space-between;padding:0.2rem 0;"><span>总计</span><span style="color:#8ad4c8;font-weight:700;">${a3.total || 0}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:0.2rem 0;"><span>active (待提醒)</span><span style="color:#8ad4c8;">${a3.active || 0}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:0.2rem 0;"><span>done (12周完成)</span><span style="color:rgba(138,212,200,0.6);">${a3.done || 0}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:0.2rem 0;"><span>skipped</span><span style="color:rgba(255,138,128,0.5);">${a3.skipped || 0}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:0.2rem 0;"><span>replaced</span><span style="color:rgba(230,237,243,0.4);">${a3.replaced || 0}</span></div>
+  `;
+
+  // Recent commits table
+  document.getElementById('commitBody').innerHTML = (data.recent_commits || []).map(c => {
+    const created = c.created_at ? new Date(c.created_at * 1000).toLocaleString('zh-CN', {month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '-';
+    const reminded = c.reminded_at ? new Date(c.reminded_at * 1000).toLocaleString('zh-CN', {month:'2-digit',day:'2-digit'}) : '-';
+    const emailMask = c.email ? c.email.replace(/(.{3}).*(@.*)/, '$1***$2') : '-';
+    const practiceShort = (c.practice_text || '').slice(0, 30) + ((c.practice_text || '').length > 30 ? '…' : '');
+    const statusColor = c.status === 'active' ? '#8ad4c8' : c.status === 'done' ? 'rgba(138,212,200,0.6)' : 'rgba(255,138,128,0.5)';
+    return `<tr>
+      <td>${created}</td>
+      <td>${emailMask}</td>
+      <td style="color:#b892ff;">${c.archetype_code || '-'}</td>
+      <td title="${(c.practice_text || '').replace(/"/g,'&quot;')}">${practiceShort}</td>
+      <td style="color:${statusColor};">${c.status}</td>
+      <td>${reminded}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="6" style="text-align:center;color:rgba(230,237,243,0.3);padding:1rem;">暂无承诺记录</td></tr>';
 
   // Daily trend chart
   const dailyData = (data.daily || []).reverse(); // oldest first

@@ -253,11 +253,121 @@ async function handleStats(request, env) {
       ORDER BY date DESC
     `).all();
 
+    // ---- Act II / III funnel & content rollups ----
+    // Funnel by stage (leads.status). Anonymous quiz-takers don't have a
+    // leads row at all — those are captured by `submissionsAnonymous`.
+    const { results: funnelRaw } = await env.DB.prepare(`
+      SELECT status, COUNT(*) as count
+      FROM leads
+      GROUP BY status
+    `).all();
+    const funnelMap = {};
+    (funnelRaw || []).forEach(r => { funnelMap[r.status] = r.count; });
+
+    // Anonymous submitters: completed quiz but no leads row by session_id
+    // (proxy: any submission with NULL email OR no matching leads row).
+    const anonRow = await env.DB.prepare(
+      `SELECT COUNT(*) as c FROM submissions WHERE email IS NULL OR email = ''`
+    ).first();
+
+    // Act II coverage: leads with any artifact written
+    const actIIRow = await env.DB.prepare(`
+      SELECT
+        SUM(CASE WHEN values_json IS NOT NULL AND values_json != '' THEN 1 ELSE 0 END) as values_count,
+        SUM(CASE WHEN strengths_json IS NOT NULL AND strengths_json != '' THEN 1 ELSE 0 END) as strengths_count,
+        SUM(CASE WHEN bps_text IS NOT NULL AND bps_text != '' THEN 1 ELSE 0 END) as bps_count
+      FROM leads
+    `).first();
+
+    // Act III: commitments funnel
+    const commitRow = await env.DB.prepare(`
+      SELECT
+        COUNT(*) as total,
+        SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active,
+        SUM(CASE WHEN status = 'done' THEN 1 ELSE 0 END) as done,
+        SUM(CASE WHEN status = 'skipped' THEN 1 ELSE 0 END) as skipped,
+        SUM(CASE WHEN status = 'replaced' THEN 1 ELSE 0 END) as replaced
+      FROM commitments
+    `).first();
+
+    // Top values from compass picks. values_json is small JSON like
+    // {"core":["顺势","放下"],"domains":{...}} — we LIKE-scan the JSON
+    // text for popularity counts. This is approximate but fast (no fan-out).
+    const { results: rawValues } = await env.DB.prepare(`
+      SELECT values_json FROM leads
+      WHERE values_json IS NOT NULL AND values_json != ''
+      LIMIT 2000
+    `).all();
+    const valueCounts = {};
+    (rawValues || []).forEach(r => {
+      try {
+        const j = JSON.parse(r.values_json);
+        (j.core || []).forEach(v => { valueCounts[v] = (valueCounts[v] || 0) + 1; });
+      } catch (_) {}
+    });
+    const topValues = Object.entries(valueCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 20)
+      .map(([value, count]) => ({ value, count }));
+
+    // Top strengths (三盏灯) similarly
+    const { results: rawStrengths } = await env.DB.prepare(`
+      SELECT strengths_json FROM leads
+      WHERE strengths_json IS NOT NULL AND strengths_json != ''
+      LIMIT 2000
+    `).all();
+    const strengthCounts = {};
+    (rawStrengths || []).forEach(r => {
+      try {
+        const j = JSON.parse(r.strengths_json);
+        const arr = Array.isArray(j) ? j : (j.strengths || []);
+        arr.forEach(v => { strengthCounts[v] = (strengthCounts[v] || 0) + 1; });
+      } catch (_) {}
+    });
+    const topStrengths = Object.entries(strengthCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 20)
+      .map(([strength, count]) => ({ strength, count }));
+
+    // Recent 20 commitments — for cron health visibility.
+    const { results: recentCommits } = await env.DB.prepare(`
+      SELECT email, archetype_code, practice_text, status,
+             week_start, reminded_at, reflected_at, created_at
+      FROM commitments
+      ORDER BY created_at DESC
+      LIMIT 20
+    `).all();
+
     return jsonResponse({
       total: totalRow?.total || 0,
       distribution: distribution || [],
       recent: recent || [],
-      daily: daily || []
+      daily: daily || [],
+      // Act II / III additions
+      funnel: {
+        anonymous_submissions: anonRow?.c || 0,
+        leads_started: funnelMap['started'] || 0,
+        leads_q10: funnelMap['q10'] || 0,
+        leads_q20: funnelMap['q20'] || 0,
+        leads_q30: funnelMap['q30'] || 0,
+        leads_completed: funnelMap['completed'] || 0,
+        leads_emailed: funnelMap['emailed'] || 0
+      },
+      actii: {
+        values: actIIRow?.values_count || 0,
+        strengths: actIIRow?.strengths_count || 0,
+        bps: actIIRow?.bps_count || 0
+      },
+      actiii: {
+        total: commitRow?.total || 0,
+        active: commitRow?.active || 0,
+        done: commitRow?.done || 0,
+        skipped: commitRow?.skipped || 0,
+        replaced: commitRow?.replaced || 0
+      },
+      top_values: topValues,
+      top_strengths: topStrengths,
+      recent_commits: recentCommits || []
     });
   } catch (e) {
     return jsonResponse({ error: e.message }, 500);
