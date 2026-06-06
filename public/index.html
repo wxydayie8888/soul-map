@@ -1769,64 +1769,134 @@ function renderConstellationProgress(current, total){
 // ============================================================
 // ARCHETYPE PORTRAIT SLOT
 // ============================================================
-// Earlier this slot rendered a per-archetype "generative signature"
-// (curves for F-axis, polygons for O-axis, etc.) — but it read as
-// scribbled mess, not art. We've yanked that and are showing a
-// placeholder mandala (same mark as favicon / OG image / hero) until
-// the proper portrait illustrations land. The two callsites are
-// preserved so dropping in the new renderer is a one-function swap.
+// Per-archetype clay-style portraits (see public/portraits/). Each
+// portrait is the same hand-modeled plasticine character generated
+// from docs/portrait-prompts.md.
 //
-// Kept the (canvas, archetype, playerName) signature so existing
-// callers don't need to change.
+// drawGenArt(canvas, archetype, _playerName) — async image load with
+// graceful mandala fallback if the portrait is missing (e.g. FVSW,
+// pending regeneration). Signature kept stable so the two callsites
+// (revealGenArt + resultGenArt) don't need to change.
+
+// Cache of loaded portrait Image objects, keyed by displayCode.
+const _portraitCache = {};
+
+function _portraitUrl(displayCode, small){
+  return '/portraits/clay-' + displayCode + (small ? '-sm' : '') + '.webp';
+}
+
+// Returns an <img> HTML string that loads the clay portrait, falling
+// back to the inline mandala SVG if the portrait file 404s. Used by
+// result-illus and arch-card slots (both DOM-rendered, not canvas).
+function archetypeImgHtml(displayCode, sizePx, options){
+  options = options || {};
+  const small = options.small;
+  const cls = options.className || '';
+  const style = options.style || '';
+  const url = _portraitUrl(displayCode, small);
+  // Tiny inline mandala SVG as the onerror fallback (same mark as
+  // favicon/OG card/hero — keeps the brand intact for missing portraits).
+  const fallback = "data:image/svg+xml;utf8," + encodeURIComponent(
+    "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>" +
+    "<circle cx='50' cy='50' r='40' fill='none' stroke='%23c9a84c' stroke-opacity='0.5' stroke-width='1.5'/>" +
+    "<circle cx='50' cy='50' r='30' fill='none' stroke='%23c9a84c' stroke-opacity='0.4' stroke-width='1' stroke-dasharray='3 4'/>" +
+    "<circle cx='50' cy='50' r='20' fill='none' stroke='%23c9a84c' stroke-opacity='0.85' stroke-width='1.5'/>" +
+    "<circle cx='50' cy='50' r='12' fill='none' stroke='%23d4762a' stroke-opacity='0.65' stroke-width='1.2'/>" +
+    "<circle cx='50' cy='50' r='5' fill='%23c9a84c'/>" +
+    "</svg>"
+  );
+  return '<img src="' + url + '" alt="" loading="lazy" decoding="async" '
+    + 'class="' + cls + '" '
+    + 'style="width:' + sizePx + 'px;height:' + sizePx + 'px;object-fit:contain;border-radius:8px;' + style + '" '
+    + 'onerror="this.onerror=null;this.src=&quot;' + fallback.replace(/"/g, '&quot;') + '&quot;;this.style.objectFit=&quot;contain&quot;;">';
+}
 
 function drawGenArt(canvas, archetype, _playerName){
   const ctx = canvas.getContext('2d');
   const w = canvas.width = 220;
   const h = canvas.height = 220;
   ctx.clearRect(0, 0, w, h);
-  const cx = w / 2, cy = h / 2;
 
-  // Subtle radial vignette so the mandala feels grounded, not floating
-  // on a flat fill (matches the hero #intro radial gradient mood).
+  const code = (archetype && (archetype.displayCode || archetype.code)) || '';
+
+  // Always render the mandala first as a base (so the slot is never
+  // empty during the network round-trip), then paint the portrait on
+  // top once it loads. If loading fails, the mandala stays — the
+  // slot still looks intentional + on-brand.
+  _drawMandalaFallback(ctx, w, h);
+
+  if (!code) return;
+
+  let img = _portraitCache[code];
+  if (img && img.complete && img.naturalWidth > 0) {
+    _drawPortraitOnCanvas(ctx, img, w, h);
+    return;
+  }
+  if (!img) {
+    img = new Image();
+    img.decoding = 'async';
+    img.src = _portraitUrl(code, false);
+    _portraitCache[code] = img;
+  }
+  img.addEventListener('load', () => {
+    if (img.naturalWidth > 0) _drawPortraitOnCanvas(ctx, img, w, h);
+  });
+  img.addEventListener('error', () => {
+    // Mandala already drawn — nothing more to do; portrait is missing
+    // (e.g. FVSW pre-regen). Logging once so the gap is visible in dev.
+    if (!_portraitCache['__warned_' + code]) {
+      _portraitCache['__warned_' + code] = true;
+      console.info('[portrait] missing for', code, '— mandala fallback shown');
+    }
+  });
+}
+
+function _drawPortraitOnCanvas(ctx, img, w, h){
+  ctx.clearRect(0, 0, w, h);
+  // Subtle radial vignette behind so the portrait reads against the
+  // dark page even if its edges fade out.
+  const bg = ctx.createRadialGradient(w/2, h/2, w*0.2, w/2, h/2, w*0.7);
+  bg.addColorStop(0, 'rgba(26, 26, 46, 0.18)');
+  bg.addColorStop(1, 'rgba(13, 17, 23, 0)');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, w, h);
+  // contain-fit the square portrait into the square canvas (1:1 source,
+  // 1:1 canvas — straight cover works perfectly; using slight padding so
+  // the figure isn't kissing the canvas edges).
+  const pad = 6;
+  ctx.drawImage(img, pad, pad, w - pad*2, h - pad*2);
+}
+
+function _drawMandalaFallback(ctx, w, h){
+  const cx = w / 2, cy = h / 2;
   const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, w * 0.7);
   bg.addColorStop(0, 'rgba(26, 26, 46, 0)');
   bg.addColorStop(1, 'rgba(13, 17, 23, 0)');
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, w, h);
-
-  // Soft golden core glow
   const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, 56);
   glow.addColorStop(0, 'rgba(201, 168, 76, 0.55)');
   glow.addColorStop(0.4, 'rgba(201, 168, 76, 0.22)');
   glow.addColorStop(1, 'rgba(201, 168, 76, 0)');
   ctx.fillStyle = glow;
   ctx.beginPath(); ctx.arc(cx, cy, 56, 0, Math.PI * 2); ctx.fill();
-
-  // 4 concentric rings (matches the in-app .mandala — favicon, OG, hero)
   ctx.lineWidth = 1.3;
   ctx.strokeStyle = 'rgba(201, 168, 76, 0.55)';
   ctx.beginPath(); ctx.arc(cx, cy, 88, 0, Math.PI * 2); ctx.stroke();
-
   ctx.setLineDash([4, 7]);
   ctx.strokeStyle = 'rgba(201, 168, 76, 0.45)';
   ctx.beginPath(); ctx.arc(cx, cy, 66, 0, Math.PI * 2); ctx.stroke();
   ctx.setLineDash([]);
-
   ctx.lineWidth = 1.7;
   ctx.strokeStyle = 'rgba(201, 168, 76, 0.85)';
   ctx.beginPath(); ctx.arc(cx, cy, 44, 0, Math.PI * 2); ctx.stroke();
-
   ctx.lineWidth = 1.3;
   ctx.strokeStyle = 'rgba(212, 118, 42, 0.65)';
   ctx.beginPath(); ctx.arc(cx, cy, 26, 0, Math.PI * 2); ctx.stroke();
-
-  // Center pearl
   ctx.fillStyle = '#c9a84c';
   ctx.beginPath(); ctx.arc(cx, cy, 9, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = 'rgba(245, 240, 232, 0.82)';
   ctx.beginPath(); ctx.arc(cx, cy, 4.5, 0, Math.PI * 2); ctx.fill();
-
-  // (no archetype-conditional drawing yet — coming with the portrait set)
 }
 
 // Old generative-signature function — kept commented as reference
@@ -3227,7 +3297,7 @@ function renderResult(){
       <div class="result-rarity-badge ${a.tier}">${tierLabel(a.tier)} · ${a.rarity}%</div>
       <div style="display:flex;gap:2px;justify-content:center;margin:0.6rem 0 0.3rem;align-items:end;">${ARCHETYPES.map(arc=>`<div style="width:${arc.code===a.code?'8':'5'}px;height:${arc.code===a.code?'20':'12'}px;background:${arc.code===a.code?'var(--dopamine)':arc.tier==='legendary'?'rgba(184,146,255,0.4)':arc.tier==='rare'?'rgba(255,215,112,0.3)':'rgba(245,240,232,0.15)'};border-radius:1px;transition:all 0.3s;" title="${arc.displayCode||arc.code} · ${arc.poeticName} ${arc.rarity}%"></div>`).join('')}</div>
       <div style="font-size:0.7rem;color:rgba(245,240,232,0.4);margin-bottom:1rem;">你比 ${100-a.rarity}% 的人更稀有</div>
-      <div class="result-illus">${illus(a.icon)}</div>
+      <div class="result-illus">${archetypeImgHtml(a.displayCode || a.code, 150, {style:'box-shadow:0 0 40px rgba(201,168,76,0.18);'})}</div>
       <div class="result-code-mbti">${a.displayCode||a.code}</div>
       <div class="result-code-legacy">${a.code}</div>
       <h1 class="result-poetic-name">${a.poeticName}</h1>
@@ -3355,7 +3425,7 @@ function renderResult(){
         const isUnlocked = unlocked.includes(arc.code);
         const arcFam = familyOf(arc.displayCode||arc.code);
         if(isUnlocked){
-          return `<div class="arch-card ${isMe?'current':''}" onclick="showArchetypeModal('${arc.code}')" style="border-color:${arcFam.color}55;"><div class="arch-illus">${illus(arc.icon)}</div><div class="arch-code" style="color:${arcFam.color};">${arc.displayCode||arc.code}</div><div class="arch-name">${arc.poeticName}</div><div class="arch-tag">${arc.identityTag}</div></div>`;
+          return `<div class="arch-card ${isMe?'current':''}" onclick="showArchetypeModal('${arc.code}')" style="border-color:${arcFam.color}55;"><div class="arch-illus">${archetypeImgHtml(arc.displayCode||arc.code, 56, {small:true})}</div><div class="arch-code" style="color:${arcFam.color};">${arc.displayCode||arc.code}</div><div class="arch-name">${arc.poeticName}</div><div class="arch-tag">${arc.identityTag}</div></div>`;
         }
         return `<div class="arch-card locked" onclick="promptUnlock()" style="cursor:pointer;opacity:0.35;filter:grayscale(1);position:relative;"><div class="arch-illus" style="font-size:2rem;opacity:0.4;">🔒</div><div class="arch-code" style="color:rgba(245,240,232,0.35);">${(arc.displayCode||arc.code).replace(/./g,'?')}</div><div class="arch-name">未知灵魂</div><div class="arch-tag">邀请朋友解锁</div></div>`;
       }).join('')}</div>
@@ -3408,7 +3478,7 @@ function integrationText(score){
 function showArchetypeModal(code){
   const a = getArchetype(code);
   $('modalContent').innerHTML = `
-    <div style="width:80px;height:80px;margin-bottom:1rem;">${illus(a.icon)}</div>
+    <div style="width:80px;height:80px;margin-bottom:1rem;">${archetypeImgHtml(a.displayCode||a.code, 80, {small:true})}</div>
     <div style="font-family:'Playfair Display',serif;font-size:1.9rem;color:var(--legendary);letter-spacing:0.25em;font-weight:700;margin-bottom:0.3rem;text-shadow:0 0 25px rgba(184,146,255,0.4);">${a.displayCode||a.code}</div>
     <div style="font-size:0.7rem;letter-spacing:0.25em;color:rgba(201,168,76,0.5);margin-bottom:0.8rem;">${a.code} · ${tierLabel(a.tier)} ${a.rarity}%</div>
     <h3 class="modal-title">${a.poeticName}</h3>
