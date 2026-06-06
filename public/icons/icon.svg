@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Brand mark: gold mandala on dark navy. Geometric, language-neutral,
+       reads at 16px (favicon) up to 512px (PWA install). -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="65%">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#0d1117"/>
+    </radialGradient>
+    <radialGradient id="coreGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#c9a84c" stop-opacity="1"/>
+      <stop offset="40%" stop-color="#c9a84c" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#c9a84c" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- Background with subtle vignette -->
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <!-- 4 concentric rings: matches the in-app mandala (var-opacity, var-style) -->
+  <g fill="none" stroke="#c9a84c">
+    <circle cx="256" cy="256" r="200" stroke-opacity="0.5" stroke-width="2"/>
+    <circle cx="256" cy="256" r="155" stroke-opacity="0.45" stroke-width="2" stroke-dasharray="6 8"/>
+    <circle cx="256" cy="256" r="108" stroke-opacity="0.85" stroke-width="2.5"/>
+    <circle cx="256" cy="256" r="62" stroke-opacity="0.6" stroke-width="2" stroke="#d4762a"/>
+  </g>
+  <!-- Center glow + dot -->
+  <circle cx="256" cy="256" r="60" fill="url(#coreGlow)"/>
+  <circle cx="256" cy="256" r="16" fill="#c9a84c"/>
+  <circle cx="256" cy="256" r="8" fill="#f5f0e8" opacity="0.8"/>
+</svg>

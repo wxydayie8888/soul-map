@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Maskable variant: same brand mark but with 20% inner safe-area padding
+       so that Android adaptive-icon masks (circle, squircle, etc.) don't
+       crop the mandala. Rings scale to fit within the 60% center. -->
+  <defs>
+    <radialGradient id="bg2" cx="50%" cy="50%" r="80%">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#0d1117"/>
+    </radialGradient>
+    <radialGradient id="coreGlow2" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#c9a84c" stop-opacity="1"/>
+      <stop offset="40%" stop-color="#c9a84c" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#c9a84c" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg2)"/>
+  <!-- Rings constrained to inner 60% safe area (r ≤ 153) -->
+  <g fill="none" stroke="#c9a84c">
+    <circle cx="256" cy="256" r="150" stroke-opacity="0.55" stroke-width="3"/>
+    <circle cx="256" cy="256" r="115" stroke-opacity="0.5" stroke-width="2.5" stroke-dasharray="6 8"/>
+    <circle cx="256" cy="256" r="80" stroke-opacity="0.85" stroke-width="3"/>
+    <circle cx="256" cy="256" r="45" stroke-opacity="0.65" stroke-width="2.5" stroke="#d4762a"/>
+  </g>
+  <circle cx="256" cy="256" r="46" fill="url(#coreGlow2)"/>
+  <circle cx="256" cy="256" r="14" fill="#c9a84c"/>
+  <circle cx="256" cy="256" r="7" fill="#f5f0e8" opacity="0.8"/>
+</svg>
