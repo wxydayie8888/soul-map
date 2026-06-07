@@ -3045,6 +3045,17 @@ function getArchetype(code){
 // ============================================================
 // AXES REVEAL
 // ============================================================
+// Map a normalized axis score (state.scores is ±100) to a percentage
+// position on the vertical bar (0% top = max positive, 100% bottom = max
+// negative). Uses tanh so the typical observed range (±20-30) lands well
+// into the upper/lower thirds — without this, scores like +18 visually
+// sit only ~9% off-center and the reveal feels muted. Steeper-than-
+// identity slope through 0, asymptotic toward 4%/96% as |score| → 100.
+function scoreToAxisPct(score){
+  // Math.tanh is ES6+ — supported everywhere this app's font stack works.
+  return 50 - 46 * Math.tanh(score / 18);
+}
+
 function renderAxesReveal(){
   showScreen('axes-reveal');
   const axes = [
@@ -3055,13 +3066,12 @@ function renderAxesReveal(){
   ];
   $('verticalAxes').innerHTML = axes.map(a=>{
     const score = state.scores[a.key];
-    const pct = 50 - score/2; // top=more positive
     return `<div class="vaxis"><div class="vaxis-label-top">${a.top}</div><div class="vaxis-bar"><div class="vaxis-mid"></div><div class="vaxis-dot" id="vdot${a.key}" style="top:50%"></div></div><div class="vaxis-label-bot">${a.bot}</div><div class="vaxis-name">${a.key}</div><div class="vaxis-score">${score>=0?'+':''}${score}</div></div>`;
   }).join('');
   setTimeout(()=>{
     axes.forEach((a,i)=>setTimeout(()=>{
       const dot = $('vdot'+a.key);
-      const pct = 50 - state.scores[a.key]/2;
+      const pct = scoreToAxisPct(state.scores[a.key]);
       dot.style.top = pct+'%';
       dot.classList.add('revealed');
     }, i*300));
