@@ -347,6 +347,12 @@ input[type="text"], input[type="email"], input[type="number"], textarea, select 
 .int-axis-name { font-family: 'Noto Serif SC', serif; color: var(--gold); font-size: 1.1rem; margin-bottom: 0.3rem; letter-spacing: 0.1em; }
 .int-grade { font-size: 0.9rem; color: var(--parchment); margin-bottom: 0.2rem; letter-spacing: 0.08em; }
 .int-score { font-family: 'Playfair Display', serif; font-size: 0.85rem; color: rgba(201,168,76,0.6); }
+/* Tanh-positioned amplitude bar — mirrors the axes-reveal screen so a
+   +18 score actually reads as "strongly +", not "barely off-center". */
+.int-bar { position: relative; width: 78%; height: 3px; margin: 0.85rem auto 0.2rem; background: rgba(245,240,232,0.1); border-radius: 2px; }
+.int-bar-mid { position: absolute; top: -4px; bottom: -4px; left: 50%; width: 1px; background: rgba(245,240,232,0.2); }
+.int-bar-dot { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 11px; height: 11px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 12px rgba(201,168,76,0.55); transition: left 0.9s cubic-bezier(.2,.8,.2,1); }
+.int-bar-ends { display: flex; justify-content: space-between; font-size: 0.62rem; color: rgba(245,240,232,0.35); letter-spacing: 0.06em; margin-top: 0.3rem; padding: 0 2px; }
 
 .figures-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.85rem; }
 .figure-card { padding: 0.9rem; border: 1px solid rgba(245,240,232,0.1); background: rgba(245,240,232,0.02); transition: all 0.3s; }
@@ -1133,12 +1139,13 @@ input[type="text"], input[type="email"], input[type="number"], textarea, select 
   <div class="modal">
     <button class="modal-close" onclick="closeShareModal()">×</button>
     <h3 class="modal-title">分享你的灵魂地图</h3>
-    <div class="share-format-tabs" id="shareFormatTabs"></div>
+    <p class="modal-sub" style="text-align:center;color:rgba(245,240,232,0.55);font-size:0.84rem;letter-spacing:0.08em;margin:-0.3rem 0 1rem;">一张图发朋友圈 · 1080×1080</p>
     <div class="share-card-preview"><canvas id="shareCanvas"></canvas></div>
     <div class="action-row">
-      <button class="action-btn" onclick="downloadShareCard()">下载图片</button>
-      <button class="action-btn ghost" onclick="copyShareCardToClipboard()">复制到剪贴板</button>
+      <button class="action-btn" onclick="downloadShareCard()">📥 下载到相册</button>
+      <button class="action-btn ghost" onclick="copyShareCardToClipboard()">📋 复制到剪贴板</button>
     </div>
+    <p style="text-align:center;color:rgba(245,240,232,0.4);font-size:0.74rem;margin-top:0.8rem;">手机端长按图片可直接保存</p>
   </div>
 </div>
 
@@ -3364,7 +3371,22 @@ function renderResult(){
     <div class="result-section" id="rs1">
       <h2 class="section-title">四轴强度</h2>
       <div class="intensity-grid">
-        ${['S','M','W','A'].map(ax=>`<div class="intensity-card"><div class="int-axis-name">${ax}</div><div class="int-grade">${state.intensities[ax]}</div><div class="int-score">${state.scores[ax]>=0?'+':''}${state.scores[ax]}</div></div>`).join('')}
+        ${(()=>{
+          const AXIS_ENDS = {
+            S: ['结构','自主'], M: ['理性','德性'], W: ['此世','超越'], A: ['独行','织网']
+          };
+          return ['S','M','W','A'].map(ax => {
+            const s = state.scores[ax] || 0;
+            const leftPct = 50 + 46 * Math.tanh(s / 18);
+            return `<div class="intensity-card">
+              <div class="int-axis-name">${ax}</div>
+              <div class="int-grade">${state.intensities[ax]}</div>
+              <div class="int-score">${s >= 0 ? '+' : ''}${s}</div>
+              <div class="int-bar"><div class="int-bar-mid"></div><div class="int-bar-dot" style="left:${leftPct.toFixed(1)}%"></div></div>
+              <div class="int-bar-ends"><span>${AXIS_ENDS[ax][0]} −</span><span>+ ${AXIS_ENDS[ax][1]}</span></div>
+            </div>`;
+          }).join('');
+        })()}
       </div>
     </div>
 
@@ -3876,17 +3898,17 @@ async function generatePDFBase64(){
 // ============================================================
 // SHARE CARD (Canvas)
 // ============================================================
+// One canonical share card — 1080×1080 (朋友圈 / Moments size, also works
+// for Xiaohongshu and any other square-friendly platform). Earlier we
+// shipped 5 formats with tabs; the redesigned card embeds the clay
+// portrait as the hero visual, which only makes sense at one shape.
 const SHARE_FORMATS = {
-  square: { name:'朋友圈（方）', w:1080, h:1080 },
-  xhs: { name:'小红书 (3:4)', w:1080, h:1440 },
-  namecard: { name:'灵魂名片', w:480, h:480 },
-  weibo: { name:'微博（横）', w:1280, h:720 },
-  wechat: { name:'微信对话', w:900, h:1200 }
+  square: { name:'朋友圈', w:1080, h:1080 }
 };
 
 function openShareModal(){
+  state.shareFormat = 'square';
   $('shareModal').classList.add('show');
-  $('shareFormatTabs').innerHTML = Object.entries(SHARE_FORMATS).map(([k,f])=>`<button class="share-format-tab ${k===state.shareFormat?'active':''}" onclick="switchShareFormat('${k}')">${f.name}</button>`).join('');
   drawShareCard();
 }
 
@@ -3930,114 +3952,275 @@ async function _ensureShareFonts(){
   _shareFontsLoaded = true;
 }
 function drawShareCard(){
-  _ensureShareFonts().then(()=>_drawShareCardInner());
+  // Wait for fonts first (otherwise the export PNG renders with fallback
+  // sans-serif), then wait for the archetype's clay portrait so the hero
+  // visual isn't a flash of empty box. Both resolve quickly on warm cache.
+  _ensureShareFonts().then(_ensureSharePortrait).then(()=>_drawShareCardInner());
 }
+
+// Load the current archetype's portrait into _portraitCache (if it isn't
+// already there) and resolve when it's decoded. Resolves on error too so
+// missing portraits (e.g. FVSW) fall back to the inline mandala drawing
+// rather than blocking the share card forever.
+function _ensureSharePortrait(){
+  const a = getArchetype();
+  const code = a.displayCode || a.code;
+  return new Promise((resolve) => {
+    const cached = _portraitCache[code];
+    if (cached && cached.complete) return resolve();
+    const img = cached || new Image();
+    img.decoding = 'async';
+    img.crossOrigin = 'anonymous'; // needed to drawImage onto canvas without tainting
+    if (!cached) { _portraitCache[code] = img; img.src = _portraitUrl(code, false); }
+    if (img.complete) return resolve();
+    const done = () => resolve();
+    img.addEventListener('load', done, { once: true });
+    img.addEventListener('error', done, { once: true });
+    // belt-and-suspenders timeout so the share card always renders
+    setTimeout(done, 1500);
+  });
+}
+
 function _drawShareCardInner(){
-  const fmt = SHARE_FORMATS[state.shareFormat];
+  const fmt = SHARE_FORMATS[state.shareFormat] || SHARE_FORMATS.square;
   const canvas = $('shareCanvas');
   canvas.width = fmt.w; canvas.height = fmt.h;
   canvas.style.maxWidth = Math.min(fmt.w, 520)+'px';
   const ctx = canvas.getContext('2d');
   const a = getArchetype();
+  const W = fmt.w, H = fmt.h;
+  const isLegend = a.tier === 'legendary';
+  const accent = isLegend ? '#b892ff' : '#c9a84c';
 
-  // background gradient
-  const grad = ctx.createLinearGradient(0,0,fmt.w,fmt.h);
-  grad.addColorStop(0,'#1a1a2e'); grad.addColorStop(0.5,'#0f1624'); grad.addColorStop(1,'#05060c');
-  ctx.fillStyle = grad; ctx.fillRect(0,0,fmt.w,fmt.h);
+  // ----- 1. Background — radial vignette + subtle starfield -----
+  const bg = ctx.createRadialGradient(W/2, H*0.35, 0, W/2, H*0.5, W*0.85);
+  bg.addColorStop(0, '#1a1a2e');
+  bg.addColorStop(0.55, '#0f1624');
+  bg.addColorStop(1, '#05060c');
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
 
-  // border — legendary gets triple golden glow
-  if(a.tier==='legendary'){
-    ctx.shadowColor = 'rgba(184,146,255,0.6)'; ctx.shadowBlur = 30;
-    ctx.strokeStyle = '#b892ff'; ctx.lineWidth = 3;
-    ctx.strokeRect(35,35,fmt.w-70,fmt.h-70);
-    ctx.shadowBlur = 0;
-    // legendary banner
-    ctx.fillStyle = 'rgba(184,146,255,0.15)';
-    ctx.fillRect(0,0,fmt.w,60);
-    ctx.fillStyle = '#b892ff';
-    ctx.font = 'bold 18px "Playfair Display"';
-    ctx.textAlign = 'center';
-    ctx.fillText('✦  LEGENDARY  ✦', fmt.w/2, 40);
-  } else {
-    ctx.strokeStyle = 'rgba(201,168,76,0.35)'; ctx.lineWidth = 2;
-    ctx.strokeRect(40,40,fmt.w-80,fmt.h-80);
+  // Stars — deterministic from the archetype code so each archetype has
+  // a stable starfield (replay-friendly, not jittery).
+  const starSeed = (a.displayCode || a.code).split('').reduce((s,c)=>((s<<5)-s+c.charCodeAt(0))|0, 0);
+  let _seed = Math.abs(starSeed) || 1;
+  const rng = () => { _seed = (_seed * 16807) % 2147483647; return _seed / 2147483647; };
+  ctx.fillStyle = 'rgba(245,240,232,0.55)';
+  for (let i = 0; i < 90; i++) {
+    const x = rng() * W;
+    const y = rng() * H * 0.55;
+    const r = rng() * 1.5 + 0.4;
+    ctx.globalAlpha = 0.2 + rng() * 0.5;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.fill();
   }
+  ctx.globalAlpha = 1;
 
-  // decorative gold lines
-  ctx.strokeStyle = a.tier==='legendary'?'rgba(184,146,255,0.6)':'rgba(201,168,76,0.6)'; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(fmt.w/2-120,120); ctx.lineTo(fmt.w/2+120,120); ctx.stroke();
+  // ----- 2. Outer frame with corner ticks -----
+  ctx.strokeStyle = isLegend ? 'rgba(184,146,255,0.6)' : 'rgba(201,168,76,0.45)';
+  ctx.lineWidth = isLegend ? 3 : 2;
+  if (isLegend) { ctx.shadowColor = 'rgba(184,146,255,0.55)'; ctx.shadowBlur = 24; }
+  ctx.strokeRect(36, 36, W - 72, H - 72);
+  ctx.shadowBlur = 0;
+  // Corner ticks (dark academia trim)
+  ctx.strokeStyle = accent;
+  ctx.lineWidth = 2;
+  const TICK = 24;
+  [[36,36,1,1],[W-36,36,-1,1],[36,H-36,1,-1],[W-36,H-36,-1,-1]].forEach(([cx,cy,sx,sy]) => {
+    ctx.beginPath();
+    ctx.moveTo(cx, cy + TICK*sy); ctx.lineTo(cx, cy); ctx.lineTo(cx + TICK*sx, cy);
+    ctx.stroke();
+  });
 
-  // top eyebrow
-  ctx.fillStyle = 'rgba(201,168,76,0.7)';
-  ctx.font = '300 22px "Noto Serif SC"';
+  // ----- 3. Top eyebrow -----
   ctx.textAlign = 'center';
-  ctx.fillText('灵 魂 地 图 · SOUL CARTOGRAPHY', fmt.w/2, 95);
+  ctx.fillStyle = 'rgba(245,240,232,0.55)';
+  ctx.font = '300 italic 22px "Playfair Display", serif';
+  ctx.fillText('PHILOSOPHICAL  SOUL  CARTOGRAPHY', W/2, 105);
+  // brand mark
+  ctx.fillStyle = accent;
+  ctx.font = '500 18px "Noto Serif SC", serif';
+  ctx.fillText('· 灵 魂 地 图 ·', W/2, 138);
+  // thin divider under eyebrow
+  ctx.strokeStyle = 'rgba(201,168,76,0.25)';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(W/2 - 140, 162); ctx.lineTo(W/2 + 140, 162); ctx.stroke();
 
-  // rarity badge
-  const rarityText = `稀有度 ${a.rarity}% · ${tierLabel(a.tier)}`;
-  ctx.fillStyle = a.tier==='legendary'?'#b892ff':a.tier==='rare'?'#ffd770':a.tier==='uncommon'?'#8ad4c8':'#a8a8a8';
-  ctx.font = '500 24px "Noto Sans SC"';
-  ctx.fillText(rarityText, fmt.w/2, 175);
+  // ----- 4. CLAY PORTRAIT — the hero visual -----
+  const portraitSize = 460;
+  const portraitX = W/2 - portraitSize/2;
+  const portraitY = 195;
+  const portraitImg = _portraitCache[a.displayCode || a.code];
 
-  // MBTI-style displayCode (large)
+  // soft golden glow behind portrait
+  const glow = ctx.createRadialGradient(W/2, portraitY + portraitSize/2, 0, W/2, portraitY + portraitSize/2, portraitSize*0.65);
+  glow.addColorStop(0, isLegend ? 'rgba(184,146,255,0.35)' : 'rgba(201,168,76,0.32)');
+  glow.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = glow;
+  ctx.fillRect(portraitX - 60, portraitY - 60, portraitSize + 120, portraitSize + 120);
+
+  // Rounded clip + portrait or mandala fallback
+  ctx.save();
+  const radius = 24;
+  ctx.beginPath();
+  ctx.moveTo(portraitX + radius, portraitY);
+  ctx.lineTo(portraitX + portraitSize - radius, portraitY);
+  ctx.quadraticCurveTo(portraitX + portraitSize, portraitY, portraitX + portraitSize, portraitY + radius);
+  ctx.lineTo(portraitX + portraitSize, portraitY + portraitSize - radius);
+  ctx.quadraticCurveTo(portraitX + portraitSize, portraitY + portraitSize, portraitX + portraitSize - radius, portraitY + portraitSize);
+  ctx.lineTo(portraitX + radius, portraitY + portraitSize);
+  ctx.quadraticCurveTo(portraitX, portraitY + portraitSize, portraitX, portraitY + portraitSize - radius);
+  ctx.lineTo(portraitX, portraitY + radius);
+  ctx.quadraticCurveTo(portraitX, portraitY, portraitX + radius, portraitY);
+  ctx.closePath();
+  ctx.clip();
+  if (portraitImg && portraitImg.complete && portraitImg.naturalWidth > 0) {
+    try { ctx.drawImage(portraitImg, portraitX, portraitY, portraitSize, portraitSize); }
+    catch (e) { _drawSharePortraitFallback(ctx, W/2, portraitY + portraitSize/2, portraitSize/2 - 20); }
+  } else {
+    _drawSharePortraitFallback(ctx, W/2, portraitY + portraitSize/2, portraitSize/2 - 20);
+  }
+  ctx.restore();
+  // Portrait border ring (over the clip, so it looks like a frame)
+  ctx.strokeStyle = isLegend ? 'rgba(184,146,255,0.8)' : 'rgba(201,168,76,0.6)';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(portraitX + radius, portraitY);
+  ctx.lineTo(portraitX + portraitSize - radius, portraitY);
+  ctx.quadraticCurveTo(portraitX + portraitSize, portraitY, portraitX + portraitSize, portraitY + radius);
+  ctx.lineTo(portraitX + portraitSize, portraitY + portraitSize - radius);
+  ctx.quadraticCurveTo(portraitX + portraitSize, portraitY + portraitSize, portraitX + portraitSize - radius, portraitY + portraitSize);
+  ctx.lineTo(portraitX + radius, portraitY + portraitSize);
+  ctx.quadraticCurveTo(portraitX, portraitY + portraitSize, portraitX, portraitY + portraitSize - radius);
+  ctx.lineTo(portraitX, portraitY + radius);
+  ctx.quadraticCurveTo(portraitX, portraitY, portraitX + radius, portraitY);
+  ctx.closePath();
+  ctx.stroke();
+
+  // ----- 5. Rarity badge (pill, right under portrait) -----
+  const tier = tierLabel(a.tier);
+  const rarityText = `${tier} · ${a.rarity}%`;
+  ctx.font = '600 24px "Noto Sans SC", sans-serif';
+  const rarityTextWidth = ctx.measureText(rarityText).width;
+  const pillW = rarityTextWidth + 40, pillH = 42, pillY = portraitY + portraitSize + 28;
+  const pillX = W/2 - pillW/2;
+  // pill bg
+  ctx.fillStyle = isLegend ? 'rgba(184,146,255,0.15)' : 'rgba(201,168,76,0.12)';
+  ctx.strokeStyle = isLegend ? 'rgba(184,146,255,0.6)' : 'rgba(201,168,76,0.55)';
+  ctx.lineWidth = 1.5;
+  _roundedRect(ctx, pillX, pillY, pillW, pillH, pillH/2);
+  ctx.fill(); ctx.stroke();
+  ctx.fillStyle = isLegend ? '#b892ff' : (a.tier === 'rare' ? '#ffd770' : a.tier === 'uncommon' ? '#8ad4c8' : '#c9a84c');
+  ctx.fillText(rarityText, W/2, pillY + 28);
+
+  // ----- 6. Display code (small, purple, eyebrow above the name) -----
   ctx.fillStyle = '#b892ff';
-  ctx.font = 'bold 56px "Playfair Display"';
-  ctx.fillText(a.displayCode||a.code, fmt.w/2, 240);
-  // legacy code (small)
-  ctx.fillStyle = 'rgba(201,168,76,0.4)';
-  ctx.font = '300 18px "Playfair Display"';
-  ctx.fillText(a.code, fmt.w/2, 270);
+  ctx.font = 'bold 26px "Playfair Display", serif';
+  ctx.letterSpacing = '0.3em';
+  ctx.fillText((a.displayCode || a.code).split('').join(' '), W/2, pillY + 90);
 
-  // poetic name (large)
-  ctx.fillStyle = '#c9a84c';
-  const nameFontSize = fmt.w < 1000 ? 80 : fmt.w > 1200 ? 90 : 100;
-  ctx.font = `700 ${nameFontSize}px "Noto Serif SC"`;
-  ctx.fillText(a.poeticName, fmt.w/2, fmt.h/2 - 60);
+  // ----- 7. Poetic name (HUGE, gold, the main eyeball) -----
+  ctx.fillStyle = accent;
+  if (isLegend) { ctx.shadowColor = 'rgba(184,146,255,0.5)'; ctx.shadowBlur = 18; }
+  // dynamically size to fit width
+  let nameSize = a.poeticName.length <= 4 ? 96 : a.poeticName.length === 5 ? 86 : 76;
+  ctx.font = `700 ${nameSize}px "Noto Serif SC", serif`;
+  ctx.fillText(a.poeticName, W/2, pillY + 175);
+  ctx.shadowBlur = 0;
 
-  // identity tag
+  // ----- 8. Identity tag (purple) -----
   ctx.fillStyle = '#b892ff';
-  ctx.font = '500 32px "Noto Sans SC"';
-  ctx.fillText(a.identityTag, fmt.w/2, fmt.h/2 + 10);
+  ctx.font = '500 26px "Noto Sans SC", sans-serif';
+  ctx.fillText(a.identityTag, W/2, pillY + 220);
 
-  // slogan (wrapped)
-  ctx.fillStyle = 'rgba(245,240,232,0.85)';
-  ctx.font = 'italic 34px "Noto Serif SC"';
-  const sloganLines = wrapText(ctx, a.slogan, fmt.w - 200);
-  sloganLines.forEach((line,i)=>{
-    ctx.fillText(line, fmt.w/2, fmt.h/2 + 90 + i*50);
-  });
+  // ----- 9. Slogan (italic, wrapped, ≤2 lines) -----
+  ctx.fillStyle = 'rgba(245,240,232,0.82)';
+  ctx.font = 'italic 26px "Noto Serif SC", serif';
+  const sloganLines = wrapText(ctx, a.slogan, W - 180).slice(0, 2);
+  sloganLines.forEach((line, i) => ctx.fillText('"' + line.replace(/^"|"$/g,'') + '"', W/2, pillY + 270 + i * 38));
 
-  // axes mini
-  const axY = fmt.h - 240;
-  ctx.fillStyle = 'rgba(245,240,232,0.4)';
-  ctx.font = '400 18px "Noto Sans SC"';
-  ['S','M','W','A'].forEach((ax,i)=>{
-    const x = fmt.w/2 - 180 + i*120;
-    ctx.fillStyle = 'rgba(245,240,232,0.4)';
-    ctx.fillText(ax, x, axY);
-    // bar
-    ctx.strokeStyle = 'rgba(245,240,232,0.15)';
-    ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(x-30,axY+20); ctx.lineTo(x+30,axY+20); ctx.stroke();
-    // dot
-    const pos = x + (state.scores[ax]/100)*28;
-    ctx.fillStyle = '#c9a84c';
-    ctx.beginPath(); ctx.arc(pos, axY+20, 5, 0, Math.PI*2); ctx.fill();
+  // ----- 10. Four axes mini-bars (tanh-amplified) -----
+  const axY = H - 175;
+  const axesWidth = 720;
+  const axesX0 = W/2 - axesWidth/2;
+  const axGap = axesWidth / 4;
+  ['S','M','W','A'].forEach((ax, i) => {
+    const cx = axesX0 + axGap * (i + 0.5);
+    const barLen = 110, barH = 4;
+    const bx = cx - barLen/2, by = axY;
+    // label
+    ctx.fillStyle = 'rgba(245,240,232,0.5)';
+    ctx.font = '500 18px "Playfair Display", serif';
+    ctx.fillText(ax, cx, by - 14);
+    // bar background
+    ctx.fillStyle = 'rgba(245,240,232,0.12)';
+    _roundedRect(ctx, bx, by, barLen, barH, barH/2);
+    ctx.fill();
+    // mid mark
+    ctx.fillStyle = 'rgba(245,240,232,0.25)';
+    ctx.fillRect(cx - 0.5, by - 3, 1, barH + 6);
+    // dot — tanh curve, asymptotic at ±barLen/2 - 3
+    const t = Math.tanh((state.scores[ax] || 0) / 18);
+    const dotX = cx + t * (barLen/2 - 3);
+    ctx.fillStyle = accent;
+    ctx.beginPath(); ctx.arc(dotX, by + barH/2, 7, 0, Math.PI*2); ctx.fill();
     // score
-    ctx.fillStyle = 'rgba(201,168,76,0.75)';
-    ctx.font = '500 16px "Playfair Display"';
-    ctx.fillText((state.scores[ax]>=0?'+':'')+state.scores[ax], x, axY+50);
+    ctx.fillStyle = 'rgba(201,168,76,0.7)';
+    ctx.font = '500 17px "Playfair Display", serif';
+    ctx.fillText(((state.scores[ax]||0) >= 0 ? '+' : '') + (state.scores[ax]||0), cx, by + 30);
   });
 
-  // player name
-  ctx.fillStyle = 'rgba(245,240,232,0.5)';
-  ctx.font = '300 22px "Noto Serif SC"';
-  ctx.fillText(`旅人 · ${state.playerName}`, fmt.w/2, fmt.h - 120);
+  // ----- 11. Player name + URL footer -----
+  ctx.fillStyle = 'rgba(245,240,232,0.45)';
+  ctx.font = '300 22px "Noto Serif SC", serif';
+  ctx.fillText(`旅 人 · ${state.playerName || '匿名'}`, W/2, H - 90);
+  // URL — the watermark / call-to-action
+  ctx.fillStyle = isLegend ? 'rgba(184,146,255,0.7)' : 'rgba(201,168,76,0.7)';
+  ctx.font = '600 italic 22px "Playfair Display", serif';
+  ctx.fillText('soulmap.games', W/2, H - 55);
+}
 
-  // footer
-  ctx.fillStyle = 'rgba(201,168,76,0.4)';
-  ctx.font = '300 18px "Noto Sans SC"';
-  ctx.fillText('40 题 · 16 原型 · 东西方哲学', fmt.w/2, fmt.h - 70);
+// Helper — rounded rect (canvas roundRect isn't on all browsers yet)
+function _roundedRect(ctx, x, y, w, h, r){
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+// Helper — when the portrait file is missing (e.g. FVSW pre-regen), draw
+// the brand mandala on the share card so the hero slot still feels intentional.
+function _drawSharePortraitFallback(ctx, cx, cy, r){
+  ctx.fillStyle = '#1a1a2e';
+  ctx.fillRect(cx - r, cy - r, r*2, r*2);
+  // outer ring
+  ctx.strokeStyle = 'rgba(201,168,76,0.55)';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.arc(cx, cy, r * 0.85, 0, Math.PI*2); ctx.stroke();
+  // dashed ring
+  ctx.strokeStyle = 'rgba(201,168,76,0.45)';
+  ctx.lineWidth = 1.8;
+  ctx.setLineDash([8, 12]);
+  ctx.beginPath(); ctx.arc(cx, cy, r * 0.65, 0, Math.PI*2); ctx.stroke();
+  ctx.setLineDash([]);
+  // mid ring
+  ctx.strokeStyle = 'rgba(201,168,76,0.9)';
+  ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.arc(cx, cy, r * 0.42, 0, Math.PI*2); ctx.stroke();
+  // inner orange ring
+  ctx.strokeStyle = 'rgba(212,118,42,0.7)';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.arc(cx, cy, r * 0.25, 0, Math.PI*2); ctx.stroke();
+  // center pearl
+  ctx.fillStyle = '#c9a84c';
+  ctx.beginPath(); ctx.arc(cx, cy, r * 0.1, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = 'rgba(245,240,232,0.85)';
+  ctx.beginPath(); ctx.arc(cx, cy, r * 0.05, 0, Math.PI*2); ctx.fill();
 }
 
 function wrapText(ctx, text, maxWidth){
