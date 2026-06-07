@@ -4045,9 +4045,11 @@ function _drawShareCardInner(){
   ctx.beginPath(); ctx.moveTo(W/2 - 140, 162); ctx.lineTo(W/2 + 140, 162); ctx.stroke();
 
   // ----- 4. CLAY PORTRAIT — the hero visual -----
-  const portraitSize = 460;
+  // Sized so the rest of the card has room for pill + code + name + tag +
+  // slogan + axes + footer without collision. 400×400 is the sweet spot.
+  const portraitSize = 400;
   const portraitX = W/2 - portraitSize/2;
-  const portraitY = 195;
+  const portraitY = 180;
   const portraitImg = _portraitCache[a.displayCode || a.code];
 
   // soft golden glow behind portrait
@@ -4095,51 +4097,50 @@ function _drawShareCardInner(){
   ctx.closePath();
   ctx.stroke();
 
-  // ----- 5. Rarity badge (pill, right under portrait) -----
+  // ----- 5. Rarity pill (right under portrait) -----
   const tier = tierLabel(a.tier);
   const rarityText = `${tier} · ${a.rarity}%`;
-  ctx.font = '600 24px "Noto Sans SC", sans-serif';
+  ctx.font = '600 22px "Noto Sans SC", sans-serif';
   const rarityTextWidth = ctx.measureText(rarityText).width;
-  const pillW = rarityTextWidth + 40, pillH = 42, pillY = portraitY + portraitSize + 28;
+  const pillW = rarityTextWidth + 36, pillH = 38;
+  const pillY = portraitY + portraitSize + 22;          // 600
   const pillX = W/2 - pillW/2;
-  // pill bg
   ctx.fillStyle = isLegend ? 'rgba(184,146,255,0.15)' : 'rgba(201,168,76,0.12)';
   ctx.strokeStyle = isLegend ? 'rgba(184,146,255,0.6)' : 'rgba(201,168,76,0.55)';
   ctx.lineWidth = 1.5;
   _roundedRect(ctx, pillX, pillY, pillW, pillH, pillH/2);
   ctx.fill(); ctx.stroke();
   ctx.fillStyle = isLegend ? '#b892ff' : (a.tier === 'rare' ? '#ffd770' : a.tier === 'uncommon' ? '#8ad4c8' : '#c9a84c');
-  ctx.fillText(rarityText, W/2, pillY + 28);
+  ctx.fillText(rarityText, W/2, pillY + 25);
 
   // ----- 6. Display code (small, purple, eyebrow above the name) -----
   ctx.fillStyle = '#b892ff';
-  ctx.font = 'bold 26px "Playfair Display", serif';
-  ctx.letterSpacing = '0.3em';
-  ctx.fillText((a.displayCode || a.code).split('').join(' '), W/2, pillY + 90);
+  ctx.font = 'bold 22px "Playfair Display", serif';
+  ctx.fillText((a.displayCode || a.code).split('').join('  '), W/2, pillY + 70);
 
   // ----- 7. Poetic name (HUGE, gold, the main eyeball) -----
   ctx.fillStyle = accent;
   if (isLegend) { ctx.shadowColor = 'rgba(184,146,255,0.5)'; ctx.shadowBlur = 18; }
-  // dynamically size to fit width
-  let nameSize = a.poeticName.length <= 4 ? 96 : a.poeticName.length === 5 ? 86 : 76;
+  const nameSize = a.poeticName.length <= 4 ? 88 : a.poeticName.length === 5 ? 78 : 70;
   ctx.font = `700 ${nameSize}px "Noto Serif SC", serif`;
-  ctx.fillText(a.poeticName, W/2, pillY + 175);
+  ctx.fillText(a.poeticName, W/2, pillY + 145);
   ctx.shadowBlur = 0;
 
   // ----- 8. Identity tag (purple) -----
   ctx.fillStyle = '#b892ff';
-  ctx.font = '500 26px "Noto Sans SC", sans-serif';
-  ctx.fillText(a.identityTag, W/2, pillY + 220);
+  ctx.font = '500 24px "Noto Sans SC", sans-serif';
+  ctx.fillText(a.identityTag, W/2, pillY + 185);
 
   // ----- 9. Slogan (italic, wrapped, ≤2 lines) -----
   ctx.fillStyle = 'rgba(245,240,232,0.82)';
-  ctx.font = 'italic 26px "Noto Serif SC", serif';
-  const sloganLines = wrapText(ctx, a.slogan, W - 180).slice(0, 2);
-  sloganLines.forEach((line, i) => ctx.fillText('"' + line.replace(/^"|"$/g,'') + '"', W/2, pillY + 270 + i * 38));
+  ctx.font = 'italic 24px "Noto Serif SC", serif';
+  const sloganLines = wrapText(ctx, a.slogan, W - 220).slice(0, 2);
+  sloganLines.forEach((line, i) => ctx.fillText('"' + line.replace(/^"|"$/g,'') + '"', W/2, pillY + 225 + i * 34));
 
   // ----- 10. Four axes mini-bars (tanh-amplified) -----
-  const axY = H - 175;
-  const axesWidth = 720;
+  // Position based on how many slogan lines we drew so axes don't overlap.
+  const axY = pillY + 225 + sloganLines.length * 34 + 38;  // ~860+
+  const axesWidth = 680;
   const axesX0 = W/2 - axesWidth/2;
   const axGap = axesWidth / 4;
   ['S','M','W','A'].forEach((ax, i) => {
@@ -4148,8 +4149,8 @@ function _drawShareCardInner(){
     const bx = cx - barLen/2, by = axY;
     // label
     ctx.fillStyle = 'rgba(245,240,232,0.5)';
-    ctx.font = '500 18px "Playfair Display", serif';
-    ctx.fillText(ax, cx, by - 14);
+    ctx.font = '500 17px "Playfair Display", serif';
+    ctx.fillText(ax, cx, by - 12);
     // bar background
     ctx.fillStyle = 'rgba(245,240,232,0.12)';
     _roundedRect(ctx, bx, by, barLen, barH, barH/2);
@@ -4161,21 +4162,38 @@ function _drawShareCardInner(){
     const t = Math.tanh((state.scores[ax] || 0) / 18);
     const dotX = cx + t * (barLen/2 - 3);
     ctx.fillStyle = accent;
-    ctx.beginPath(); ctx.arc(dotX, by + barH/2, 7, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(dotX, by + barH/2, 6, 0, Math.PI*2); ctx.fill();
     // score
     ctx.fillStyle = 'rgba(201,168,76,0.7)';
-    ctx.font = '500 17px "Playfair Display", serif';
-    ctx.fillText(((state.scores[ax]||0) >= 0 ? '+' : '') + (state.scores[ax]||0), cx, by + 30);
+    ctx.font = '500 16px "Playfair Display", serif';
+    ctx.fillText(((state.scores[ax]||0) >= 0 ? '+' : '') + (state.scores[ax]||0), cx, by + 28);
   });
 
-  // ----- 11. Player name + URL footer -----
+  // ----- 11. Footer: player name + URL on a single line -----
+  // Combined so the footer is one centered line instead of two stacked
+  // (saves ~30px and reads cleaner as a watermark).
   ctx.fillStyle = 'rgba(245,240,232,0.45)';
-  ctx.font = '300 22px "Noto Serif SC", serif';
-  ctx.fillText(`旅 人 · ${state.playerName || '匿名'}`, W/2, H - 90);
-  // URL — the watermark / call-to-action
-  ctx.fillStyle = isLegend ? 'rgba(184,146,255,0.7)' : 'rgba(201,168,76,0.7)';
-  ctx.font = '600 italic 22px "Playfair Display", serif';
-  ctx.fillText('soulmap.games', W/2, H - 55);
+  ctx.font = '300 20px "Noto Serif SC", serif';
+  const playerPart = `旅 人 · ${state.playerName || '匿名'}`;
+  const urlPart = 'soulmap.games';
+  const playerW = ctx.measureText(playerPart).width;
+  ctx.font = '600 italic 20px "Playfair Display", serif';
+  const urlW = ctx.measureText(urlPart).width;
+  const sepW = 24;
+  const totalW = playerW + sepW + urlW;
+  // draw centered as a unit
+  ctx.font = '300 20px "Noto Serif SC", serif';
+  ctx.textAlign = 'left';
+  ctx.fillStyle = 'rgba(245,240,232,0.45)';
+  ctx.fillText(playerPart, W/2 - totalW/2, H - 65);
+  // separator dot
+  ctx.fillStyle = 'rgba(201,168,76,0.4)';
+  ctx.beginPath(); ctx.arc(W/2 - totalW/2 + playerW + sepW/2, H - 72, 2.5, 0, Math.PI*2); ctx.fill();
+  // URL — italic gold call-to-action
+  ctx.fillStyle = isLegend ? 'rgba(184,146,255,0.85)' : 'rgba(201,168,76,0.85)';
+  ctx.font = '600 italic 20px "Playfair Display", serif';
+  ctx.fillText(urlPart, W/2 - totalW/2 + playerW + sepW, H - 65);
+  ctx.textAlign = 'center';
 }
 
 // Helper — rounded rect (canvas roundRect isn't on all browsers yet)
